@@ -6,6 +6,7 @@
 <title>سيارة التعليم الكتبية — Gestion Auto Ecole</title>
 <link rel="icon" type="image/jpeg" href="assets/logo-auto-ecole.jpg">
 <link rel="apple-touch-icon" href="assets/logo-auto-ecole.jpg">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -229,6 +230,35 @@
     th, td { padding: 6px 4px; font-size: 0.7rem; }
     .btn { padding: 7px 12px; font-size: 0.75rem; }
   }
+  @media (max-width: 768px) {
+    body { padding: 8px; }
+    .header { padding: 14px 10px; margin-bottom: 10px; }
+    .header h1 { font-size: 1.15rem; }
+    .header h2 { font-size: .78rem; }
+    .conn-bar { padding: 10px; gap: 7px; }
+    .conn-bar input { width:100%; min-width:0; font-size:.75rem; }
+    .conn-bar .btn { flex:1; min-width:0; }
+    .stats-grid { grid-template-columns:repeat(2,1fr); gap:7px; }
+    .stat-card { padding:10px 5px; }
+    .filters-bar { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+    .search-box { grid-column:1 / -1; width:100%; }
+    .filter-select, .filters-bar .btn { width:100%; min-width:0; }
+    .filters-bar .btn { grid-column:1 / -1; }
+    .form-actions { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+    .form-actions .btn { width:100%; min-height:42px; padding:8px 6px; }
+    input, select, textarea { font-size:16px !important; }
+    .table-wrapper { border-radius:10px; }
+    .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    table { min-width:980px; }
+    .modal-box { width:calc(100vw - 20px); max-height:88vh; padding:14px; }
+    .modal-actions { display:grid; grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width: 420px) {
+    .form-actions { grid-template-columns:1fr; }
+    .stats-grid { grid-template-columns:repeat(2,1fr); }
+    .calendar-grid { gap:2px; }
+    .calendar-day { min-height:36px; font-size:.75rem; }
+  }
 </style>
 </head>
 <body class="auth-locked">
@@ -374,6 +404,8 @@
           <button type="button" class="btn btn-sec hidden" id="cancelBtn" onclick="resetForm()">❌ إلغاء</button>
           <button type="button" class="btn btn-wrn" onclick="syncToFirebase()">📤 رفع للسحابة</button>
           <button type="button" class="btn btn-inf" onclick="window.print()">🖨️ طباعة</button>
+          <button type="button" class="btn btn-suc" onclick="exportExcel()">📊 Excel</button>
+          <button type="button" class="btn btn-prm" onclick="exportPDF()">📄 PDF</button>
           <button type="button" class="btn btn-suc" onclick="exportJSON()">📦 نسخ احتياطي</button>
           <button type="button" class="btn btn-dng" onclick="confirmClear()">🗑️ مسح الكل</button>
         </div>
@@ -921,6 +953,38 @@
     document.getElementById('formTitle').textContent='➕ إضافة بطاقة جديدة';
     document.getElementById('submitBtn').textContent='💾 حفظ محلياً';
     document.getElementById('cancelBtn').classList.add('hidden');
+  }
+
+  function exportExcel() {
+    if (candidates.length===0) { toast('ℹ️ لا توجد بطاقات للتصدير', 'inf'); return; }
+    if (!window.XLSX) { toast('❌ مكتبة Excel غير متاحة، تحقق من اتصال الإنترنت', 'err'); return; }
+    var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
+    var rows = candidates.map(function(c){ return {
+      'رقم البطاقة': c.cardNumber||'', 'الاسم الكامل': c.fullName||'', 'الهاتف': c.phone||'',
+      'نوع الرخصة': c.licenseType||'', 'رقم العربة': c.voitureNumber||'',
+      'الثمن الإجمالي': Number(c.totalPrice||0), 'الدفعة الأولى': Number(c.firstPayment||0),
+      'الدفعة الثانية': Number(c.secondPayment||0), 'الباقي': Number(c.remainingAmount||0),
+      'حالة الدفع': pyL[c.paymentStatus]||'', 'تاريخ الإضافية': c.registerDate||'',
+      'امتحان السياقة 1': c.exam1D1Date||'', 'امتحان السياقة 2': c.exam2D1Date||'',
+      'امتحان القانون 1': c.exam1D2Date||'', 'امتحان القانون 2': c.exam2D2Date||'',
+      'العنوان': c.address||'', 'ملاحظات': c.notes||''
+    }; });
+    var ws = XLSX.utils.json_to_sheet(rows);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'المرشحون');
+    XLSX.writeFile(wb, 'Auto-Ecole-Koutoubia-'+new Date().toISOString().split('T')[0]+'.xlsx');
+    toast('✅ تم تصدير ملف Excel', 'suc');
+  }
+
+  function exportPDF() {
+    if (candidates.length===0) { toast('ℹ️ لا توجد بطاقات للتصدير', 'inf'); return; }
+    var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
+    var rows = candidates.map(function(c){ return '<tr><td>'+(c.cardNumber||'—')+'</td><td>'+(c.fullName||'—')+'</td><td>'+(c.phone||'—')+'</td><td>'+(c.licenseType||'—')+'</td><td>'+Number(c.totalPrice||0).toFixed(2)+'</td><td>'+Number(c.firstPayment||0).toFixed(2)+'</td><td>'+Number(c.secondPayment||0).toFixed(2)+'</td><td>'+Number(c.remainingAmount||0).toFixed(2)+'</td><td>'+(pyL[c.paymentStatus]||'—')+'</td><td>'+(c.registerDate||'—')+'</td></tr>'; }).join('');
+    var w = window.open('', '_blank');
+    if (!w) { toast('⚠️ اسمح بالنوافذ المنبثقة لتصدير PDF', 'wrn'); return; }
+    w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير التسجيل والدفع</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{text-align:center;color:#1e3a5f}p{text-align:center;color:#555}img{display:block;width:80px;height:75px;object-fit:contain;margin:0 auto 8px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:6px;text-align:center}th{background:#dbeafe} @media print{button{display:none}}</style></head><body><img src="'+location.origin+'/assets/logo-auto-ecole.jpg"><h1>سيارة التعليم الكتبية — Gestion Auto Ecole</h1><p>تقرير التسجيل والدفع — '+new Date().toLocaleDateString('ar-MA')+'</p><table><thead><tr><th>رقم البطاقة</th><th>الاسم</th><th>الهاتف</th><th>الرخصة</th><th>الإجمالي</th><th>الدفعة 1</th><th>الدفعة 2</th><th>الباقي</th><th>الحالة</th><th>الإضافية</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print();};<\/script></body></html>');
+    w.document.close();
+    toast('✅ تم تجهيز تقرير PDF، اختر Save as PDF من نافذة الطباعة', 'suc');
   }
 
   function exportJSON() {
