@@ -180,6 +180,20 @@
     .table-wrapper { border: 1px solid #ccc; border-radius: 0; }
     th { color: black; background: #eee; }
   }
+  .calendar-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+  .calendar-toolbar strong { color:var(--accent); font-size:1rem; }
+  .calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; direction:rtl; }
+  .calendar-weekday { color:var(--text-muted); text-align:center; font-size:.7rem; font-weight:700; padding:5px 2px; }
+  .calendar-day { min-height:42px; border:1px solid var(--card-border); border-radius:8px; background:#0f172a; color:var(--text); cursor:pointer; font-family:'Cairo',sans-serif; font-weight:600; position:relative; }
+  .calendar-day:hover { border-color:var(--accent); }
+  .calendar-day.muted { opacity:.35; }
+  .calendar-day.today { outline:2px solid var(--info); }
+  .calendar-day.has-exam { background:rgba(214,158,46,.2); border-color:var(--accent); color:#fbd38d; }
+  .calendar-day .exam-count { display:block; color:#34d399; font-size:.6rem; line-height:1.1; }
+  .exam-list { display:flex; flex-direction:column; gap:8px; }
+  .exam-item { background:#0f172a; border:1px solid var(--card-border); border-radius:10px; padding:9px 11px; font-size:.8rem; }
+  .exam-item strong { color:var(--accent); }
+
   .auth-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(160deg, #0f172a 0%, #1a202c 50%, #0f172a 100%); }
   .auth-card { width: min(420px, 100%); padding: 28px; text-align: center; background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
   .auth-card h1 { color: var(--accent); font-size: 1.35rem; margin-bottom: 8px; }
@@ -362,6 +376,7 @@
       <option value="fail">❌ راسب</option>
       <option value="pending">⏳ لم يتم</option>
     </select>
+    <button type="button" class="btn btn-prm" onclick="openExamCalendar()">📅 تقويم الامتحانات</button>
   </div>
 
   <!-- Table -->
@@ -887,6 +902,61 @@
     t.className = 'toast toast-'+type; t.textContent = msg;
     c.appendChild(t);
     setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 3000);
+  }
+
+  // ====== EXAM CALENDAR ======
+  var calendarYear, calendarMonth;
+  var calendarMonths = ['يناير','فبراير','مارس','أبريل','ماي','يونيو','يوليوز','غشت','شتنبر','أكتوبر','نونبر','دجنبر'];
+  var calendarWeekdays = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  function getExamEvents() {
+    var events = {};
+    candidates.forEach(function(c) {
+      [['exam1D1Date','1er Examen — ملف 1'],['exam2D1Date','2ème Examen — ملف 1'],['exam1D2Date','1er Examen — ملف 2'],['exam2D2Date','2ème Examen — ملف 2']].forEach(function(pair) {
+        var date = c[pair[0]];
+        if (!date) return;
+        if (!events[date]) events[date] = [];
+        events[date].push({name:c.fullName||'—', card:c.cardNumber||'—', type:pair[1], status:c[pair[0].replace('Date','')]||'pending'});
+      });
+    });
+    return events;
+  }
+  function openExamCalendar() {
+    var now = new Date(); calendarYear = now.getFullYear(); calendarMonth = now.getMonth();
+    renderExamCalendar();
+  }
+  function renderExamCalendar() {
+    var events = getExamEvents();
+    var first = new Date(calendarYear, calendarMonth, 1);
+    var days = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+    var leading = first.getDay();
+    var today = new Date().toISOString().split('T')[0];
+    var cells = calendarWeekdays.map(function(w){ return '<div class="calendar-weekday">'+w+'</div>'; }).join('');
+    for (var i=0;i<leading;i++) cells += '<div class="calendar-day muted"></div>';
+    for (var d=1;d<=days;d++) {
+      var key = calendarYear+'-'+String(calendarMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      var count = events[key] ? events[key].length : 0;
+      var cls = 'calendar-day'+(key===today?' today':'')+(count?' has-exam':'');
+      cells += '<button type="button" class="'+cls+'" onclick="showCalendarDay(\''+key+'\')">'+d+(count?'<span class="exam-count">'+count+' امتحان</span>':'')+'</button>';
+    }
+    showModal('📅 تقويم الامتحانات',
+      '<div class="calendar-toolbar"><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(-1)">‹ السابق</button><strong>'+calendarMonths[calendarMonth]+' '+calendarYear+'</strong><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(1)">التالي ›</button></div>'+
+      '<div class="calendar-grid">'+cells+'</div>'+
+      '<p style="color:var(--text-muted);font-size:.72rem;margin-top:10px">الأيام المميزة باللون الذهبي تحتوي على امتحانات.</p>',
+      [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
+    );
+  }
+  function changeCalendarMonth(delta) {
+    calendarMonth += delta;
+    if (calendarMonth < 0) { calendarMonth=11; calendarYear--; }
+    if (calendarMonth > 11) { calendarMonth=0; calendarYear++; }
+    renderExamCalendar();
+  }
+  function showCalendarDay(date) {
+    var events = getExamEvents()[date] || [];
+    var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
+    var body = '<p style="color:var(--accent);font-weight:700;margin-bottom:10px">📅 '+date+'</p>';
+    body += events.length ? '<div class="exam-list">'+events.map(function(e){ return '<div class="exam-item"><strong>'+e.name+'</strong><br>رقم البطاقة: '+e.card+'<br>'+e.type+' — '+(statusLabels[e.status]||'—')+'</div>'; }).join('')+'</div>' : '<p style="color:var(--text-muted)">لا توجد امتحانات في هذا اليوم.</p>';
+    showModal('📋 امتحانات اليوم', body, [{text:'العودة للتقويم', cls:'btn btn-inf', act:renderExamCalendar}, {text:'إغلاق', cls:'btn btn-sec', act:hideModal}]);
   }
 
   // ====== AUTHENTICATION ======
