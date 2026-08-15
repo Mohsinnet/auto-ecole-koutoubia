@@ -222,9 +222,8 @@
 
   <!-- Connection Bar -->
   <div class="conn-bar">
-    <label>🔥 رابط Firebase Database:</label>
-    <input type="text" id="fbUrl" placeholder="https://your-project-default-rtdb.europe-west1.firebasedatabase.app/">
-    <button class="btn btn-suc" onclick="saveFbUrl()">💾 حفظ</button>
+    <label>🔥 رابط Firebase Database الثابت:</label>
+    <input type="text" id="fbUrl" value="https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/" readonly aria-readonly="true" title="رابط Firebase ثابت وغير قابل للتغيير">
     <button class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
     <button class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
     <span id="connStatus">
@@ -420,8 +419,8 @@
 
   // ====== INIT ======
   function init() {
-    fbUrl = localStorage.getItem(URL_KEY) || DEFAULT_FB_URL;
-    localStorage.setItem(URL_KEY, fbUrl);
+    fbUrl = DEFAULT_FB_URL;
+    localStorage.setItem(URL_KEY, DEFAULT_FB_URL);
     document.getElementById('fbUrl').value = fbUrl;
     updateStatus();
     loadLocal();
@@ -507,14 +506,12 @@
 
   // ====== CONNECTION ======
   function saveFbUrl() {
-    var url = document.getElementById('fbUrl').value.trim();
-    if (!url) { toast('⚠️ أدخل الرابط', 'wrn'); return; }
-    if (!url.includes('firebasedatabase.app')) { toast('⚠️ الرابط يجب أن يحتوي على firebasedatabase.app', 'wrn'); return; }
-    fbUrl = url;
-    localStorage.setItem(URL_KEY, url);
+    fbUrl = DEFAULT_FB_URL;
+    localStorage.setItem(URL_KEY, DEFAULT_FB_URL);
+    document.getElementById('fbUrl').value = DEFAULT_FB_URL;
     updateStatus();
     checkFirebaseConnection();
-    toast('✅ تم حفظ الرابط', 'suc');
+    toast('✅ رابط Firebase ثابت ولا يمكن تغييره من الواجهة', 'inf');
   }
 
   function updateStatus(connected) {
