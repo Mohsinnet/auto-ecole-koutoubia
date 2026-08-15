@@ -188,8 +188,17 @@
   .calendar-day:hover { border-color:var(--accent); }
   .calendar-day.muted { opacity:.35; }
   .calendar-day.today { outline:2px solid var(--info); }
-  .calendar-day.has-exam { background:rgba(214,158,46,.2); border-color:var(--accent); color:#fbd38d; }
-  .calendar-day .exam-count { display:block; color:#34d399; font-size:.6rem; line-height:1.1; }
+  .calendar-day.has-exam { border-width:2px; color:#fff; }
+  .calendar-day.drive-day { background:rgba(59,130,246,.28); border-color:#3b82f6; }
+  .calendar-day.law-day { background:rgba(249,115,22,.28); border-color:#f97316; }
+  .calendar-day.both-day { background:linear-gradient(135deg,rgba(59,130,246,.38) 0 50%,rgba(249,115,22,.38) 50% 100%); border-color:#a78bfa; }
+  .calendar-day .exam-count { display:block; color:#fff; font-size:.6rem; line-height:1.1; }
+  .calendar-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; color:var(--text-muted); font-size:.72rem; }
+  .calendar-legend span { display:inline-flex; align-items:center; gap:5px; }
+  .legend-dot { width:11px; height:11px; display:inline-block; border-radius:3px; }
+  .legend-drive { background:#3b82f6; }
+  .legend-law { background:#f97316; }
+  .legend-both { background:linear-gradient(135deg,#3b82f6 0 50%,#f97316 50% 100%); }
   .exam-list { display:flex; flex-direction:column; gap:8px; }
   .exam-item { background:#0f172a; border:1px solid var(--card-border); border-radius:10px; padding:9px 11px; font-size:.8rem; }
   .exam-item strong { color:var(--accent); }
@@ -923,7 +932,7 @@
         var date = c[pair[0]];
         if (!date) return;
         if (!events[date]) events[date] = [];
-        events[date].push({name:c.fullName||'—', card:c.cardNumber||'—', type:pair[1], status:c[pair[0].replace('Date','')]||'pending'});
+        events[date].push({name:c.fullName||'—', card:c.cardNumber||'—', type:pair[1], category:pair[0].includes('D1')?'drive':'law', status:c[pair[0].replace('Date','')]||'pending'});
       });
     });
     return events;
@@ -959,14 +968,18 @@
     for (var i=0;i<leading;i++) cells += '<div class="calendar-day muted"></div>';
     for (var d=1;d<=days;d++) {
       var key = calendarYear+'-'+String(calendarMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-      var count = events[key] ? events[key].length : 0;
-      var cls = 'calendar-day'+(key===today?' today':'')+(count?' has-exam':'');
+      var dayEvents = events[key] || [];
+      var count = dayEvents.length;
+      var hasDrive = dayEvents.some(function(e){ return e.category==='drive'; });
+      var hasLaw = dayEvents.some(function(e){ return e.category==='law'; });
+      var typeClass = hasDrive && hasLaw ? ' both-day' : hasDrive ? ' drive-day' : hasLaw ? ' law-day' : '';
+      var cls = 'calendar-day'+(key===today?' today':'')+(count?' has-exam':'')+typeClass;
       cells += '<button type="button" class="'+cls+'" onclick="showCalendarDay(\''+key+'\')">'+d+(count?'<span class="exam-count">'+count+' امتحان</span>':'')+'</button>';
     }
     showModal('📅 تقويم الامتحانات',
       '<div class="calendar-toolbar"><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(-1)">‹ السابق</button><strong>'+calendarMonths[calendarMonth]+' '+calendarYear+'</strong><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(1)">التالي ›</button></div>'+
       '<div class="calendar-grid">'+cells+'</div>'+
-      '<p style="color:var(--text-muted);font-size:.72rem;margin-top:10px">الأيام المميزة باللون الذهبي تحتوي على امتحانات.</p>',
+      '<div class="calendar-legend"><span><i class="legend-dot legend-drive"></i> الملف 1: امتحان السياقة</span><span><i class="legend-dot legend-law"></i> الملف 2: امتحان القانون</span><span><i class="legend-dot legend-both"></i> النوعان معًا</span></div>',
       [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
     );
   }
@@ -980,7 +993,8 @@
     var events = getExamEvents()[date] || [];
     var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
     var body = '<p style="color:var(--accent);font-weight:700;margin-bottom:10px">📅 '+date+'</p>';
-    body += events.length ? '<div class="exam-list">'+events.map(function(e){ return '<div class="exam-item"><strong>'+e.name+'</strong><br>رقم البطاقة: '+e.card+'<br>'+e.type+' — '+(statusLabels[e.status]||'—')+'</div>'; }).join('')+'</div>' : '<p style="color:var(--text-muted)">لا توجد امتحانات في هذا اليوم.</p>';
+    body += events.length ? '<div class="exam-list">'+events.map(function(e){         var categoryLabel = e.category==='drive' ? '🔵 سياقة' : '🟠 قانون';
+        return '<div class="exam-item"><strong>'+e.name+'</strong><br>رقم البطاقة: '+e.card+'<br>'+categoryLabel+' — '+e.type+' — '+(statusLabels[e.status]||'—')+'</div>'; }).join('')+'</div>' : '<p style="color:var(--text-muted)">لا توجد امتحانات في هذا اليوم.</p>';
     showModal('📋 امتحانات اليوم', body, [{text:'العودة للتقويم', cls:'btn btn-inf', act:renderExamCalendar}, {text:'إغلاق', cls:'btn btn-sec', act:hideModal}]);
   }
 
