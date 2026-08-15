@@ -109,6 +109,12 @@
   .photo-hint { color: #64748b; font-size: 0.7rem; }
   .photo-remove { position: absolute; top: 6px; left: 6px; background: var(--danger); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 0.75rem; display: none; }
   .photo-area.has-img .photo-remove { display: flex; align-items: center; justify-content: center; }
+  .phone-actions { display:flex; gap:6px; margin-top:6px; }
+  .phone-actions .btn { flex:1; padding:6px 8px; font-size:.72rem; text-decoration:none; justify-content:center; }
+  .document-upload { background:#0f172a; border:1px dashed #475569; border-radius:12px; padding:10px; text-align:center; position:relative; }
+  .document-upload input[type=file] { width:100%; font-size:.75rem; color:var(--text-muted); }
+  .document-preview { width:100%; max-height:130px; object-fit:contain; border-radius:8px; margin-top:8px; display:none; background:#fff; }
+  .document-preview.show { display:block; }
 
   .filters-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
   .search-box { flex: 1; min-width: 200px; position: relative; }
@@ -328,7 +334,7 @@
       <div class="form-grid">
 
         <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
-          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)">
+          <input type="file" id="photoInput" accept="image/*" capture="user" onchange="handlePhoto(event)">
           <button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto()">✕</button>
           <img class="photo-preview" id="photoPreview">
           <div class="photo-placeholder" id="photoPlc">📷</div>
@@ -345,12 +351,15 @@
         <div class="form-group"><label>تاريخ الميلاد <span class="req">*</span></label><input type="date" id="birthDate" required></div>
         <div class="form-group"><label>المهنة</label><input type="text" id="profession" placeholder="Profession"></div>
         <div class="form-group full"><label>العنوان</label><input type="text" id="address" placeholder="Adresse"></div>
-        <div class="form-group"><label>الهاتف <span class="req">*</span></label><input type="tel" id="phone" required placeholder="05XX XX XX XX" autocomplete="tel"></div>
+        <div class="form-group"><label>الهاتف <span class="req">*</span></label><input type="tel" id="phone" required placeholder="05XX XX XX XX" autocomplete="tel"><div class="phone-actions"><a class="btn btn-suc" id="callPhoneBtn" href="#">📞 اتصال</a><a class="btn btn-inf" id="whatsappPhoneBtn" href="#" target="_blank" rel="noopener">💬 واتساب</a></div></div>
 
         <div class="section-divider">🆔 البطاقة الوطنية</div>
 
         <div class="form-group"><label>C.I.N N°</label><input type="text" id="cinNumber" placeholder="AB123456"></div>
         <div class="form-group"><label>تاريخ CIN (Du)</label><input type="date" id="cinDate"></div>
+        <div class="section-divider">📄 صور الوثائق</div>
+        <div class="document-upload"><label>صورة البطاقة الوطنية</label><input type="file" id="cinDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'cinDocument')"><img id="cinDocumentPreview" class="document-preview" alt="صورة البطاقة الوطنية"><button type="button" class="btn btn-dng hidden" id="removeCinDocument" onclick="removeDocument('cinDocument')">حذف الصورة</button></div>
+        <div class="document-upload"><label>وثيقة إضافية</label><input type="file" id="extraDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'extraDocument')"><img id="extraDocumentPreview" class="document-preview" alt="وثيقة إضافية"><button type="button" class="btn btn-dng hidden" id="removeExtraDocument" onclick="removeDocument('extraDocument')">حذف الصورة</button></div>
 
         <div class="section-divider">📋 إضافية</div>
 
@@ -505,6 +514,8 @@
   var DEFAULT_FB_URL = 'https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/';
   var candidates = [];
   var currentPhoto = '';
+  var currentCinDocument = '';
+  var currentExtraDocument = '';
   var fbUrl = '';
   var firebaseConfig = {
     apiKey: 'AIzaSyD32obOSEGVfyazTRco3bK6MFE2DYI0CtI',
@@ -691,6 +702,51 @@
     reader.readAsDataURL(file);
   }
 
+  function normalizePhone(phone) {
+    var digits = String(phone || '').replace(/\D/g, '');
+    if (digits.indexOf('00') === 0) digits = digits.slice(2);
+    if (digits.indexOf('0') === 0) digits = '212' + digits.slice(1);
+    if (digits.indexOf('212') !== 0 && digits.length >= 9) digits = '212' + digits;
+    return digits;
+  }
+  function phoneActionsHtml(phone) {
+    if (!phone) return '—';
+    var normalized = normalizePhone(phone);
+    return '<div style="display:flex;gap:4px;margin-top:4px;direction:ltr"><a class="btn btn-suc" style="padding:3px 6px;font-size:.65rem;text-decoration:none" href="tel:'+phone+'">📞</a><a class="btn btn-inf" style="padding:3px 6px;font-size:.65rem;text-decoration:none" href="https://wa.me/'+normalized+'" target="_blank" rel="noopener">💬</a></div>';
+  }
+  function updatePhoneActions() {
+    var phone = document.getElementById('phone').value.trim();
+    var normalized = normalizePhone(phone);
+    document.getElementById('callPhoneBtn').href = phone ? 'tel:' + phone : '#';
+    document.getElementById('whatsappPhoneBtn').href = normalized ? 'https://wa.me/' + normalized : '#';
+  }
+  document.getElementById('phone').addEventListener('input', updatePhoneActions);
+  function handleDocument(event, type) {
+    var file = event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
+    if (file.size > 4*1024*1024) { toast('⚠️ حجم الوثيقة كبير (أقصى 4 ميجا)', 'wrn'); return; }
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      if (type === 'cinDocument') currentCinDocument = ev.target.result;
+      if (type === 'extraDocument') currentExtraDocument = ev.target.result;
+      var preview = document.getElementById(type + 'Preview');
+      preview.src = ev.target.result;
+      preview.classList.add('show');
+      document.getElementById('remove' + (type === 'cinDocument' ? 'Cin' : 'Extra') + 'Document').classList.remove('hidden');
+    };
+    reader.readAsDataURL(file);
+  }
+  function removeDocument(type) {
+    if (type === 'cinDocument') currentCinDocument = '';
+    if (type === 'extraDocument') currentExtraDocument = '';
+    var suffix = type === 'cinDocument' ? 'Cin' : 'Extra';
+    document.getElementById(type + 'Input').value = '';
+    document.getElementById(type + 'Preview').src = '';
+    document.getElementById(type + 'Preview').classList.remove('show');
+    document.getElementById('remove' + suffix + 'Document').classList.add('hidden');
+  }
+
   function removePhoto() {
     currentPhoto = '';
     document.getElementById('photoInput').value = '';
@@ -772,7 +828,7 @@
         '<td class="td-photo">' + photoCell(c.photo) + '</td>' +
         '<td class="td-small">' + (c.cardNumber||'—') + '</td>' +
         '<td class="td-name">' + c.fullName + '</td>' +
-        '<td class="td-phone">' + c.phone + '</td>' +
+        '<td class="td-phone">' + (c.phone||'—') + phoneActionsHtml(c.phone) + '</td>' +
         '<td class="td-small">' + calcAge(c.birthDate) + '</td>' +
         '<td>' + licBadge(c.licenseType) + '</td>' +
         '<td class="td-small">' + (c.dossier1||'—') + '</td>' +
@@ -809,14 +865,22 @@
     e.preventDefault();
     var editId = document.getElementById('editId').value;
     var photoToSave = currentPhoto;
-    if (editId && !currentPhoto) {
+    var cinDocumentToSave = currentCinDocument;
+    var extraDocumentToSave = currentExtraDocument;
+    if (editId) {
       var ex = candidates.find(function(c){return c.id===editId;});
-      if (ex) photoToSave = ex.photo || '';
+      if (ex) {
+        if (!photoToSave) photoToSave = ex.photo || '';
+        if (!cinDocumentToSave) cinDocumentToSave = ex.cinDocument || '';
+        if (!extraDocumentToSave) extraDocumentToSave = ex.extraDocument || '';
+      }
     }
 
     var data = {
       id: editId || Date.now().toString(36)+Math.random().toString(36).substr(2,9),
       photo: photoToSave,
+      cinDocument: cinDocumentToSave,
+      extraDocument: extraDocumentToSave,
       cardNumber: document.getElementById('cardNumber').value.trim(),
       fullName: document.getElementById('fullName').value.trim(),
       fatherName: document.getElementById('fatherName').value.trim(),
@@ -891,6 +955,16 @@
     document.getElementById('cinNumber').value = c.cinNumber||'';
     document.getElementById('cinDate').value = c.cinDate||'';
     document.getElementById('phone').value = c.phone||'';
+    updatePhoneActions();
+    currentCinDocument = c.cinDocument||'';
+    currentExtraDocument = c.extraDocument||'';
+    ['cinDocument','extraDocument'].forEach(function(type){
+      var value = type === 'cinDocument' ? currentCinDocument : currentExtraDocument;
+      var suffix = type === 'cinDocument' ? 'Cin' : 'Extra';
+      var preview = document.getElementById(type+'Preview');
+      if (value) { preview.src=value; preview.classList.add('show'); document.getElementById('remove'+suffix+'Document').classList.remove('hidden'); }
+      else { preview.src=''; preview.classList.remove('show'); document.getElementById('remove'+suffix+'Document').classList.add('hidden'); }
+    });
     document.getElementById('ancienPC').value = c.ancienPC||'';
     document.getElementById('ancienPCDate').value = c.ancienPCDate||'';
     document.getElementById('ancienPCLieu').value = c.ancienPCLieu||'';
@@ -928,6 +1002,7 @@
     var exL = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
     var pyL = {paid:'✅ مدفوع', unpaid:'❌ غير مدفوع', partial:'⚠️ جزئي'};
     var ph = c.photo ? '<img src="'+c.photo+'" class="modal-photo" onclick="openImgModal(&quot;'+c.photo+'&quot;)" style="cursor:pointer">' : '<div style="text-align:center;font-size:2.5rem;margin-bottom:12px">👤</div>';
+    var docs = '<div class="dr"><span class="dl">الوثائق:</span><span class="dv">' + (c.cinDocument ? '<img src="'+c.cinDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.cinDocument+'&quot;)" style="cursor:pointer" alt="البطاقة الوطنية">' : 'لا توجد صورة للبطاقة') + (c.extraDocument ? '<img src="'+c.extraDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.extraDocument+'&quot;)" style="cursor:pointer" alt="وثيقة إضافية">' : '') + '</span></div>';
     function exLine(e,d){ return (exL[e]||'—') + (d?' ('+d+')':''); }
 
     showModal('👁️ '+c.fullName,
@@ -953,7 +1028,7 @@
       '<div class="dr"><span class="dl">الباقي:</span><span class="dv">'+(Number(c.remainingAmount||0).toFixed(2))+'</span></div>' +
       '<div class="dr"><span class="dl">حالة الدفع:</span><span class="dv">'+(pyL[c.paymentStatus]||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">إضافية:</span><span class="dv">'+c.registerDate+'</span></div>' +
-      '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>',
+      '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>' + docs,
       [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
     );
   }
@@ -984,6 +1059,9 @@
     document.getElementById('candForm').reset();
     document.getElementById('editId').value='';
     currentPhoto=''; removePhoto();
+    currentCinDocument=''; currentExtraDocument='';
+    removeDocument('cinDocument'); removeDocument('extraDocument');
+    updatePhoneActions();
     document.getElementById('registerDate').value=new Date().toISOString().split('T')[0];
     document.getElementById('formTitle').textContent='➕ إضافة بطاقة جديدة';
     document.getElementById('submitBtn').textContent='💾 حفظ محلياً';
