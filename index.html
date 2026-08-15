@@ -7,6 +7,8 @@
 <link rel="icon" type="image/jpeg" href="assets/logo-auto-ecole.jpg">
 <link rel="apple-touch-icon" href="assets/logo-auto-ecole.jpg">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -267,10 +269,12 @@
   <form class="auth-card" id="authForm" autocomplete="off">
     <div style="font-size:2.4rem;margin-bottom:8px">🔐</div>
     <h1>سيارة التعليم الكتبية</h1>
-    <p>أدخل الرقم السري للوصول إلى Gestion Auto Ecole</p>
-    <input type="password" id="authPassword" placeholder="الرقم السري" autocomplete="current-password" required>
+    <p>سجّل الدخول للوصول إلى Gestion Auto Ecole</p>
+    <input type="email" id="authEmail" placeholder="البريد الإلكتروني" autocomplete="username" required>
+    <input type="password" id="authPassword" placeholder="كلمة المرور" autocomplete="current-password" required>
     <div class="auth-error" id="authError" aria-live="polite"></div>
-    <button type="submit" class="btn btn-prm" style="width:100%;justify-content:center">دخول</button>
+    <button type="submit" class="btn btn-prm" style="width:100%;justify-content:center">دخول آمن</button>
+    <button type="button" class="btn btn-sec" style="width:100%;justify-content:center;margin-top:8px" onclick="sendPasswordReset()">نسيت كلمة المرور؟</button>
   </form>
 </div>
 
@@ -280,7 +284,7 @@
     <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:4px">سيارة التعليم الكتبية</div>
     <h1>Gestion Auto Ecole</h1>
     <h2>مزامنة فورية بين جميع أجهزة المؤسسة</h2>
-    <button type="button" class="btn btn-sec" onclick="openPasswordChange()" style="margin-top:10px">🔑 تغيير كلمة المرور</button>
+    <button type="button" class="btn btn-sec" onclick="logoutUser()" style="margin-top:10px">🚪 تسجيل الخروج</button>
   </div>
 
   <!-- Connection Bar -->
@@ -491,6 +495,18 @@
   var candidates = [];
   var currentPhoto = '';
   var fbUrl = '';
+  var firebaseConfig = {
+    apiKey: 'AIzaSyD32obOSEGVfyazTRco3bK6MFE2DYI0CtI',
+    authDomain: 'koutoubia-auto-ecole.firebaseapp.com',
+    databaseURL: 'https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app',
+    projectId: 'koutoubia-auto-ecole',
+    storageBucket: 'koutoubia-auto-ecole.firebasestorage.app',
+    messagingSenderId: '636600155525',
+    appId: '1:636600155525:web:d527ab8af8a623461f58ec',
+    measurementId: 'G-MQTTSKYV0G'
+  };
+  var firebaseApp = firebase.initializeApp(firebaseConfig);
+  var firebaseAuth = firebase.auth(firebaseApp);
 
   // ====== INIT ======
   function init() {
@@ -504,6 +520,14 @@
   }
 
   // ====== FIREBASE API ======
+  async function firebaseRequest(url, options) {
+    var user = firebaseAuth.currentUser;
+    if (!user) throw new Error('AUTH_REQUIRED');
+    var token = await user.getIdToken();
+    var separator = url.indexOf('?') === -1 ? '?' : '&';
+    return fetch(url + separator + 'auth=' + encodeURIComponent(token), options || {});
+  }
+
   function getDbUrl() {
     var url = fbUrl.trim();
     if (!url) return '';
@@ -515,7 +539,7 @@
     var url = getDbUrl();
     if (!url) { updateStatus(false); return; }
     try {
-      var res = await fetch(url, { method: 'GET', cache: 'no-store' });
+      var res = await firebaseRequest(url, { method: 'GET', cache: 'no-store' });
       if (res.ok) updateStatus(true); else updateStatus(false);
     } catch(e) { updateStatus(false); }
   }
@@ -525,7 +549,7 @@
     if (!url) { toast('⚠️ أدخل رابط Firebase أولاً', 'wrn'); return; }
     showSpin('📥 جارٍ تحميل البيانات من Firebase...');
     try {
-      var res = await fetch(url);
+      var res = await firebaseRequest(url);
       var data = await res.json();
       if (data) {
         // Firebase returns object {id1: {...}, id2: {...}} or array
@@ -561,7 +585,7 @@
       candidates.forEach(function(c, i) {
         payload['cand_' + i] = c;
       });
-      var res = await fetch(url, {
+      var res = await firebaseRequest(url, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -1100,51 +1124,82 @@
     showModal('📋 امتحانات اليوم', body, [{text:'العودة للتقويم', cls:'btn btn-inf', act:renderExamCalendar}, {text:'إغلاق', cls:'btn btn-sec', act:hideModal}]);
   }
 
-  // ====== AUTHENTICATION ======
-  var APP_PASSWORD = '5011ibx';
-  var PASSWORD_KEY = 'koutoubia_app_password';
+  // ====== FIREBASE AUTHENTICATION ======
   var appStarted = false;
-  function getAppPassword() { return localStorage.getItem(PASSWORD_KEY) || APP_PASSWORD; }
-  function unlockApp() {
+  function unlockApp(user) {
     document.body.classList.remove('auth-locked');
-    document.getElementById('authGate').remove();
+    var gate = document.getElementById('authGate');
+    if (gate) gate.remove();
     if (!appStarted) { appStarted = true; init(); }
+    toast('✅ تم تسجيل الدخول: ' + (user.email || ''), 'suc');
   }
-  document.getElementById('authForm').addEventListener('submit', function(e) {
+  function authErrorMessage(code) {
+    var messages = {
+      'auth/invalid-credential':'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+      'auth/invalid-email':'صيغة البريد الإلكتروني غير صحيحة',
+      'auth/user-not-found':'لا يوجد حساب بهذا البريد الإلكتروني',
+      'auth/wrong-password':'كلمة المرور غير صحيحة',
+      'auth/too-many-requests':'تمت محاولات كثيرة، حاول لاحقًا',
+      'auth/network-request-failed':'تعذر الاتصال بالإنترنت'
+    };
+    return messages[code] || 'تعذر تسجيل الدخول، تحقق من البيانات وحاول مرة أخرى';
+  }
+  document.getElementById('authForm').addEventListener('submit', async function(e) {
     e.preventDefault();
-    var input = document.getElementById('authPassword');
+    var email = document.getElementById('authEmail').value.trim();
+    var password = document.getElementById('authPassword').value;
     var error = document.getElementById('authError');
-    if (input.value === getAppPassword()) {
-      unlockApp();
-    } else {
-      error.textContent = 'الرقم السري غير صحيح';
-      input.value = '';
-      input.focus();
+    error.textContent = '';
+    try {
+      var result = await firebaseAuth.signInWithEmailAndPassword(email, password);
+      unlockApp(result.user);
+    } catch (err) {
+      error.textContent = authErrorMessage(err.code);
+      document.getElementById('authPassword').value = '';
+      document.getElementById('authPassword').focus();
     }
   });
-  document.getElementById('authPassword').focus();
+  document.getElementById('authEmail').focus();
+
+  async function sendPasswordReset() {
+    var email = document.getElementById('authEmail').value.trim();
+    var error = document.getElementById('authError');
+    if (!email) { error.textContent = 'أدخل البريد الإلكتروني أولًا لإرسال رابط الاستعادة'; return; }
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email);
+      error.textContent = '✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك';
+    } catch (err) { error.textContent = authErrorMessage(err.code); }
+  }
 
   function openPasswordChange() {
     showModal('🔑 تغيير كلمة المرور',
-      '<div class="form-group"><label>كلمة المرور الحالية</label><input type="password" id="currentPasswordChange" autocomplete="current-password"></div>' +
-      '<div class="form-group" style="margin-top:10px"><label>كلمة المرور الجديدة</label><input type="password" id="newPasswordChange" autocomplete="new-password"></div>' +
-      '<div class="form-group" style="margin-top:10px"><label>تأكيد كلمة المرور الجديدة</label><input type="password" id="confirmPasswordChange" autocomplete="new-password"></div>' +
-      '<p style="color:var(--text-muted);font-size:.75rem;margin-top:10px">ملاحظة: تُحفظ كلمة المرور على هذا المتصفح فقط.</p>',
+      '<div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="newPasswordChange" autocomplete="new-password" minlength="6"></div>' +
+      '<div class="form-group" style="margin-top:10px"><label>تأكيد كلمة المرور الجديدة</label><input type="password" id="confirmPasswordChange" autocomplete="new-password" minlength="6"></div>' +
+      '<p style="color:var(--text-muted);font-size:.75rem;margin-top:10px">يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.</p>',
       [{text:'حفظ التغيير', cls:'btn btn-prm', act:savePasswordChange}, {text:'إلغاء', cls:'btn btn-sec', act:hideModal}]
     );
   }
-
-  function savePasswordChange() {
-    var current = document.getElementById('currentPasswordChange').value;
+  async function savePasswordChange() {
+    var user = firebaseAuth.currentUser;
     var next = document.getElementById('newPasswordChange').value;
     var confirm = document.getElementById('confirmPasswordChange').value;
-    if (current !== getAppPassword()) { toast('❌ كلمة المرور الحالية غير صحيحة', 'err'); return; }
-    if (next.length < 4) { toast('⚠️ يجب أن تتكون كلمة المرور الجديدة من 4 أحرف على الأقل', 'wrn'); return; }
+    if (!user) { toast('❌ يجب تسجيل الدخول أولًا', 'err'); return; }
+    if (next.length < 6) { toast('⚠️ يجب أن تتكون كلمة المرور من 6 أحرف على الأقل', 'wrn'); return; }
     if (next !== confirm) { toast('⚠️ تأكيد كلمة المرور غير مطابق', 'wrn'); return; }
-    localStorage.setItem(PASSWORD_KEY, next);
-    hideModal();
-    toast('✅ تم تغيير كلمة المرور بنجاح', 'suc');
+    try {
+      await user.updatePassword(next);
+      hideModal();
+      toast('✅ تم تغيير كلمة المرور في Firebase بنجاح', 'suc');
+    } catch (err) {
+      toast(err.code === 'auth/requires-recent-login' ? '⚠️ أعد تسجيل الدخول ثم حاول تغيير كلمة المرور' : '❌ تعذر تغيير كلمة المرور', 'err');
+    }
   }
+  function logoutUser() {
+    firebaseAuth.signOut().then(function(){ window.location.reload(); });
+  }
+  firebaseAuth.onAuthStateChanged(function(user) {
+    if (user && !appStarted) unlockApp(user);
+  });
 </script>
 
 </body>
