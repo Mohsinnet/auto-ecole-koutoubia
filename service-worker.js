@@ -1,10 +1,12 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v1';
+const CACHE_NAME = 'auto-ecole-koutoubia-v2';
 const APP_SHELL = [
   './',
   './index.html',
   './auto_ecole_firebase.html',
   './manifest.json',
-  './assets/logo-auto-ecole.jpg'
+  './assets/logo-auto-ecole.jpg',
+  './assets/icon-192.png',
+  './assets/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
