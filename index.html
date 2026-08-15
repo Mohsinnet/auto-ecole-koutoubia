@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>سيارة التعليم الكتبية — Gestion Auto Ecole</title>
+<link rel="icon" type="image/jpeg" href="assets/logo-auto-ecole.jpg">
+<link rel="apple-touch-icon" href="assets/logo-auto-ecole.jpg">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -25,6 +27,8 @@
   }
   .header h1 { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
   .header h2 { font-size: 1rem; color: var(--text-muted); margin-top: 4px; }
+  .site-logo { display:block; width:110px; height:100px; object-fit:contain; margin:0 auto 10px; padding:5px; background:#fff; border:2px solid var(--accent); border-radius:18px; box-shadow:0 8px 22px rgba(0,0,0,.25); }
+  @media (max-width: 768px) { .site-logo { width:88px; height:82px; } }
 
   .conn-bar {
     background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
@@ -242,7 +246,8 @@
 
 <div class="container">
   <div class="header">
-    <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:4px">🚗 سيارة التعليم الكتبية</div>
+    <img class="site-logo" src="assets/logo-auto-ecole.jpg" alt="شعار سيارة التعليم الكتبية">
+    <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:4px">سيارة التعليم الكتبية</div>
     <h1>Gestion Auto Ecole</h1>
     <h2>مزامنة فورية بين جميع أجهزة المؤسسة</h2>
     <button type="button" class="btn btn-sec" onclick="openPasswordChange()" style="margin-top:10px">🔑 تغيير كلمة المرور</button>
