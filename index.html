@@ -6,6 +6,11 @@
 <title>سيارة التعليم الكتبية — Gestion Auto Ecole</title>
 <link rel="icon" type="image/jpeg" href="assets/logo-auto-ecole.jpg">
 <link rel="apple-touch-icon" href="assets/logo-auto-ecole.jpg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a365d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -31,7 +36,10 @@
   .header h1 { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
   .header h2 { font-size: 1rem; color: var(--text-muted); margin-top: 4px; }
   .site-logo { display:block; width:110px; height:100px; object-fit:contain; margin:0 auto 10px; padding:5px; background:#fff; border:2px solid var(--accent); border-radius:18px; box-shadow:0 8px 22px rgba(0,0,0,.25); }
-  @media (max-width: 768px) { .site-logo { width:88px; height:82px; } }
+  .install-btn { margin-top:10px; background:linear-gradient(135deg,#0ea5e9,#2563eb); }
+  .offline-banner { background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.45); color:#fbbf24; border-radius:10px; padding:8px 12px; text-align:center; font-size:.8rem; margin-bottom:12px; }
+  @media (max-width: 768px) { .site-logo { width:88px; height:82px; } .install-btn { width:100%; } }
+  @media (display-mode: standalone) { .install-btn { display:none !important; } }
 
   .conn-bar {
     background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
@@ -285,7 +293,10 @@
     <h1>Gestion Auto Ecole</h1>
     <h2>مزامنة فورية بين جميع أجهزة المؤسسة</h2>
     <button type="button" class="btn btn-sec" onclick="logoutUser()" style="margin-top:10px">🚪 تسجيل الخروج</button>
+    <button type="button" class="btn install-btn hidden" id="installButton" onclick="installApp()">📱 تثبيت التطبيق</button>
   </div>
+
+  <div class="offline-banner hidden" id="offlineBanner">⚠️ أنت غير متصل بالإنترنت. يمكنك العمل على البيانات المحلية، وستحتاج اتصالًا للمزامنة مع Firebase.</div>
 
   <!-- Connection Bar -->
   <div class="conn-bar">
@@ -1122,6 +1133,43 @@
     body += events.length ? '<div class="exam-list">'+events.map(function(e){         var categoryLabel = e.category==='drive' ? '🔵 سياقة' : '🟠 قانون';
         return '<div class="exam-item"><strong>'+e.name+'</strong><br>رقم البطاقة: '+e.card+'<br>'+categoryLabel+' — '+e.type+' — '+(statusLabels[e.status]||'—')+'</div>'; }).join('')+'</div>' : '<p style="color:var(--text-muted)">لا توجد امتحانات في هذا اليوم.</p>';
     showModal('📋 امتحانات اليوم', body, [{text:'العودة للتقويم', cls:'btn btn-inf', act:renderExamCalendar}, {text:'إغلاق', cls:'btn btn-sec', act:hideModal}]);
+  }
+
+  // ====== PWA / MOBILE INSTALL ======
+  var deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', function(event) {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    var button = document.getElementById('installButton');
+    if (button) button.classList.remove('hidden');
+  });
+  window.addEventListener('appinstalled', function() {
+    deferredInstallPrompt = null;
+    var button = document.getElementById('installButton');
+    if (button) button.classList.add('hidden');
+    if (typeof toast === 'function') toast('✅ تم تثبيت التطبيق على الهاتف', 'suc');
+  });
+  async function installApp() {
+    if (!deferredInstallPrompt) {
+      toast('ℹ️ من قائمة المتصفح اختر «إضافة إلى الشاشة الرئيسية»', 'inf');
+      return;
+    }
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    document.getElementById('installButton').classList.add('hidden');
+  }
+  function updateOnlineStatus() {
+    var banner = document.getElementById('offlineBanner');
+    if (banner) banner.classList.toggle('hidden', navigator.onLine);
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./service-worker.js').catch(function(error) { console.warn('Service Worker:', error); });
+    });
   }
 
   // ====== FIREBASE AUTHENTICATION ======

@@ -1,0 +1,21 @@
+{
+  "name": "سيارة التعليم الكتبية — Gestion Auto Ecole",
+  "short_name": "Auto Ecole Koutoubia",
+  "description": "إدارة المرشحين والامتحانات والدفع لسيارة التعليم الكتبية",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#1a365d",
+  "icons": [
+    {
+      "src": "assets/logo-auto-ecole.jpg",
+      "sizes": "452x442",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}
