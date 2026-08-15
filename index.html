@@ -352,6 +352,13 @@
             <option value="E">E — مقطورات</option>
           </select>
         </div>
+
+        <div class="section-divider">💰 التسجيل والدفع</div>
+
+        <div class="form-group"><label>الثمن الإجمالي</label><input type="number" id="totalPrice" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="form-group"><label>الدفعة الأولى</label><input type="number" id="firstPayment" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="form-group"><label>الدفعة الثانية</label><input type="number" id="secondPayment" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="form-group"><label>الباقي</label><input type="number" id="remainingAmount" readonly placeholder="0.00"></div>
         <div class="form-group"><label>حالة الدفع <span class="req">*</span></label>
           <select id="paymentStatus" required>
             <option value="paid">✅ مدفوع كامل</option>
@@ -717,6 +724,19 @@
     }).join('');
   }
 
+  // ====== PAYMENT CALCULATION ======
+  function paymentNumber(id) { return Math.max(0, parseFloat(document.getElementById(id).value) || 0); }
+  function updatePaymentAmounts() {
+    var total = paymentNumber('totalPrice');
+    var first = paymentNumber('firstPayment');
+    var second = paymentNumber('secondPayment');
+    var remaining = Math.max(0, total - first - second);
+    document.getElementById('remainingAmount').value = remaining.toFixed(2);
+  }
+  ['totalPrice','firstPayment','secondPayment'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', updatePaymentAmounts);
+  });
+
   // ====== FORM SUBMIT ======
   document.getElementById('candForm').addEventListener('submit', function(e){
     e.preventDefault();
@@ -757,6 +777,10 @@
       exam2D2Date: document.getElementById('exam2D2Date').value,
       voitureNumber: document.getElementById('voitureNumber').value.trim(),
       licenseType: document.getElementById('licenseType').value,
+      totalPrice: paymentNumber('totalPrice'),
+      firstPayment: paymentNumber('firstPayment'),
+      secondPayment: paymentNumber('secondPayment'),
+      remainingAmount: paymentNumber('remainingAmount'),
       paymentStatus: document.getElementById('paymentStatus').value,
       registerDate: document.getElementById('registerDate').value,
       notes: document.getElementById('notes').value.trim()
@@ -817,6 +841,11 @@
     document.getElementById('exam2D2Date').value = c.exam2D2Date||'';
     document.getElementById('voitureNumber').value = c.voitureNumber||'';
     document.getElementById('licenseType').value = c.licenseType||'';
+    document.getElementById('totalPrice').value = c.totalPrice||'';
+    document.getElementById('firstPayment').value = c.firstPayment||'';
+    document.getElementById('secondPayment').value = c.secondPayment||'';
+    document.getElementById('remainingAmount').value = typeof c.remainingAmount==='number' ? c.remainingAmount.toFixed(2) : '';
+    updatePaymentAmounts();
     document.getElementById('paymentStatus').value = c.paymentStatus||'paid';
     document.getElementById('registerDate').value = c.registerDate||'';
     document.getElementById('notes').value = c.notes||'';
@@ -851,7 +880,11 @@
       '<div class="dr"><span class="dl">الملف 2:</span><span class="dv">'+(c.dossier2||'—')+' | 1er: '+exLine(c.exam1D2,c.exam1D2Date)+' | 2ème: '+exLine(c.exam2D2,c.exam2D2Date)+'</span></div>' +
       '<div class="dr"><span class="dl">رقم العربة:</span><span class="dv">'+(c.voitureNumber||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">الرخصة:</span><span class="dv">'+licLabel(c.licenseType)+' ('+c.licenseType+')</span></div>' +
-      '<div class="dr"><span class="dl">الدفع:</span><span class="dv">'+pyL[c.paymentStatus]+'</span></div>' +
+      '<div class="dr"><span class="dl">الثمن الإجمالي:</span><span class="dv">'+(Number(c.totalPrice||0).toFixed(2))+'</span></div>' +
+      '<div class="dr"><span class="dl">الدفعة الأولى:</span><span class="dv">'+(Number(c.firstPayment||0).toFixed(2))+'</span></div>' +
+      '<div class="dr"><span class="dl">الدفعة الثانية:</span><span class="dv">'+(Number(c.secondPayment||0).toFixed(2))+'</span></div>' +
+      '<div class="dr"><span class="dl">الباقي:</span><span class="dv">'+(Number(c.remainingAmount||0).toFixed(2))+'</span></div>' +
+      '<div class="dr"><span class="dl">حالة الدفع:</span><span class="dv">'+(pyL[c.paymentStatus]||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">إضافية:</span><span class="dv">'+c.registerDate+'</span></div>' +
       '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>',
       [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
