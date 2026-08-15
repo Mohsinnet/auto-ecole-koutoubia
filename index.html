@@ -193,6 +193,10 @@
   .exam-list { display:flex; flex-direction:column; gap:8px; }
   .exam-item { background:#0f172a; border:1px solid var(--card-border); border-radius:10px; padding:9px 11px; font-size:.8rem; }
   .exam-item strong { color:var(--accent); }
+  .exam-alerts { background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.45); border-radius:16px; padding:14px 16px; margin-bottom:16px; }
+  .exam-alerts-title { color:#fbbf24; font-weight:800; margin-bottom:9px; }
+  .exam-alert-item { background:rgba(15,23,42,.65); border:1px solid rgba(245,158,11,.25); border-radius:10px; padding:8px 10px; margin-top:7px; font-size:.8rem; }
+  .exam-alert-item strong { color:#fde68a; }
 
   .auth-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(160deg, #0f172a 0%, #1a202c 50%, #0f172a 100%); }
   .auth-card { width: min(420px, 100%); padding: 28px; text-align: center; background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
@@ -254,6 +258,8 @@
     <div class="stat-card st-blu"><div class="stat-value" id="stToday">0</div><div class="stat-label">📅 اليوم</div></div>
     <div class="stat-card st-prp"><div class="stat-value" id="stExam">0</div><div class="stat-label">🎓 ناجحين</div></div>
   </div>
+
+  <div class="exam-alerts hidden" id="examAlerts" role="alert" aria-live="polite"></div>
 
   <!-- Form -->
   <div class="form-section">
@@ -560,10 +566,12 @@
     } catch(e) { candidates = []; }
     renderTable();
     updateStats();
+    renderExamAlerts();
   }
   function saveLocal() {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(candidates));
     updateStats();
+    renderExamAlerts();
   }
 
   function updateStats() {
@@ -920,6 +928,23 @@
     });
     return events;
   }
+  function renderExamAlerts() {
+    var box = document.getElementById('examAlerts');
+    if (!box) return;
+    var tomorrowDate = new Date();
+    tomorrowDate.setHours(0,0,0,0);
+    tomorrowDate.setDate(tomorrowDate.getDate()+1);
+    var tomorrow = tomorrowDate.toISOString().split('T')[0];
+    var events = getExamEvents()[tomorrow] || [];
+    if (!events.length) { box.classList.add('hidden'); box.innerHTML=''; return; }
+    box.classList.remove('hidden');
+    box.innerHTML = '<div class="exam-alerts-title">🔔 تنبيه: امتحانات غدًا ('+tomorrow+')</div>' +
+      events.map(function(e){
+        var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
+        return '<div class="exam-alert-item"><strong>'+e.name+'</strong> — رقم البطاقة: '+e.card+'<br>'+e.type+' — '+(statusLabels[e.status]||'—')+'</div>';
+      }).join('');
+  }
+
   function openExamCalendar() {
     var now = new Date(); calendarYear = now.getFullYear(); calendarMonth = now.getMonth();
     renderExamCalendar();
