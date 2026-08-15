@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto-Ecole KOUTOUBIA MARRAKECH — Firebase Edition</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --accent: #d69e2e; --bg: #0f172a; --card: #1e293b; --card-border: #334155;
+    --text: #e2e8f0; --text-muted: #94a3b8;
+    --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --info: #0ea5e9;
+  }
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: linear-gradient(160deg, #0f172a 0%, #1a202c 50%, #0f172a 100%);
+    min-height: 100vh; color: var(--text); padding: 16px;
+  }
+  .container { max-width: 1500px; margin: 0 auto; }
+  .header {
+    text-align: center; margin-bottom: 20px; padding: 20px;
+    background: linear-gradient(135deg, rgba(26,54,93,0.8), rgba(44,82,130,0.6));
+    border-radius: 20px; border: 1px solid var(--card-border);
+  }
+  .header h1 { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+  .header h2 { font-size: 1rem; color: var(--text-muted); margin-top: 4px; }
+
+  .conn-bar {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 14px 18px; margin-bottom: 16px; display: flex; flex-wrap: wrap;
+    align-items: center; gap: 10px;
+  }
+  .conn-bar input {
+    flex: 1; min-width: 280px; background: #0f172a; border: 1px solid #475569;
+    border-radius: 10px; padding: 10px 14px; color: var(--text); font-family: 'Cairo', sans-serif; font-size: 0.85rem;
+  }
+  .conn-bar input:focus { outline: none; border-color: var(--accent); }
+  .conn-bar label { color: var(--text-muted); font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .status-ok { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .status-off { background: var(--danger); }
+  .status-warn { background: var(--warning); animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px; text-align: center; }
+  .stat-value { font-size: 1.6rem; font-weight: 800; }
+  .stat-label { font-size: 0.75rem; color: var(--text-muted); }
+  .st-acc .stat-value { color: var(--accent); }
+  .st-grn .stat-value { color: var(--success); }
+  .st-red .stat-value { color: var(--danger); }
+  .st-blu .stat-value { color: var(--info); }
+  .st-prp .stat-value { color: #a855f7; }
+
+  .form-section { background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; padding: 20px; margin-bottom: 16px; }
+  .form-title { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--card-border); }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group label { color: var(--text-muted); font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; }
+  .form-group label .req { color: var(--danger); }
+  .form-group input, .form-group select, .form-group textarea {
+    background: #0f172a; border: 1px solid #475569; border-radius: 10px; padding: 9px 12px;
+    color: var(--text); font-family: 'Cairo', sans-serif; font-size: 0.85rem;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
+  .form-group textarea { resize: vertical; min-height: 50px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .section-divider { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; margin: 6px 0; color: var(--accent); font-weight: 700; font-size: 0.85rem; }
+  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+  .form-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--card-border); }
+  .btn { padding: 9px 18px; border-radius: 10px; border: none; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-prm { background: linear-gradient(135deg, var(--accent), #c05621); color: #fff; }
+  .btn-sec { background: #334155; color: var(--text); }
+  .btn-suc { background: linear-gradient(135deg, var(--success), #059669); color: #fff; }
+  .btn-inf { background: linear-gradient(135deg, var(--info), #0369a1); color: #fff; }
+  .btn-dng { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }
+  .btn-wrn { background: linear-gradient(135deg, var(--warning), #d97706); color: #fff; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .hidden { display: none !important; }
+
+  .photo-area {
+    grid-column: 1 / -1; border: 2px dashed #475569; border-radius: 16px; padding: 16px;
+    text-align: center; cursor: pointer; transition: all 0.3s; background: #0f172a; position: relative;
+  }
+  .photo-area:hover { border-color: var(--accent); }
+  .photo-area.has-img { border-style: solid; border-color: var(--accent); }
+  .photo-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .photo-preview { width: 100px; height: 125px; object-fit: cover; border-radius: 10px; border: 2px solid var(--accent); display: none; margin: 0 auto 8px; }
+  .photo-preview.show { display: block; }
+  .photo-placeholder { font-size: 2.5rem; }
+  .photo-text { color: var(--text-muted); font-size: 0.8rem; }
+  .photo-hint { color: #64748b; font-size: 0.7rem; }
+  .photo-remove { position: absolute; top: 6px; left: 6px; background: var(--danger); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 0.75rem; display: none; }
+  .photo-area.has-img .photo-remove { display: flex; align-items: center; justify-content: center; }
+
+  .filters-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
+  .search-box { flex: 1; min-width: 200px; position: relative; }
+  .search-box input { width: 100%; background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 9px 12px 9px 36px; color: var(--text); font-family: 'Cairo', sans-serif; font-size: 0.85rem; }
+  .search-box input:focus { outline: none; border-color: var(--accent); }
+  .search-box .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.9rem; }
+  .filter-select { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 9px 12px; color: var(--text); font-family: 'Cairo', sans-serif; font-size: 0.8rem; min-width: 140px; }
+
+  .table-wrapper { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+  .table-scroll { overflow-x: auto; max-height: 550px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  thead { position: sticky; top: 0; z-index: 10; }
+  th { background: linear-gradient(180deg, #0f172a, #1e293b); color: var(--accent); font-weight: 700; padding: 10px 6px; text-align: right; white-space: nowrap; border-bottom: 2px solid var(--card-border); font-size: 0.72rem; }
+  td { padding: 8px 6px; border-bottom: 1px solid #33415555; vertical-align: middle; }
+  tbody tr { transition: all 0.15s; }
+  tbody tr:hover { background: rgba(51,65,85,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.3); }
+  .td-name { font-weight: 700; color: #fff; }
+  .td-phone { font-family: monospace; direction: ltr; text-align: right; color: #cbd5e1; font-size: 0.75rem; }
+  .td-small { color: #94a3b8; font-size: 0.72rem; }
+  .td-photo { width: 44px; }
+  .table-photo { width: 36px; height: 45px; object-fit: cover; border-radius: 5px; border: 1px solid var(--card-border); cursor: pointer; transition: transform 0.2s; }
+  .table-photo:hover { transform: scale(2.5); z-index: 100; border-color: var(--accent); }
+  .no-photo { width: 36px; height: 45px; border-radius: 5px; background: #1e293b; border: 1px dashed #475569; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+
+  .badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 999px; font-size: 0.65rem; font-weight: 700; gap: 2px; white-space: nowrap; }
+  .badge-paid { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+  .badge-unpaid { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  .badge-partial { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+  .badge-lic { background: rgba(14,165,233,0.15); color: #38bdf8; border: 1px solid rgba(14,165,233,0.25); }
+  .badge-pass { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+  .badge-fail { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  .badge-pend { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+
+  .actions-cell { display: flex; gap: 3px; justify-content: center; }
+  .act-btn { width: 28px; height: 28px; border-radius: 7px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: all 0.2s; }
+  .act-btn:hover { transform: scale(1.1); }
+  .act-edit { background: rgba(14,165,233,0.15); color: #38bdf8; }
+  .act-del { background: rgba(239,68,68,0.15); color: #f87171; }
+  .act-view { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+  .empty-state { text-align: center; padding: 40px 20px; }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
+  .empty-state h3 { color: var(--text-muted); font-size: 1rem; }
+  .footer { text-align: center; padding: 14px; color: #64748b; font-size: 0.75rem; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.25s; padding: 16px; }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal-box { background: var(--card); border: 1px solid var(--card-border); border-radius: 18px; padding: 20px; max-width: 550px; width: 100%; max-height: 90vh; overflow-y: auto; transform: scale(0.92); transition: transform 0.25s; }
+  .modal-overlay.active .modal-box { transform: scale(1); }
+  .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
+  .modal-body { color: #cbd5e1; line-height: 1.7; margin-bottom: 16px; font-size: 0.85rem; }
+  .modal-body .dr { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #33415544; }
+  .modal-body .dr:last-child { border-bottom: none; }
+  .modal-body .dl { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; }
+  .modal-body .dv { color: #fff; font-weight: 700; text-align: left; font-size: 0.85rem; }
+  .modal-photo { width: 90px; height: 110px; object-fit: cover; border-radius: 10px; border: 2px solid var(--accent); margin: 0 auto 12px; display: block; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  .img-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 3000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .img-modal.active { opacity: 1; pointer-events: auto; }
+  .img-modal img { max-width: 90vw; max-height: 90vh; border-radius: 14px; border: 3px solid var(--accent); }
+  .img-modal .close-btn { position: absolute; top: 16px; right: 16px; background: var(--danger); color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1rem; cursor: pointer; }
+
+  .spinner-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 5000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .spinner-overlay.active { opacity: 1; pointer-events: auto; }
+  .spinner-box { text-align: center; }
+  .spinner { width: 50px; height: 50px; border: 4px solid rgba(214,158,46,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-text { color: var(--accent); margin-top: 12px; font-weight: 700; font-size: 0.9rem; }
+
+  .toast-container { position: fixed; top: 14px; left: 14px; z-index: 2000; display: flex; flex-direction: column; gap: 6px; }
+  .toast { padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s; box-shadow: 0 6px 20px rgba(0,0,0,0.4); max-width: 320px; }
+  .toast-suc { background: var(--success); color: #fff; }
+  .toast-err { background: var(--danger); color: #fff; }
+  .toast-inf { background: var(--info); color: #fff; }
+  .toast-wrn { background: var(--warning); color: #fff; }
+  @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+  @media print {
+    body { background: white; color: black; padding: 0; }
+    .form-section, .filters-bar, .actions-cell, .footer, .stats-grid, .conn-bar { display: none !important; }
+    .table-wrapper { border: 1px solid #ccc; border-radius: 0; }
+    th { color: black; background: #eee; }
+  }
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.2rem; }
+    .conn-bar { flex-direction: column; align-items: stretch; }
+    .conn-bar input { min-width: auto; }
+    .form-grid { grid-template-columns: 1fr; }
+    .filters-bar { flex-direction: column; }
+    th, td { padding: 6px 4px; font-size: 0.7rem; }
+    .btn { padding: 7px 12px; font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:4px">🚗 Auto-Ecole KOUTOUBIA MARRAKECH</div>
+    <h1>بطاقة المعلومات — Firebase Edition</h1>
+    <h2>مزامنة فورية بين جميع أجهزة المؤسسة</h2>
+  </div>
+
+  <!-- Connection Bar -->
+  <div class="conn-bar">
+    <label>🔥 رابط Firebase Database:</label>
+    <input type="text" id="fbUrl" placeholder="https://your-project-default-rtdb.europe-west1.firebasedatabase.app/">
+    <button class="btn btn-suc" onclick="saveFbUrl()">💾 حفظ</button>
+    <button class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
+    <button class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
+    <span id="connStatus">
+      <span class="status-dot status-off" id="statusDot"></span>
+      <span id="statusText" style="color:var(--text-muted);font-size:0.75rem">غير متصل</span>
+    </span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card st-acc"><div class="stat-value" id="stTotal">0</div><div class="stat-label">👥 إجمالي</div></div>
+    <div class="stat-card st-grn"><div class="stat-value" id="stPaid">0</div><div class="stat-label">💰 مدفوع</div></div>
+    <div class="stat-card st-red"><div class="stat-value" id="stUnpaid">0</div><div class="stat-label">⏳ غير مدفوع</div></div>
+    <div class="stat-card st-blu"><div class="stat-value" id="stToday">0</div><div class="stat-label">📅 اليوم</div></div>
+    <div class="stat-card st-prp"><div class="stat-value" id="stExam">0</div><div class="stat-label">🎓 ناجحين</div></div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-section">
+    <div class="form-title" id="formTitle">➕ إضافة بطاقة جديدة</div>
+    <form id="candForm">
+      <input type="hidden" id="editId">
+      <div class="form-grid">
+
+        <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
+          <input type="file" id="photoInput" accept="image/*" onchange="handlePhoto(event)">
+          <button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto()">✕</button>
+          <img class="photo-preview" id="photoPreview">
+          <div class="photo-placeholder" id="photoPlc">📷</div>
+          <div class="photo-text" id="photoTxt">اضغط لإضافة صورة المرشح</div>
+          <div class="photo-hint">jpg, png — أقصى 2 ميجا</div>
+        </div>
+
+        <div class="section-divider">📝 معلومات شخصية</div>
+
+        <div class="form-group"><label>رقم البطاقة <span class="req">*</span></label><input type="text" id="cardNumber" required placeholder="N° ..."></div>
+        <div class="form-group"><label>الاسم الكامل <span class="req">*</span></label><input type="text" id="fullName" required placeholder="Prénom & Nom"></div>
+        <div class="form-group"><label>ابن/بنت السيد</label><input type="text" id="fatherName" placeholder="اسم الأب"></div>
+        <div class="form-group"><label>والسيدة (Et de)</label><input type="text" id="motherName" placeholder="اسم الأم"></div>
+        <div class="form-group"><label>تاريخ الميلاد <span class="req">*</span></label><input type="date" id="birthDate" required></div>
+        <div class="form-group"><label>المهنة</label><input type="text" id="profession" placeholder="Profession"></div>
+        <div class="form-group full"><label>العنوان</label><input type="text" id="address" placeholder="Adresse"></div>
+        <div class="form-group"><label>الهاتف <span class="req">*</span></label><input type="tel" id="phone" required placeholder="05XX XX XX XX" autocomplete="tel"></div>
+
+        <div class="section-divider">🆔 البطاقة الوطنية</div>
+
+        <div class="form-group"><label>C.I.N N°</label><input type="text" id="cinNumber" placeholder="AB123456"></div>
+        <div class="form-group"><label>تاريخ CIN (Du)</label><input type="date" id="cinDate"></div>
+
+        <div class="section-divider">📋 إضافية</div>
+
+        <div class="form-group"><label>N° d'ancien P.C</label><input type="text" id="ancienPC" placeholder="رقم البطاقة القديمة"></div>
+        <div class="form-group"><label>تاريخ الإصدار</label><input type="date" id="ancienPCDate"></div>
+        <div class="form-group"><label>مكان الإصدار (Par)</label><input type="text" id="ancienPCLieu" placeholder="المكان"></div>
+        <div class="form-group"><label>N° Saisie</label><input type="text" id="saisieNumber" placeholder="رقم السيزي"></div>
+        <div class="form-group"><label>Date de Saisie</label><input type="date" id="saisieDate"></div>
+
+        <div class="section-divider">📁 الملف 1</div>
+
+        <div class="form-group"><label>رقم الملف 1</label><input type="text" id="dossier1" placeholder="Dossier N° 1"></div>
+        <div class="form-group"><label>1er Examen</label>
+          <select id="exam1D1"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
+        </div>
+        <div class="form-group"><label>تاريخ 1er Examen</label><input type="date" id="exam1D1Date"></div>
+        <div class="form-group"><label>2ème Examen</label>
+          <select id="exam2D1"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
+        </div>
+        <div class="form-group"><label>تاريخ 2ème Examen</label><input type="date" id="exam2D1Date"></div>
+
+        <div class="section-divider">📁 الملف 2</div>
+
+        <div class="form-group"><label>رقم الملف 2</label><input type="text" id="dossier2" placeholder="Dossier N° 2"></div>
+        <div class="form-group"><label>1er Examen</label>
+          <select id="exam1D2"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
+        </div>
+        <div class="form-group"><label>تاريخ 1er Examen</label><input type="date" id="exam1D2Date"></div>
+        <div class="form-group"><label>2ème Examen</label>
+          <select id="exam2D2"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
+        </div>
+        <div class="form-group"><label>تاريخ 2ème Examen</label><input type="date" id="exam2D2Date"></div>
+
+        <div class="section-divider">🚗 سيارة ودفع</div>
+
+        <div class="form-group"><label>رقم العربة</label><input type="text" id="voitureNumber" placeholder="رقم العربة"></div>
+        <div class="form-group"><label>نوع الرخصة <span class="req">*</span></label>
+          <select id="licenseType" required>
+            <option value="">-- اختر --</option>
+            <option value="A">A — دراجات نارية</option>
+            <option value="B">B — سيارات خفيفة</option>
+            <option value="C">C — شاحنات</option>
+            <option value="D">D — حافلات</option>
+            <option value="E">E — مقطورات</option>
+          </select>
+        </div>
+        <div class="form-group"><label>حالة الدفع <span class="req">*</span></label>
+          <select id="paymentStatus" required>
+            <option value="paid">✅ مدفوع كامل</option>
+            <option value="unpaid">❌ غير مدفوع</option>
+            <option value="partial">⚠️ دفع جزئي</option>
+          </select>
+        </div>
+        <div class="form-group"><label>إضافية <span class="req">*</span></label><input type="date" id="registerDate" required></div>
+        <div class="form-group full"><label>ملاحظات</label><textarea id="notes" placeholder="ملاحظات..."></textarea></div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-prm" id="submitBtn">💾 حفظ محلياً</button>
+          <button type="button" class="btn btn-sec hidden" id="cancelBtn" onclick="resetForm()">❌ إلغاء</button>
+          <button type="button" class="btn btn-wrn" onclick="syncToFirebase()">📤 رفع للسحابة</button>
+          <button type="button" class="btn btn-inf" onclick="window.print()">🖨️ طباعة</button>
+          <button type="button" class="btn btn-suc" onclick="exportJSON()">📦 نسخ احتياطي</button>
+          <button type="button" class="btn btn-dng" onclick="confirmClear()">🗑️ مسح الكل</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <span class="icon">🔍</span>
+      <input type="text" id="searchInput" oninput="renderTable()" placeholder="بحث بالاسم أو الهاتف أو رقم البطاقة...">
+    </div>
+    <select class="filter-select" id="filterStatus" onchange="renderTable()">
+      <option value="all">📋 كل الحالات</option>
+      <option value="paid">✅ مدفوع</option>
+      <option value="unpaid">❌ غير مدفوع</option>
+      <option value="partial">⚠️ جزئي</option>
+    </select>
+    <select class="filter-select" id="filterLicense" onchange="renderTable()">
+      <option value="all">🪪 كل الرخص</option>
+      <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
+    </select>
+    <select class="filter-select" id="filterExam" onchange="renderTable()">
+      <option value="all">🎓 كل الامتحانات</option>
+      <option value="pass">✅ ناجح</option>
+      <option value="fail">❌ راسب</option>
+      <option value="pending">⏳ لم يتم</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>📷</th><th>N°</th><th>الاسم</th><th>الهاتف</th><th>العمر</th>
+            <th>الرخصة</th><th>ملف1</th><th>امتحانات1</th><th>ملف2</th><th>امتحانات2</th>
+            <th>الدفع</th><th>العربة</th><th>إضافية</th><th style="text-align:center">⚙️</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state hidden" id="emptyState">
+      <div class="icon">📭</div><h3>لا يوجد بطاقات مسجلة</h3>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>🔥 البيانات تُحفظ محلياً + في Firebase للمزامنة الفورية بين جميع الأجهزة</p>
+    <p>🚗 Auto-Ecole KOUTOUBIA MARRAKECH — Firebase Edition</p>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<div class="img-modal" id="imgModal" onclick="closeImgModal()">
+  <button class="close-btn" onclick="closeImgModal()">✕</button>
+  <img id="modalImg" src="" alt="صورة">
+</div>
+
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner-box"><div class="spinner"></div><div class="spinner-text" id="spinnerText">جارٍ...</div></div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  // ====== CONFIG ======
+  var LOCAL_KEY = 'koutoubia_fb_cache';
+  var URL_KEY   = 'koutoubia_fb_url';
+  var DEFAULT_FB_URL = 'https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/';
+  var candidates = [];
+  var currentPhoto = '';
+  var fbUrl = '';
+
+  // ====== INIT ======
+  function init() {
+    fbUrl = localStorage.getItem(URL_KEY) || DEFAULT_FB_URL;
+    localStorage.setItem(URL_KEY, fbUrl);
+    document.getElementById('fbUrl').value = fbUrl;
+    updateStatus();
+    loadLocal();
+    checkFirebaseConnection();
+    document.getElementById('registerDate').value = new Date().toISOString().split('T')[0];
+  }
+
+  // ====== FIREBASE API ======
+  function getDbUrl() {
+    var url = fbUrl.trim();
+    if (!url) return '';
+    if (!url.endsWith('/')) url += '/';
+    return url + 'candidates.json';
+  }
+
+  async function checkFirebaseConnection() {
+    var url = getDbUrl();
+    if (!url) { updateStatus(false); return; }
+    try {
+      var res = await fetch(url, { method: 'GET', cache: 'no-store' });
+      if (res.ok) updateStatus(true); else updateStatus(false);
+    } catch(e) { updateStatus(false); }
+  }
+
+  async function syncFromFirebase() {
+    var url = getDbUrl();
+    if (!url) { toast('⚠️ أدخل رابط Firebase أولاً', 'wrn'); return; }
+    showSpin('📥 جارٍ تحميل البيانات من Firebase...');
+    try {
+      var res = await fetch(url);
+      var data = await res.json();
+      if (data) {
+        // Firebase returns object {id1: {...}, id2: {...}} or array
+        if (Array.isArray(data)) {
+          candidates = data.filter(Boolean);
+        } else {
+          candidates = Object.keys(data).map(function(k) { return data[k]; }).filter(Boolean);
+        }
+        saveLocal();
+        renderTable();
+        updateStats();
+        toast('✅ تم تحميل ' + candidates.length + ' بطاقة من Firebase', 'suc');
+        updateStatus(true);
+      } else {
+        toast('ℹ️ قاعدة البيانات فارغة في Firebase', 'inf');
+        updateStatus(true);
+      }
+    } catch(e) {
+      toast('❌ فشل الاتصال: ' + e.message, 'err');
+    } finally {
+      hideSpin();
+    }
+  }
+
+  async function syncToFirebase() {
+    var url = getDbUrl();
+    if (!url) { toast('⚠️ أدخل رابط Firebase أولاً', 'wrn'); return; }
+    if (candidates.length === 0) { toast('ℹ️ لا يوجد بيانات لرفعها', 'inf'); return; }
+    showSpin('📤 جارٍ رفع البيانات إلى Firebase...');
+    try {
+      // Convert array to object for Firebase
+      var payload = {};
+      candidates.forEach(function(c, i) {
+        payload['cand_' + i] = c;
+      });
+      var res = await fetch(url, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        toast('✅ تم رفع ' + candidates.length + ' بطاقة إلى Firebase', 'suc');
+        updateStatus(true);
+      } else {
+        toast('❌ فشل الرفع: ' + res.status, 'err');
+      }
+    } catch(e) {
+      toast('❌ فشل الاتصال: ' + e.message, 'err');
+    } finally {
+      hideSpin();
+    }
+  }
+
+  // ====== CONNECTION ======
+  function saveFbUrl() {
+    var url = document.getElementById('fbUrl').value.trim();
+    if (!url) { toast('⚠️ أدخل الرابط', 'wrn'); return; }
+    if (!url.includes('firebasedatabase.app')) { toast('⚠️ الرابط يجب أن يحتوي على firebasedatabase.app', 'wrn'); return; }
+    fbUrl = url;
+    localStorage.setItem(URL_KEY, url);
+    updateStatus();
+    checkFirebaseConnection();
+    toast('✅ تم حفظ الرابط', 'suc');
+  }
+
+  function updateStatus(connected) {
+    var dot = document.getElementById('statusDot');
+    var txt = document.getElementById('statusText');
+    if (!fbUrl) {
+      dot.className = 'status-dot status-off';
+      txt.textContent = 'غير متصل — أدخل رابط Firebase';
+    } else if (connected) {
+      dot.className = 'status-dot status-ok';
+      txt.textContent = '✅ متصل بـ Firebase';
+    } else {
+      dot.className = 'status-dot status-warn';
+      txt.textContent = 'جاهز — اضغط تحميل أو رفع';
+    }
+  }
+
+  // ====== SPINNER ======
+  function showSpin(text) {
+    document.getElementById('spinnerText').textContent = text;
+    document.getElementById('spinnerOverlay').classList.add('active');
+  }
+  function hideSpin() { document.getElementById('spinnerOverlay').classList.remove('active'); }
+
+  // ====== LOCAL STORAGE ======
+  function loadLocal() {
+    try {
+      var data = localStorage.getItem(LOCAL_KEY);
+      if (data) candidates = JSON.parse(data);
+    } catch(e) { candidates = []; }
+    renderTable();
+    updateStats();
+  }
+  function saveLocal() {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(candidates));
+    updateStats();
+  }
+
+  function updateStats() {
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('stTotal').textContent = candidates.length;
+    document.getElementById('stPaid').textContent = candidates.filter(function(c){return c.paymentStatus==='paid';}).length;
+    document.getElementById('stUnpaid').textContent = candidates.filter(function(c){return c.paymentStatus==='unpaid';}).length;
+    document.getElementById('stToday').textContent = candidates.filter(function(c){return c.registerDate===today;}).length;
+    document.getElementById('stExam').textContent = candidates.filter(function(c){
+      return c.exam1D1==='pass'||c.exam2D1==='pass'||c.exam1D2==='pass'||c.exam2D2==='pass';
+    }).length;
+  }
+
+  // ====== PHOTO ======
+  function handlePhoto(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2*1024*1024) { toast('⚠️ حجم الصورة كبير (أقصى 2 ميجا)', 'wrn'); return; }
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      currentPhoto = ev.target.result;
+      var img = document.getElementById('photoPreview');
+      img.src = currentPhoto;
+      img.classList.add('show');
+      document.getElementById('photoPlc').style.display = 'none';
+      document.getElementById('photoTxt').textContent = '✅ تم اختيار الصورة';
+      document.getElementById('photoArea').classList.add('has-img');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removePhoto() {
+    currentPhoto = '';
+    document.getElementById('photoInput').value = '';
+    document.getElementById('photoPreview').classList.remove('show');
+    document.getElementById('photoPlc').style.display = 'block';
+    document.getElementById('photoTxt').textContent = 'اضغط لإضافة صورة المرشح';
+    document.getElementById('photoArea').classList.remove('has-img');
+  }
+
+  function openImgModal(src) {
+    document.getElementById('modalImg').src = src;
+    document.getElementById('imgModal').classList.add('active');
+  }
+  function closeImgModal() { document.getElementById('imgModal').classList.remove('active'); }
+
+  // ====== HELPERS ======
+  function calcAge(bd) {
+    if (!bd) return '—';
+    var t = new Date(), b = new Date(bd);
+    var a = t.getFullYear() - b.getFullYear();
+    var m = t.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
+    return a;
+  }
+
+  function payBadge(s) {
+    var m = {paid:'<span class="badge badge-paid">✅ مدفوع</span>', unpaid:'<span class="badge badge-unpaid">❌ غير مدفوع</span>', partial:'<span class="badge badge-partial">⚠️ جزئي</span>'};
+    return m[s]||s;
+  }
+
+  function licLabel(t) {
+    var m = {A:'دراجات',B:'سيارات',C:'شاحنات',D:'حافلات',E:'مقطورات'};
+    return m[t]||t;
+  }
+
+  function licBadge(t) {
+    return '<span class="badge badge-lic">' + t + ' — ' + licLabel(t) + '</span>';
+  }
+
+  function exBadge(s) {
+    var m = {pass:'<span class="badge badge-pass">✅</span>', fail:'<span class="badge badge-fail">❌</span>', pending:'<span class="badge badge-pend">⏳</span>'};
+    return m[s]||'<span class="badge badge-pend">—</span>';
+  }
+
+  function photoCell(p) {
+    if (!p) return '<div class="no-photo">👤</div>';
+    return '<img src="' + p + '" class="table-photo" onclick="event.stopPropagation();openImgModal(&quot;' + p + '&quot;)" alt="صورة">';
+  }
+
+  // ====== RENDER ======
+  function renderTable() {
+    var search = document.getElementById('searchInput').value.toLowerCase().trim();
+    var st = document.getElementById('filterStatus').value;
+    var lt = document.getElementById('filterLicense').value;
+    var et = document.getElementById('filterExam').value;
+
+    var filtered = candidates.filter(function(c) {
+      var ms = !search || (c.fullName+' '+c.phone+' '+c.cardNumber).toLowerCase().includes(search);
+      var mst = st==='all' || c.paymentStatus===st;
+      var mlt = lt==='all' || c.licenseType===lt;
+      var met = true;
+      if (et!=='all') {
+        var exams = [c.exam1D1, c.exam2D1, c.exam1D2, c.exam2D2];
+        met = exams.some(function(e){return e===et;});
+      }
+      return ms && mst && mlt && met;
+    });
+
+    filtered.sort(function(a,b){return new Date(b.registerDate)-new Date(a.registerDate);});
+
+    var tbody = document.getElementById('tableBody');
+    var empty = document.getElementById('emptyState');
+
+    if (filtered.length === 0) { tbody.innerHTML=''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+
+    tbody.innerHTML = filtered.map(function(c){
+      return '<tr>' +
+        '<td class="td-photo">' + photoCell(c.photo) + '</td>' +
+        '<td class="td-small">' + (c.cardNumber||'—') + '</td>' +
+        '<td class="td-name">' + c.fullName + '</td>' +
+        '<td class="td-phone">' + c.phone + '</td>' +
+        '<td class="td-small">' + calcAge(c.birthDate) + '</td>' +
+        '<td>' + licBadge(c.licenseType) + '</td>' +
+        '<td class="td-small">' + (c.dossier1||'—') + '</td>' +
+        '<td>' + exBadge(c.exam1D1) + ' ' + exBadge(c.exam2D1) + '</td>' +
+        '<td class="td-small">' + (c.dossier2||'—') + '</td>' +
+        '<td>' + exBadge(c.exam1D2) + ' ' + exBadge(c.exam2D2) + '</td>' +
+        '<td>' + payBadge(c.paymentStatus) + '</td>' +
+        '<td class="td-small">' + (c.voitureNumber||'—') + '</td>' +
+        '<td class="td-small">' + c.registerDate + '</td>' +
+        '<td class="actions-cell">' +
+          '<button class="act-btn act-view" onclick="viewCand(\'' + c.id + '\')" title="عرض">👁️</button>' +
+          '<button class="act-btn act-edit" onclick="editCand(\'' + c.id + '\')" title="تعديل">✏️</button>' +
+          '<button class="act-btn act-del" onclick="delCand(\'' + c.id + '\')" title="حذف">🗑️</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  // ====== FORM SUBMIT ======
+  document.getElementById('candForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var editId = document.getElementById('editId').value;
+    var photoToSave = currentPhoto;
+    if (editId && !currentPhoto) {
+      var ex = candidates.find(function(c){return c.id===editId;});
+      if (ex) photoToSave = ex.photo || '';
+    }
+
+    var data = {
+      id: editId || Date.now().toString(36)+Math.random().toString(36).substr(2,9),
+      photo: photoToSave,
+      cardNumber: document.getElementById('cardNumber').value.trim(),
+      fullName: document.getElementById('fullName').value.trim(),
+      fatherName: document.getElementById('fatherName').value.trim(),
+      motherName: document.getElementById('motherName').value.trim(),
+      birthDate: document.getElementById('birthDate').value,
+      profession: document.getElementById('profession').value.trim(),
+      address: document.getElementById('address').value.trim(),
+      cinNumber: document.getElementById('cinNumber').value.trim(),
+      cinDate: document.getElementById('cinDate').value,
+      phone: document.getElementById('phone').value.trim(),
+      ancienPC: document.getElementById('ancienPC').value.trim(),
+      ancienPCDate: document.getElementById('ancienPCDate').value,
+      ancienPCLieu: document.getElementById('ancienPCLieu').value.trim(),
+      saisieNumber: document.getElementById('saisieNumber').value.trim(),
+      saisieDate: document.getElementById('saisieDate').value,
+      dossier1: document.getElementById('dossier1').value.trim(),
+      exam1D1: document.getElementById('exam1D1').value,
+      exam1D1Date: document.getElementById('exam1D1Date').value,
+      exam2D1: document.getElementById('exam2D1').value,
+      exam2D1Date: document.getElementById('exam2D1Date').value,
+      dossier2: document.getElementById('dossier2').value.trim(),
+      exam1D2: document.getElementById('exam1D2').value,
+      exam1D2Date: document.getElementById('exam1D2Date').value,
+      exam2D2: document.getElementById('exam2D2').value,
+      exam2D2Date: document.getElementById('exam2D2Date').value,
+      voitureNumber: document.getElementById('voitureNumber').value.trim(),
+      licenseType: document.getElementById('licenseType').value,
+      paymentStatus: document.getElementById('paymentStatus').value,
+      registerDate: document.getElementById('registerDate').value,
+      notes: document.getElementById('notes').value.trim()
+    };
+
+    if (editId) {
+      var idx = candidates.findIndex(function(c){return c.id===editId;});
+      if (idx!==-1) candidates[idx]=data;
+      toast('✅ تم تحديث البطاقة', 'suc');
+    } else {
+      candidates.push(data);
+      toast('✅ تم إضافة البطاقة', 'suc');
+    }
+
+    saveLocal();
+    renderTable();
+    resetForm();
+  });
+
+  // ====== EDIT / VIEW / DELETE ======
+  function editCand(id) {
+    var c = candidates.find(function(x){return x.id===id;});
+    if (!c) return;
+    document.getElementById('editId').value = c.id;
+    currentPhoto = c.photo||'';
+    if (c.photo) {
+      var img = document.getElementById('photoPreview');
+      img.src = c.photo; img.classList.add('show');
+      document.getElementById('photoPlc').style.display='none';
+      document.getElementById('photoTxt').textContent='✅ تم اختيار الصورة';
+      document.getElementById('photoArea').classList.add('has-img');
+    } else removePhoto();
+
+    document.getElementById('cardNumber').value = c.cardNumber||'';
+    document.getElementById('fullName').value = c.fullName||'';
+    document.getElementById('fatherName').value = c.fatherName||'';
+    document.getElementById('motherName').value = c.motherName||'';
+    document.getElementById('birthDate').value = c.birthDate||'';
+    document.getElementById('profession').value = c.profession||'';
+    document.getElementById('address').value = c.address||'';
+    document.getElementById('cinNumber').value = c.cinNumber||'';
+    document.getElementById('cinDate').value = c.cinDate||'';
+    document.getElementById('phone').value = c.phone||'';
+    document.getElementById('ancienPC').value = c.ancienPC||'';
+    document.getElementById('ancienPCDate').value = c.ancienPCDate||'';
+    document.getElementById('ancienPCLieu').value = c.ancienPCLieu||'';
+    document.getElementById('saisieNumber').value = c.saisieNumber||'';
+    document.getElementById('saisieDate').value = c.saisieDate||'';
+    document.getElementById('dossier1').value = c.dossier1||'';
+    document.getElementById('exam1D1').value = c.exam1D1||'';
+    document.getElementById('exam1D1Date').value = c.exam1D1Date||'';
+    document.getElementById('exam2D1').value = c.exam2D1||'';
+    document.getElementById('exam2D1Date').value = c.exam2D1Date||'';
+    document.getElementById('dossier2').value = c.dossier2||'';
+    document.getElementById('exam1D2').value = c.exam1D2||'';
+    document.getElementById('exam1D2Date').value = c.exam1D2Date||'';
+    document.getElementById('exam2D2').value = c.exam2D2||'';
+    document.getElementById('exam2D2Date').value = c.exam2D2Date||'';
+    document.getElementById('voitureNumber').value = c.voitureNumber||'';
+    document.getElementById('licenseType').value = c.licenseType||'';
+    document.getElementById('paymentStatus').value = c.paymentStatus||'paid';
+    document.getElementById('registerDate').value = c.registerDate||'';
+    document.getElementById('notes').value = c.notes||'';
+    document.getElementById('formTitle').textContent = '✏️ تعديل بطاقة';
+    document.getElementById('submitBtn').textContent = '💾 تحديث';
+    document.getElementById('cancelBtn').classList.remove('hidden');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function viewCand(id) {
+    var c = candidates.find(function(x){return x.id===id;});
+    if (!c) return;
+    var exL = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
+    var pyL = {paid:'✅ مدفوع', unpaid:'❌ غير مدفوع', partial:'⚠️ جزئي'};
+    var ph = c.photo ? '<img src="'+c.photo+'" class="modal-photo" onclick="openImgModal(&quot;'+c.photo+'&quot;)" style="cursor:pointer">' : '<div style="text-align:center;font-size:2.5rem;margin-bottom:12px">👤</div>';
+    function exLine(e,d){ return (exL[e]||'—') + (d?' ('+d+')':''); }
+
+    showModal('👁️ '+c.fullName,
+      ph +
+      '<div class="dr"><span class="dl">رقم البطاقة:</span><span class="dv">'+(c.cardNumber||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">الاسم:</span><span class="dv">'+c.fullName+'</span></div>' +
+      '<div class="dr"><span class="dl">ابن/بنت:</span><span class="dv">'+(c.fatherName||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">والسيدة:</span><span class="dv">'+(c.motherName||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">الميلاد:</span><span class="dv">'+(c.birthDate||'—')+' ('+calcAge(c.birthDate)+' سنة)</span></div>' +
+      '<div class="dr"><span class="dl">المهنة:</span><span class="dv">'+(c.profession||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">العنوان:</span><span class="dv">'+(c.address||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">C.I.N:</span><span class="dv">'+(c.cinNumber||'—')+' '+(c.cinDate||'')+'</span></div>' +
+      '<div class="dr"><span class="dl">الهاتف:</span><span class="dv" style="direction:ltr">'+c.phone+'</span></div>' +
+      '<div class="dr"><span class="dl">Ancien PC:</span><span class="dv">'+(c.ancienPC||'—')+' '+(c.ancienPCDate||'')+' '+(c.ancienPCLieu||'')+'</span></div>' +
+      '<div class="dr"><span class="dl">Date de Saisie:</span><span class="dv">'+(c.saisieNumber||'—')+' '+(c.saisieDate||'')+'</span></div>' +
+      '<div class="dr"><span class="dl">الملف 1:</span><span class="dv">'+(c.dossier1||'—')+' | 1er: '+exLine(c.exam1D1,c.exam1D1Date)+' | 2ème: '+exLine(c.exam2D1,c.exam2D1Date)+'</span></div>' +
+      '<div class="dr"><span class="dl">الملف 2:</span><span class="dv">'+(c.dossier2||'—')+' | 1er: '+exLine(c.exam1D2,c.exam1D2Date)+' | 2ème: '+exLine(c.exam2D2,c.exam2D2Date)+'</span></div>' +
+      '<div class="dr"><span class="dl">رقم العربة:</span><span class="dv">'+(c.voitureNumber||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">الرخصة:</span><span class="dv">'+licLabel(c.licenseType)+' ('+c.licenseType+')</span></div>' +
+      '<div class="dr"><span class="dl">الدفع:</span><span class="dv">'+pyL[c.paymentStatus]+'</span></div>' +
+      '<div class="dr"><span class="dl">إضافية:</span><span class="dv">'+c.registerDate+'</span></div>' +
+      '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>',
+      [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
+    );
+  }
+
+  function delCand(id) {
+    showModal('🗑️ تأكيد الحذف', 'هل أنت متأكد من حذف هذه البطاقة؟', [
+      {text:'إلغاء', cls:'btn btn-sec', act:hideModal},
+      {text:'نعم، احذف', cls:'btn btn-dng', act:function(){
+        candidates = candidates.filter(function(c){return c.id!==id;});
+        saveLocal(); renderTable(); hideModal();
+        toast('🗑️ تم الحذف', 'inf');
+      }}
+    ]);
+  }
+
+  function confirmClear() {
+    if (candidates.length===0) { toast('ℹ️ لا يوجد بيانات', 'inf'); return; }
+    showModal('⚠️ مسح الكل', 'مسح '+candidates.length+' بطاقة نهائياً؟', [
+      {text:'إلغاء', cls:'btn btn-sec', act:hideModal},
+      {text:'نعم، امسح الكل', cls:'btn btn-dng', act:function(){
+        candidates=[]; saveLocal(); renderTable(); hideModal();
+        toast('🗑️ تم مسح الكل', 'inf');
+      }}
+    ]);
+  }
+
+  function resetForm() {
+    document.getElementById('candForm').reset();
+    document.getElementById('editId').value='';
+    currentPhoto=''; removePhoto();
+    document.getElementById('registerDate').value=new Date().toISOString().split('T')[0];
+    document.getElementById('formTitle').textContent='➕ إضافة بطاقة جديدة';
+    document.getElementById('submitBtn').textContent='💾 حفظ محلياً';
+    document.getElementById('cancelBtn').classList.add('hidden');
+  }
+
+  function exportJSON() {
+    if (candidates.length===0) { toast('ℹ️ لا يوجد بيانات', 'inf'); return; }
+    var blob = new Blob([JSON.stringify(candidates,null,2)], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href=url; a.download='Koutoubia_Backup_'+new Date().toISOString().split('T')[0]+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('📦 تم التصدير', 'suc');
+  }
+
+  // ====== MODAL ======
+  function showModal(title, body, buttons) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').innerHTML = body;
+    var acts = document.getElementById('modalActions');
+    acts.innerHTML = '';
+    buttons.forEach(function(b){
+      var btn = document.createElement('button');
+      btn.className = b.cls; btn.textContent = b.text; btn.onclick = b.act;
+      acts.appendChild(btn);
+    });
+    document.getElementById('modalOverlay').classList.add('active');
+  }
+  function hideModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+  document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target===e.currentTarget) hideModal(); });
+
+  // ====== TOAST ======
+  function toast(msg, type) {
+    var c = document.getElementById('toastContainer');
+    var t = document.createElement('div');
+    t.className = 'toast toast-'+type; t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 3000);
+  }
+
+  // ====== START ======
+  init();
+</script>
+
+</body>
+</html>
