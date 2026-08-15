@@ -180,6 +180,15 @@
     .table-wrapper { border: 1px solid #ccc; border-radius: 0; }
     th { color: black; background: #eee; }
   }
+  .auth-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(160deg, #0f172a 0%, #1a202c 50%, #0f172a 100%); }
+  .auth-card { width: min(420px, 100%); padding: 28px; text-align: center; background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+  .auth-card h1 { color: var(--accent); font-size: 1.35rem; margin-bottom: 8px; }
+  .auth-card p { color: var(--text-muted); font-size: .85rem; margin-bottom: 18px; }
+  .auth-card input { width: 100%; background: #0f172a; border: 1px solid #475569; border-radius: 10px; padding: 11px 13px; color: var(--text); font-family: 'Cairo', sans-serif; text-align: center; font-size: 1rem; margin-bottom: 10px; }
+  .auth-card input:focus { outline: none; border-color: var(--accent); }
+  .auth-error { min-height: 22px; color: #f87171; font-size: .78rem; margin-bottom: 4px; }
+  body.auth-locked > .container { visibility: hidden; }
+
   @media (max-width: 768px) {
     .header h1 { font-size: 1.2rem; }
     .conn-bar { flex-direction: column; align-items: stretch; }
@@ -191,7 +200,18 @@
   }
 </style>
 </head>
-<body>
+<body class="auth-locked">
+
+<div class="auth-gate" id="authGate">
+  <form class="auth-card" id="authForm" autocomplete="off">
+    <div style="font-size:2.4rem;margin-bottom:8px">🔐</div>
+    <h1>سيارة التعليم الكتبية</h1>
+    <p>أدخل الرقم السري للوصول إلى Gestion Auto Ecole</p>
+    <input type="password" id="authPassword" placeholder="الرقم السري" autocomplete="current-password" required>
+    <div class="auth-error" id="authError" aria-live="polite"></div>
+    <button type="submit" class="btn btn-prm" style="width:100%;justify-content:center">دخول</button>
+  </form>
+</div>
 
 <div class="container">
   <div class="header">
@@ -871,8 +891,27 @@
     setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 3000);
   }
 
-  // ====== START ======
-  init();
+  // ====== AUTHENTICATION ======
+  var APP_PASSWORD = '5011ibx';
+  var appStarted = false;
+  function unlockApp() {
+    document.body.classList.remove('auth-locked');
+    document.getElementById('authGate').remove();
+    if (!appStarted) { appStarted = true; init(); }
+  }
+  document.getElementById('authForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var input = document.getElementById('authPassword');
+    var error = document.getElementById('authError');
+    if (input.value === APP_PASSWORD) {
+      unlockApp();
+    } else {
+      error.textContent = 'الرقم السري غير صحيح';
+      input.value = '';
+      input.focus();
+    }
+  });
+  document.getElementById('authPassword').focus();
 </script>
 
 </body>
