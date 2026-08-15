@@ -218,6 +218,7 @@
     <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:4px">🚗 سيارة التعليم الكتبية</div>
     <h1>Gestion Auto Ecole</h1>
     <h2>مزامنة فورية بين جميع أجهزة المؤسسة</h2>
+    <button type="button" class="btn btn-sec" onclick="openPasswordChange()" style="margin-top:10px">🔑 تغيير كلمة المرور</button>
   </div>
 
   <!-- Connection Bar -->
@@ -890,7 +891,9 @@
 
   // ====== AUTHENTICATION ======
   var APP_PASSWORD = '5011ibx';
+  var PASSWORD_KEY = 'koutoubia_app_password';
   var appStarted = false;
+  function getAppPassword() { return localStorage.getItem(PASSWORD_KEY) || APP_PASSWORD; }
   function unlockApp() {
     document.body.classList.remove('auth-locked');
     document.getElementById('authGate').remove();
@@ -900,7 +903,7 @@
     e.preventDefault();
     var input = document.getElementById('authPassword');
     var error = document.getElementById('authError');
-    if (input.value === APP_PASSWORD) {
+    if (input.value === getAppPassword()) {
       unlockApp();
     } else {
       error.textContent = 'الرقم السري غير صحيح';
@@ -909,6 +912,28 @@
     }
   });
   document.getElementById('authPassword').focus();
+
+  function openPasswordChange() {
+    showModal('🔑 تغيير كلمة المرور',
+      '<div class="form-group"><label>كلمة المرور الحالية</label><input type="password" id="currentPasswordChange" autocomplete="current-password"></div>' +
+      '<div class="form-group" style="margin-top:10px"><label>كلمة المرور الجديدة</label><input type="password" id="newPasswordChange" autocomplete="new-password"></div>' +
+      '<div class="form-group" style="margin-top:10px"><label>تأكيد كلمة المرور الجديدة</label><input type="password" id="confirmPasswordChange" autocomplete="new-password"></div>' +
+      '<p style="color:var(--text-muted);font-size:.75rem;margin-top:10px">ملاحظة: تُحفظ كلمة المرور على هذا المتصفح فقط.</p>',
+      [{text:'حفظ التغيير', cls:'btn btn-prm', act:savePasswordChange}, {text:'إلغاء', cls:'btn btn-sec', act:hideModal}]
+    );
+  }
+
+  function savePasswordChange() {
+    var current = document.getElementById('currentPasswordChange').value;
+    var next = document.getElementById('newPasswordChange').value;
+    var confirm = document.getElementById('confirmPasswordChange').value;
+    if (current !== getAppPassword()) { toast('❌ كلمة المرور الحالية غير صحيحة', 'err'); return; }
+    if (next.length < 4) { toast('⚠️ يجب أن تتكون كلمة المرور الجديدة من 4 أحرف على الأقل', 'wrn'); return; }
+    if (next !== confirm) { toast('⚠️ تأكيد كلمة المرور غير مطابق', 'wrn'); return; }
+    localStorage.setItem(PASSWORD_KEY, next);
+    hideModal();
+    toast('✅ تم تغيير كلمة المرور بنجاح', 'suc');
+  }
 </script>
 
 </body>
