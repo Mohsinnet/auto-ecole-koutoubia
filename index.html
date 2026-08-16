@@ -777,9 +777,18 @@
     renderExamAlerts();
   }
   function saveLocal() {
-    localStorage.setItem(LOCAL_KEY, JSON.stringify(candidates));
-    updateStats();
-    renderExamAlerts();
+    try {
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(candidates));
+      updateStats();
+      renderExamAlerts();
+      return true;
+    } catch (e) {
+      console.error('LocalStorage save failed:', e);
+      toast('⚠️ تم حفظ البطاقة مؤقتًا، لكن مساحة التخزين المحلية ممتلئة. اضغط مزامنة Firebase لحفظها سحابيًا.', 'wrn');
+      updateStats();
+      renderExamAlerts();
+      return false;
+    }
   }
 
   function updateStats() {
@@ -794,21 +803,46 @@
   }
 
   // ====== PHOTO ======
-  function handlePhoto(e) {
+  function compressImageFile(file, maxWidth, maxHeight, quality) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = function(ev) {
+        var img = new Image();
+        img.onerror = reject;
+        img.onload = function() {
+          var scale = Math.min(1, maxWidth / img.width, maxHeight / img.height);
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          var ctx = canvas.getContext('2d', {alpha:false});
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handlePhoto(e) {
     var file = e.target.files[0];
     if (!file) return;
-    if (file.size > 2*1024*1024) { toast('⚠️ حجم الصورة كبير (أقصى 2 ميجا)', 'wrn'); return; }
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      currentPhoto = ev.target.result;
+    if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
+    try {
+      currentPhoto = await compressImageFile(file, 700, 900, 0.78);
       var img = document.getElementById('photoPreview');
       img.src = currentPhoto;
       img.classList.add('show');
       document.getElementById('photoPlc').style.display = 'none';
-      document.getElementById('photoTxt').textContent = '✅ تم اختيار الصورة';
+      document.getElementById('photoTxt').textContent = '✅ تم تجهيز الصورة وحفظها';
       document.getElementById('photoArea').classList.add('has-img');
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      toast('❌ تعذر تجهيز الصورة، حاول مرة أخرى', 'err');
+    }
   }
 
   function normalizePhone(phone) {
@@ -830,21 +864,22 @@
     document.getElementById('whatsappPhoneBtn').href = normalized ? 'https://wa.me/' + normalized : '#';
   }
   document.getElementById('phone').addEventListener('input', updatePhoneActions);
-  function handleDocument(event, type) {
+  async function handleDocument(event, type) {
     var file = event.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
-    if (file.size > 4*1024*1024) { toast('⚠️ حجم الوثيقة كبير (أقصى 4 ميجا)', 'wrn'); return; }
-    var reader = new FileReader();
-    reader.onload = function(ev) {
-      if (type === 'cinDocument') currentCinDocument = ev.target.result;
-      if (type === 'extraDocument') currentExtraDocument = ev.target.result;
+    try {
+      var compressed = await compressImageFile(file, 1500, 1800, 0.68);
+      if (type === 'cinDocument') currentCinDocument = compressed;
+      if (type === 'extraDocument') currentExtraDocument = compressed;
       var preview = document.getElementById(type + 'Preview');
-      preview.src = ev.target.result;
+      preview.src = compressed;
       preview.classList.add('show');
       document.getElementById('remove' + (type === 'cinDocument' ? 'Cin' : 'Extra') + 'Document').classList.remove('hidden');
-    };
-    reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
+      toast('❌ تعذر تجهيز الوثيقة، حاول مرة أخرى', 'err');
+    }
   }
   function removeDocument(type) {
     if (type === 'cinDocument') currentCinDocument = '';
@@ -1355,7 +1390,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=modern5').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=photo6').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
