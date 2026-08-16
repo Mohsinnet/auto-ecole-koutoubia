@@ -315,7 +315,12 @@
   .document-upload { background:rgba(5,15,28,.45); border-color:rgba(148,163,184,.3); }
   .modal-box { background:linear-gradient(145deg,#162a44,#0f2035); border-color:rgba(242,184,75,.3); box-shadow:0 24px 70px rgba(0,0,0,.45); }
   .auth-gate { background:radial-gradient(circle at 20% 10%,rgba(37,99,235,.2),transparent 30%),radial-gradient(circle at 80% 90%,rgba(242,184,75,.12),transparent 30%),#07111f; }
-  .auth-card { background:linear-gradient(145deg,rgba(22,42,68,.97),rgba(12,28,48,.97)); border-color:rgba(242,184,75,.3); box-shadow:0 25px 80px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.03); }
+  .auth-card { position:relative; overflow:hidden; background:linear-gradient(145deg,#193657 0%,#0b1a2e 72%); border:1px solid rgba(242,184,75,.55); border-top:4px solid #f2b84b; box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 45px rgba(37,99,235,.12); }
+  .auth-card::before { content:''; position:absolute; width:180px; height:180px; border-radius:50%; background:rgba(242,184,75,.08); top:-100px; right:-70px; }
+  .auth-card > * { position:relative; z-index:1; }
+  .auth-brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; color:#f2b84b; font-size:.72rem; font-weight:800; letter-spacing:2px; }
+  .auth-brand img { width:58px; height:58px; object-fit:contain; background:#fff; border:2px solid #f2b84b; border-radius:15px; padding:3px; box-shadow:0 7px 20px rgba(0,0,0,.3); }
+  .brand-badge { display:inline-flex; align-items:center; gap:6px; margin-top:12px; padding:5px 13px; border-radius:999px; background:rgba(242,184,75,.12); border:1px solid rgba(242,184,75,.35); color:#ffe4a3; font-size:.72rem; font-weight:700; }
   .auth-card input { background:rgba(5,15,28,.75); border-color:rgba(148,163,184,.3); }
   .footer { color:#8191a7; }
   @media (max-width:768px) { body { padding:10px; } .header { padding:24px 14px 20px; border-radius:18px; } .form-section { padding:16px 12px; border-radius:16px; } .stats-grid { gap:8px; } .stat-value { font-size:1.5rem; } .filters-bar { padding:9px; } .photo-area { padding:18px 12px; } }
@@ -325,7 +330,7 @@
 
 <div class="auth-gate" id="authGate">
   <form class="auth-card" id="authForm" autocomplete="off">
-    <div style="font-size:2.4rem;margin-bottom:8px">🔐</div>
+    <div class="auth-brand"><img src="assets/logo-auto-ecole.jpg" alt="شعار سيارة التعليم الكتبية"><span>GESTION AUTO ECOLE</span></div>
     <h1>سيارة التعليم الكتبية</h1>
     <p>سجّل الدخول للوصول إلى Gestion Auto Ecole</p>
     <input type="email" id="authEmail" placeholder="البريد الإلكتروني" autocomplete="username" required>
@@ -342,6 +347,7 @@
     <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:4px">سيارة التعليم الكتبية</div>
     <h1>Gestion Auto Ecole</h1>
     <h2>مزامنة فورية بين جميع أجهزة المؤسسة</h2>
+    <div class="brand-badge">✦ لوحة الإدارة الرقمية</div>
     <button type="button" class="btn btn-sec" onclick="logoutUser()" style="margin-top:10px">🚪 تسجيل الخروج</button>
     <button type="button" class="btn install-btn hidden" id="installButton" onclick="installApp()">📱 تثبيت التطبيق</button>
   </div>
@@ -1290,7 +1296,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=22aa5e5').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=visual4').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
