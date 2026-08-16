@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v2';
+const CACHE_NAME = 'auto-ecole-koutoubia-v3-design';
 const APP_SHELL = [
   './',
   './index.html',
