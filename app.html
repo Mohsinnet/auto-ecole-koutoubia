@@ -101,7 +101,7 @@
   }
   .photo-area:hover { border-color: var(--accent); }
   .photo-area.has-img { border-style: solid; border-color: var(--accent); }
-  .photo-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .photo-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 2; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   .photo-preview { width: 100px; height: 125px; object-fit: cover; border-radius: 10px; border: 2px solid var(--accent); display: none; margin: 0 auto 8px; }
   .photo-preview.show { display: block; }
   .photo-placeholder { font-size: 2.5rem; }
@@ -443,7 +443,7 @@
       <div class="form-grid">
 
         <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
-          <input type="file" id="photoInput" accept="image/*" capture="user" onchange="handlePhoto(event)">
+          <input type="file" id="photoInput" accept="image/*" capture="user" onclick="event.stopPropagation()" onchange="handlePhoto(event)">
           <button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto()">✕</button>
           <img class="photo-preview" id="photoPreview">
           <div class="photo-placeholder" id="photoPlc">📷</div>
@@ -1390,7 +1390,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=photo6').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=mobile7').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
