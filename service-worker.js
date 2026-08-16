@@ -2,6 +2,7 @@ const CACHE_NAME = 'auto-ecole-koutoubia-v4-visual';
 const APP_SHELL = [
   './',
   './index.html',
+  './app.html',
   './auto_ecole_firebase.html',
   './manifest.json',
   './assets/logo-auto-ecole.jpg',
