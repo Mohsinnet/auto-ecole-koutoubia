@@ -324,6 +324,65 @@
   .auth-card input { background:rgba(5,15,28,.75); border-color:rgba(148,163,184,.3); }
   .footer { color:#8191a7; }
   @media (max-width:768px) { body { padding:10px; } .header { padding:24px 14px 20px; border-radius:18px; } .form-section { padding:16px 12px; border-radius:16px; } .stats-grid { gap:8px; } .stat-value { font-size:1.5rem; } .filters-bar { padding:9px; } .photo-area { padding:18px 12px; } }
+  /* ====== MODERN JOYFUL THEME ====== */
+  :root {
+    --accent:#ffd166; --accent-2:#ff8c42; --mint:#2dd4bf; --sky:#38bdf8; --violet:#8b5cf6;
+    --bg:#071426; --card:#12243b; --card-border:rgba(148,163,184,.22);
+  }
+  body {
+    background:
+      radial-gradient(circle at 8% 12%, rgba(56,189,248,.22), transparent 24%),
+      radial-gradient(circle at 92% 8%, rgba(139,92,246,.20), transparent 25%),
+      radial-gradient(circle at 54% 100%, rgba(45,212,191,.13), transparent 30%),
+      linear-gradient(135deg,#071426 0%,#102946 48%,#09172b 100%);
+    background-attachment:fixed;
+  }
+  body::before { content:''; position:fixed; inset:0; pointer-events:none; opacity:.25; background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px); background-size:34px 34px; mask-image:linear-gradient(to bottom,black,transparent 85%); }
+  .header {
+    background:linear-gradient(120deg,rgba(18,61,94,.96),rgba(55,35,93,.92) 55%,rgba(17,71,77,.94));
+    border:1px solid rgba(255,209,102,.46); box-shadow:0 22px 60px rgba(0,0,0,.28),0 0 38px rgba(56,189,248,.10);
+    animation:heroIn .7s ease both;
+  }
+  .header::before { background:rgba(255,209,102,.13); animation:orbFloat 7s ease-in-out infinite; }
+  .header::after { background:rgba(45,212,191,.12); animation:orbFloat 8s ease-in-out infinite reverse; }
+  .site-logo { border-color:#ffd166; box-shadow:0 0 0 6px rgba(255,209,102,.10),0 0 32px rgba(255,209,102,.22),0 14px 30px rgba(0,0,0,.35); animation:logoFloat 4s ease-in-out infinite; }
+  .header h1, .header .form-title { background:linear-gradient(90deg,#fff1ae,#ffd166,#ff9f68); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .brand-badge { background:linear-gradient(90deg,rgba(255,209,102,.18),rgba(45,212,191,.16)); border-color:rgba(255,209,102,.45); box-shadow:0 0 18px rgba(255,209,102,.10); }
+  .conn-bar, .form-section, .table-wrapper, .stat-card { background:linear-gradient(145deg,rgba(21,45,72,.92),rgba(17,29,53,.88)); box-shadow:0 14px 34px rgba(0,0,0,.16); }
+  .conn-bar { border-color:rgba(56,189,248,.27); }
+  .stat-card { border-top:2px solid rgba(255,209,102,.42); }
+  .stat-card:nth-child(2) { border-top-color:rgba(45,212,191,.55); }
+  .stat-card:nth-child(3) { border-top-color:rgba(56,189,248,.55); }
+  .stat-card:nth-child(4) { border-top-color:rgba(139,92,246,.60); }
+  .stat-card:hover { transform:translateY(-5px) scale(1.015); box-shadow:0 18px 40px rgba(0,0,0,.24),0 0 20px rgba(56,189,248,.10); }
+  .form-section { animation:sectionIn .55s ease both; }
+  .form-section:nth-of-type(2) { animation-delay:.08s; }
+  .form-section:nth-of-type(3) { animation-delay:.16s; }
+  .form-title { color:#ffe7a0; }
+  .form-title::after { background:linear-gradient(90deg,#ffd166,#38bdf8,transparent); box-shadow:0 0 10px rgba(56,189,248,.25); }
+  .btn { position:relative; overflow:hidden; box-shadow:0 7px 16px rgba(0,0,0,.18); }
+  .btn::after { content:''; position:absolute; inset:0; transform:translateX(-110%) skewX(-18deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent); transition:transform .5s ease; }
+  .btn:hover::after { transform:translateX(110%) skewX(-18deg); }
+  .btn-prm { background:linear-gradient(135deg,#ffd166,#ff8c42); color:#172033; }
+  .btn-suc { background:linear-gradient(135deg,#2dd4bf,#0ea5a4); }
+  .btn-inf { background:linear-gradient(135deg,#38bdf8,#6366f1); }
+  .btn-sec { background:linear-gradient(135deg,#334b6c,#263b5a); }
+  .filters-bar { background:linear-gradient(90deg,rgba(21,45,72,.86),rgba(55,35,93,.52)); border-color:rgba(139,92,246,.25); }
+  .table-wrapper { border-color:rgba(56,189,248,.22); }
+  th { background:linear-gradient(90deg,#173b5f,#31265b,#174b52); color:#ffe7a0; }
+  .badge-paid { box-shadow:0 0 12px rgba(16,185,129,.15); }
+  .photo-area:hover, .document-upload:hover { border-color:#ffd166; box-shadow:0 0 0 4px rgba(255,209,102,.07),0 0 22px rgba(255,209,102,.10); }
+  .auth-gate { background:radial-gradient(circle at 15% 15%,rgba(56,189,248,.24),transparent 28%),radial-gradient(circle at 85% 85%,rgba(139,92,246,.22),transparent 30%),linear-gradient(135deg,#061223,#122d4c 52%,#181334); }
+  .auth-card { border-top-color:#ffd166; box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 50px rgba(56,189,248,.14); animation:authIn .65s cubic-bezier(.2,.8,.2,1) both; }
+  .auth-brand img { animation:logoFloat 4s ease-in-out infinite; }
+  .toast { backdrop-filter:blur(10px); }
+  @keyframes heroIn { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes sectionIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes authIn { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes orbFloat { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(18px,12px) scale(1.08); } }
+  @keyframes logoFloat { 0%,100% { transform:translateY(0) rotate(-1deg); } 50% { transform:translateY(-4px) rotate(1deg); } }
+  @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
+  @media (max-width:768px) { .header { padding:22px 12px 20px; } .site-logo { width:98px; height:90px; } .stat-card:hover { transform:none; } }
 </style>
 </head>
 <body class="auth-locked">
@@ -1296,7 +1355,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=visual4').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=modern5').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
