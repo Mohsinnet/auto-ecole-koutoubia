@@ -699,36 +699,48 @@
     }
   }
 
+  var syncInFlight = null;
   async function syncToFirebase(options) {
     options = options || {};
-    var url = getDbUrl();
-    if (!url) { toast('⚠️ أدخل رابط Firebase أولاً', 'wrn'); return false; }
-    if (candidates.length === 0 && !options.allowEmpty) { toast('ℹ️ لا يوجد بيانات لرفعها', 'inf'); return false; }
-    var clearing = candidates.length === 0;
-    showSpin(clearing ? '🗑️ جارٍ حذف السجلات من Firebase...' : '📤 جارٍ رفع البيانات إلى Firebase...');
-    try {
-      var payload = {};
-      candidates.forEach(function(c, i) { payload['cand_' + i] = c; });
-      var request = { method: clearing ? 'DELETE' : 'PUT' };
-      if (!clearing) {
-        request.headers = { 'Content-Type': 'application/json' };
-        request.body = JSON.stringify(payload);
-      }
-      var res = await firebaseRequest(url, request);
-      if (res.ok) {
-        toast(clearing ? '✅ تم حذف السجلات من Firebase' : '✅ تمت مزامنة ' + candidates.length + ' بطاقة مع Firebase', 'suc');
+    if (syncInFlight) return syncInFlight;
+    syncInFlight = (async function(){
+      var url = getDbUrl();
+      if (!url) { toast('⚠️ رابط Firebase غير متاح', 'wrn'); return false; }
+      if (candidates.length === 0 && !options.allowEmpty) { toast('ℹ️ لا توجد بطاقات محفوظة للرفع', 'inf'); return false; }
+      var clearing = candidates.length === 0;
+      showSpin(clearing ? '🗑️ جارٍ حذف السجلات من Firebase...' : '📤 جارٍ رفع البيانات إلى Firebase...');
+      try {
+        var payload = {};
+        candidates.forEach(function(c, i) { payload['cand_' + i] = c; });
+        var request = { method: clearing ? 'DELETE' : 'PUT', cache: 'no-store' };
+        if (!clearing) {
+          request.headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' };
+          request.body = JSON.stringify(payload);
+        }
+        var res = await firebaseRequest(url, request);
+        if (!res.ok) {
+          var errorBody = await res.text().catch(function(){ return ''; });
+          throw new Error('Firebase HTTP ' + res.status + (errorBody ? ' — ' + errorBody.slice(0,160) : ''));
+        }
+        if (!clearing) {
+          var verifyUrl = url + '?verify=' + Date.now();
+          var verify = await firebaseRequest(verifyUrl, {method:'GET', cache:'no-store', headers:{'Cache-Control':'no-cache'}});
+          if (!verify.ok) throw new Error('تم الرفع لكن تعذر التحقق من القراءة: HTTP ' + verify.status);
+          var saved = await verify.json();
+          var savedCount = saved && !Array.isArray(saved) ? Object.keys(saved).length : (Array.isArray(saved) ? saved.filter(Boolean).length : 0);
+          if (savedCount !== candidates.length) throw new Error('تم الرفع لكن عدد السجلات المقروءة (' + savedCount + ') لا يطابق العدد المرسل (' + candidates.length + ')');
+        }
+        toast(clearing ? '✅ تم حذف السجلات من Firebase' : '✅ تم رفع والتحقق من حفظ ' + candidates.length + ' بطاقة في Firebase', 'suc');
         updateStatus(true);
         return true;
+      } catch(e) {
+        toast('❌ فشلت المزامنة: ' + e.message, 'err');
+        return false;
+      } finally {
+        hideSpin();
       }
-      var errorBody = await res.text().catch(function(){ return ''; });
-      toast('❌ فشلت المزامنة: ' + res.status + (errorBody ? ' — ' + errorBody.slice(0,120) : ''), 'err');
-      return false;
-    } catch(e) {
-      toast('❌ فشلت المزامنة: ' + e.message, 'err');
-      return false;
-    } finally {
-      hideSpin();
-    }
+    })();
+    try { return await syncInFlight; } finally { syncInFlight = null; }
   }
 
   // ====== CONNECTION ======
@@ -1364,7 +1376,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=birth-place23').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=firebase-final24').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
