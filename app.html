@@ -455,8 +455,6 @@
 
         <div class="form-group"><label>رقم البطاقة <span class="req">*</span></label><input type="text" id="cardNumber" required placeholder="N° ..."></div>
         <div class="form-group"><label>الاسم الكامل <span class="req">*</span></label><input type="text" id="fullName" required placeholder="Prénom & Nom"></div>
-        <div class="form-group"><label>ابن/بنت السيد</label><input type="text" id="fatherName" placeholder="اسم الأب"></div>
-        <div class="form-group"><label>والسيدة (Et de)</label><input type="text" id="motherName" placeholder="اسم الأم"></div>
         <div class="form-group"><label>تاريخ الميلاد <span class="req">*</span></label><input type="date" id="birthDate" required></div>
         <div class="form-group"><label>المهنة</label><input type="text" id="profession" placeholder="Profession"></div>
         <div class="form-group full"><label>العنوان</label><input type="text" id="address" placeholder="Adresse"></div>
@@ -1029,8 +1027,6 @@
       extraDocument: extraDocumentToSave,
       cardNumber: document.getElementById('cardNumber').value.trim(),
       fullName: document.getElementById('fullName').value.trim(),
-      fatherName: document.getElementById('fatherName').value.trim(),
-      motherName: document.getElementById('motherName').value.trim(),
       birthDate: document.getElementById('birthDate').value,
       profession: document.getElementById('profession').value.trim(),
       address: document.getElementById('address').value.trim(),
@@ -1093,8 +1089,6 @@
 
     document.getElementById('cardNumber').value = c.cardNumber||'';
     document.getElementById('fullName').value = c.fullName||'';
-    document.getElementById('fatherName').value = c.fatherName||'';
-    document.getElementById('motherName').value = c.motherName||'';
     document.getElementById('birthDate').value = c.birthDate||'';
     document.getElementById('profession').value = c.profession||'';
     document.getElementById('address').value = c.address||'';
@@ -1155,8 +1149,6 @@
       ph +
       '<div class="dr"><span class="dl">رقم البطاقة:</span><span class="dv">'+(c.cardNumber||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">الاسم:</span><span class="dv">'+c.fullName+'</span></div>' +
-      '<div class="dr"><span class="dl">ابن/بنت:</span><span class="dv">'+(c.fatherName||'—')+'</span></div>' +
-      '<div class="dr"><span class="dl">والسيدة:</span><span class="dv">'+(c.motherName||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">الميلاد:</span><span class="dv">'+(c.birthDate||'—')+' ('+calcAge(c.birthDate)+' سنة)</span></div>' +
       '<div class="dr"><span class="dl">المهنة:</span><span class="dv">'+(c.profession||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">العنوان:</span><span class="dv">'+(c.address||'—')+'</span></div>' +
@@ -1394,7 +1386,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=optional-phone9').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=remove-parent10').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
