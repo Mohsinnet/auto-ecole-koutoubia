@@ -14,6 +14,7 @@
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -424,6 +425,7 @@
       <span class="status-dot status-off" id="statusDot"></span>
       <span id="statusText" style="color:var(--text-muted);font-size:0.75rem">غير متصل</span>
     </span>
+    <span id="realtimeStatus" style="color:var(--text-muted);font-size:0.75rem">🔄 التحديث المباشر: متوقف</span>
   </div>
 
   <div class="stats-grid">
@@ -635,6 +637,7 @@
     updateStatus();
     loadLocal();
     checkFirebaseConnection();
+    startRealtimeListener();
     document.getElementById('registerDate').value = new Date().toISOString().split('T')[0];
   }
 
@@ -699,6 +702,56 @@
     }
   }
 
+  var realtimeRef = null;
+  var realtimeWritePending = false;
+  var realtimeListenerInitialized = false;
+  function setRealtimeStatus(active, text) {
+    var el = document.getElementById('realtimeStatus');
+    if (!el) return;
+    el.textContent = active ? '🟢 التحديث المباشر: فعال' : ('🔴 التحديث المباشر: ' + (text || 'متوقف'));
+    el.style.color = active ? 'var(--success)' : 'var(--text-muted)';
+  }
+  function startRealtimeListener() {
+    if (!window.firebase || !firebase.database) { setRealtimeStatus(false, 'المكتبة غير متاحة'); return; }
+    try {
+      if (realtimeRef) realtimeRef.off();
+      realtimeListenerInitialized = false;
+      realtimeRef = firebase.database(firebaseApp).ref('candidates');
+      realtimeRef.on('value', function(snapshot) {
+        if (realtimeWritePending) return;
+        var data = snapshot.val();
+        var hasRemoteData = Array.isArray(data) ? data.some(Boolean) : !!(data && typeof data === 'object' && Object.keys(data).length);
+        if (!hasRemoteData && !realtimeListenerInitialized && candidates.length) {
+          realtimeListenerInitialized = true;
+          setRealtimeStatus(true);
+          toast('ℹ️ Firebase فارغة؛ جارٍ رفع البيانات المحلية إليها', 'inf');
+          syncToFirebase();
+          return;
+        }
+        if (Array.isArray(data)) candidates = data.filter(Boolean);
+        else if (data && typeof data === 'object') candidates = Object.keys(data).map(function(k){ return data[k]; }).filter(Boolean);
+        else candidates = [];
+        realtimeListenerInitialized = true;
+        saveLocal();
+        renderTable();
+        updateStats();
+        renderExamAlerts();
+        updateStatus(true);
+        setRealtimeStatus(true);
+      }, function(error) {
+        console.error('Realtime Listener:', error);
+        setRealtimeStatus(false, error && error.code === 'PERMISSION_DENIED' ? 'الصلاحيات مرفوضة' : 'خطأ في الاتصال');
+      });
+    } catch (e) {
+      console.error('Realtime Listener:', e);
+      setRealtimeStatus(false, 'خطأ في التشغيل');
+    }
+  }
+  function stopRealtimeListener() {
+    if (realtimeRef) { realtimeRef.off(); realtimeRef = null; }
+    setRealtimeStatus(false, 'متوقف');
+  }
+
   var syncInFlight = null;
   async function syncToFirebase(options) {
     options = options || {};
@@ -708,6 +761,7 @@
       if (!url) { toast('⚠️ رابط Firebase غير متاح', 'wrn'); return false; }
       if (candidates.length === 0 && !options.allowEmpty) { toast('ℹ️ لا توجد بطاقات محفوظة للرفع', 'inf'); return false; }
       var clearing = candidates.length === 0;
+      realtimeWritePending = true;
       showSpin(clearing ? '🗑️ جارٍ حذف السجلات من Firebase...' : '📤 جارٍ رفع البيانات إلى Firebase...');
       try {
         var payload = {};
@@ -737,6 +791,7 @@
         toast('❌ فشلت المزامنة: ' + e.message, 'err');
         return false;
       } finally {
+        realtimeWritePending = false;
         hideSpin();
       }
     })();
@@ -1376,7 +1431,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=firebase-final24').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=realtime-listener25').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
