@@ -454,7 +454,6 @@
 
         <div class="section-divider">📝 معلومات شخصية</div>
 
-        <div class="form-group"><label>رقم البطاقة <span class="req">*</span></label><input type="text" id="cardNumber" required placeholder="N° ..."></div>
         <div class="form-group"><label>الاسم الكامل <span class="req">*</span></label><input type="text" id="fullName" required placeholder="Prénom & Nom"></div>
         <div class="form-group"><label>تاريخ الميلاد <span class="req">*</span></label><input type="date" id="birthDate" required></div>
         <div class="form-group"><label>المهنة</label><input type="text" id="profession" placeholder="Profession"></div>
@@ -1016,7 +1015,7 @@
       photo: photoToSave,
       cinDocument: cinDocumentToSave,
       extraDocument: extraDocumentToSave,
-      cardNumber: document.getElementById('cardNumber').value.trim(),
+      cardNumber: editId ? ((candidates.find(function(c){return c.id===editId;}) || {}).cardNumber || '') : '',
       fullName: document.getElementById('fullName').value.trim(),
       birthDate: document.getElementById('birthDate').value,
       profession: document.getElementById('profession').value.trim(),
@@ -1070,7 +1069,6 @@
       document.getElementById('photoArea').classList.add('has-img');
     } else removePhoto();
 
-    document.getElementById('cardNumber').value = c.cardNumber||'';
     document.getElementById('fullName').value = c.fullName||'';
     document.getElementById('birthDate').value = c.birthDate||'';
     document.getElementById('profession').value = c.profession||'';
@@ -1359,7 +1357,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=firebase-load20').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=hide-card-number21').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
