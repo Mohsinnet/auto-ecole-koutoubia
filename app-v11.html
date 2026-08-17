@@ -418,8 +418,8 @@
   <div class="conn-bar">
     <label>🔥 رابط Firebase Database الثابت:</label>
     <input type="text" id="fbUrl" value="https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/" readonly aria-readonly="true" title="رابط Firebase ثابت وغير قابل للتغيير">
-    <button class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
-    <button class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
+    <button type="button" class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
+    <button type="button" class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
     <span id="connStatus">
       <span class="status-dot status-off" id="statusDot"></span>
       <span id="statusText" style="color:var(--text-muted);font-size:0.75rem">غير متصل</span>
@@ -685,6 +685,10 @@
         toast('✅ تم تحميل ' + candidates.length + ' بطاقة من Firebase', 'suc');
         updateStatus(true);
       } else {
+        candidates = [];
+        saveLocal();
+        renderTable();
+        updateStats();
         toast('ℹ️ قاعدة البيانات فارغة في Firebase', 'inf');
         updateStatus(true);
       }
@@ -716,7 +720,8 @@
         updateStatus(true);
         return true;
       }
-      toast('❌ فشلت المزامنة: ' + res.status, 'err');
+      var errorBody = await res.text().catch(function(){ return ''; });
+      toast('❌ فشلت المزامنة: ' + res.status + (errorBody ? ' — ' + errorBody.slice(0,120) : ''), 'err');
       return false;
     } catch(e) {
       toast('❌ فشلت المزامنة: ' + e.message, 'err');
@@ -995,7 +1000,7 @@
   });
 
   // ====== FORM SUBMIT ======
-  document.getElementById('candForm').addEventListener('submit', function(e){
+  document.getElementById('candForm').addEventListener('submit', async function(e){
     e.preventDefault();
     var editId = document.getElementById('editId').value;
     var photoToSave = currentPhoto;
@@ -1053,6 +1058,8 @@
     saveLocal();
     renderTable();
     resetForm();
+    // رفع تلقائي بعد الحفظ حتى لا تبقى البطاقة محلية فقط.
+    await syncToFirebase();
   });
 
   // ====== EDIT / VIEW / DELETE ======
@@ -1357,7 +1364,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=hide-card-number21').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=auto-sync22').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
