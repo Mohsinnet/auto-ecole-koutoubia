@@ -393,8 +393,8 @@
     <div class="auth-brand"><img src="assets/logo-auto-ecole.jpg" alt="شعار سيارة التعليم الكتبية"><span>GESTION AUTO ECOLE</span></div>
     <h1>سيارة التعليم الكتبية</h1>
     <p>سجّل الدخول للوصول إلى Gestion Auto Ecole</p>
-    <input type="email" id="authEmail" placeholder="البريد الإلكتروني" autocomplete="username" required>
-    <input type="password" id="authPassword" placeholder="كلمة المرور" autocomplete="current-password" required>
+    <input type="email" id="authEmail" placeholder="البريد الإلكتروني" autocomplete="off" required>
+    <input type="password" id="authPassword" placeholder="كلمة المرور" autocomplete="off" required>
     <div class="auth-error" id="authError" aria-live="polite"></div>
     <button type="submit" class="btn btn-prm" style="width:100%;justify-content:center">دخول آمن</button>
     <button type="button" class="btn btn-sec" style="width:100%;justify-content:center;margin-top:8px" onclick="sendPasswordReset()">نسيت كلمة المرور؟</button>
@@ -623,6 +623,10 @@
   };
   var firebaseApp = firebase.initializeApp(firebaseConfig);
   var firebaseAuth = firebase.auth(firebaseApp);
+  // لا تحفظ جلسة الدخول في المتصفح المشترك؛ يجب تسجيل الدخول من جديد بعد إغلاق الصفحة.
+  var authPersistenceReady = firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+    .then(function(){ return firebaseAuth.signOut(); })
+    .catch(function(err){ console.warn('Auth persistence:', err); });
 
   // ====== INIT ======
   function init() {
@@ -1353,7 +1357,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=password-button15').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=temporary-auth16').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
@@ -1384,6 +1388,7 @@
     var error = document.getElementById('authError');
     error.textContent = '';
     try {
+      await authPersistenceReady;
       var result = await firebaseAuth.signInWithEmailAndPassword(email, password);
       unlockApp(result.user);
     } catch (err) {
@@ -1431,7 +1436,9 @@
     firebaseAuth.signOut().then(function(){ window.location.reload(); });
   }
   firebaseAuth.onAuthStateChanged(function(user) {
-    if (user && !appStarted) unlockApp(user);
+    if (user && !appStarted) authPersistenceReady.then(function(){
+      if (firebaseAuth.currentUser) unlockApp(firebaseAuth.currentUser);
+    });
   });
 </script>
 
