@@ -347,7 +347,8 @@
   .header::after { background:rgba(45,212,191,.12); animation:orbFloat 8s ease-in-out infinite reverse; }
   .site-logo { border-color:#ffd166; box-shadow:0 0 0 6px rgba(255,209,102,.10),0 0 32px rgba(255,209,102,.22),0 14px 30px rgba(0,0,0,.35); animation:logoFloat 4s ease-in-out infinite; }
   .header h1, .header .form-title { background:linear-gradient(90deg,#fff1ae,#ffd166,#ff9f68); -webkit-background-clip:text; background-clip:text; color:transparent; }
-  .brand-badge { background:linear-gradient(90deg,rgba(255,209,102,.18),rgba(45,212,191,.16)); border-color:rgba(255,209,102,.45); box-shadow:0 0 18px rgba(255,209,102,.10); }
+  .brand-badge { background:linear-gradient(90deg,rgba(255,209,102,.18),rgba(45,212,191,.16)); border-color:rgba(255,209,102,.45); box-shadow:0 0 18px rgba(255,209,102,.10); cursor:pointer; user-select:none; transition:transform .2s ease, box-shadow .2s ease; }
+  .brand-badge:hover, .brand-badge:focus { transform:translateY(-2px); box-shadow:0 0 24px rgba(255,209,102,.22); outline:none; }
   .conn-bar, .form-section, .table-wrapper, .stat-card { background:linear-gradient(145deg,rgba(21,45,72,.92),rgba(17,29,53,.88)); box-shadow:0 14px 34px rgba(0,0,0,.16); }
   .conn-bar { border-color:rgba(56,189,248,.27); }
   .stat-card { border-top:2px solid rgba(255,209,102,.42); }
@@ -406,7 +407,7 @@
     <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:4px">سيارة التعليم الكتبية</div>
     <h1>Gestion Auto Ecole</h1>
     <h2>مزامنة فورية بين جميع أجهزة المؤسسة</h2>
-    <div class="brand-badge">✦ لوحة الإدارة الرقمية</div>
+    <button type="button" class="brand-badge" onclick="goToDashboard()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goToDashboard()}" title="الانتقال إلى لوحة الإحصائيات">✦ لوحة الإدارة الرقمية</button>
     <button type="button" class="btn btn-sec" onclick="logoutUser()" style="margin-top:10px">🚪 تسجيل الخروج</button>
     <button type="button" class="btn install-btn hidden" id="installButton" onclick="installApp()">📱 تثبيت التطبيق</button>
   </div>
@@ -786,6 +787,12 @@
     document.getElementById('stExam').textContent = candidates.filter(function(c){
       return c.exam1D1==='pass'||c.exam2D1==='pass';
     }).length;
+  }
+
+  function goToDashboard() {
+    var target = document.querySelector('.stats-grid') || document.querySelector('.container');
+    if (target) target.scrollIntoView({behavior:'smooth', block:'start'});
+    if (typeof showToast === 'function') showToast('تم فتح لوحة الإدارة الرقمية', 'success');
   }
 
   // ====== PHOTO ======
@@ -1352,7 +1359,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=remove-file2-13').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=dashboard-button14').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
