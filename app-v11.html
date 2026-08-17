@@ -666,6 +666,12 @@
     } catch(e) { updateStatus(false); }
   }
 
+  function normalizeCandidateData(data) {
+    if (data && data.candidates && typeof data.candidates === 'object') data = data.candidates;
+    if (Array.isArray(data)) return data.filter(Boolean);
+    if (!data || typeof data !== 'object') return [];
+    return Object.keys(data).map(function(k){ return data[k]; }).filter(function(v){ return v && typeof v === 'object' && (v.fullName || v.id || v.cardNumber || v.phone); });
+  }
   async function syncFromFirebase() {
     var url = getDbUrl();
     if (!url) { toast('⚠️ أدخل رابط Firebase أولاً', 'wrn'); return; }
@@ -675,13 +681,14 @@
       var res = await firebaseRequest(freshUrl, { method: 'GET', cache: 'no-store', headers: {'Cache-Control':'no-cache'} });
       if (!res.ok) throw new Error('Firebase HTTP ' + res.status);
       var data = await res.json();
-      if (data) {
-        // Firebase returns object {id1: {...}, id2: {...}} or array
-        if (Array.isArray(data)) {
-          candidates = data.filter(Boolean);
-        } else {
-          candidates = Object.keys(data).map(function(k) { return data[k]; }).filter(Boolean);
-        }
+      if (data === null) {
+        var rootUrl = DEFAULT_FB_URL + '?fallback=' + Date.now();
+        var rootRes = await firebaseRequest(rootUrl, { method:'GET', cache:'no-store', headers:{'Cache-Control':'no-cache'} });
+        if (rootRes.ok) data = await rootRes.json();
+      }
+      var normalized = normalizeCandidateData(data);
+      if (normalized.length) {
+        candidates = normalized;
         saveLocal();
         renderTable();
         updateStats();
@@ -692,7 +699,7 @@
         saveLocal();
         renderTable();
         updateStats();
-        toast('ℹ️ قاعدة البيانات فارغة في Firebase', 'inf');
+        toast('ℹ️ لم تُعثر على سجلات مرشحين في مسار candidates أو المسار القديم', 'inf');
         updateStatus(true);
       }
     } catch(e) {
@@ -1431,7 +1438,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=realtime-listener25').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=load-normalize26').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
