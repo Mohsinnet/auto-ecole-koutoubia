@@ -460,7 +460,7 @@
         <div class="form-group"><label>تاريخ الميلاد <span class="req">*</span></label><input type="date" id="birthDate" required></div>
         <div class="form-group"><label>المهنة</label><input type="text" id="profession" placeholder="Profession"></div>
         <div class="form-group full"><label>العنوان</label><input type="text" id="address" placeholder="Adresse"></div>
-        <div class="form-group"><label>الهاتف <span class="req">*</span></label><input type="tel" id="phone" required placeholder="05XX XX XX XX" autocomplete="tel"><div class="phone-actions"><a class="btn btn-suc" id="callPhoneBtn" href="#">📞 اتصال</a><a class="btn btn-inf" id="whatsappPhoneBtn" href="#" target="_blank" rel="noopener">💬 واتساب</a></div></div>
+        <div class="form-group"><label>الهاتف <span class="td-small">(اختياري)</span></label><input type="tel" id="phone" placeholder="05XX XX XX XX" autocomplete="tel"><div class="phone-actions"><a class="btn btn-suc" id="callPhoneBtn" href="#">📞 اتصال</a><a class="btn btn-inf" id="whatsappPhoneBtn" href="#" target="_blank" rel="noopener">💬 واتساب</a></div></div>
 
         <div class="section-divider">🆔 البطاقة الوطنية</div>
 
@@ -1394,7 +1394,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=cloud-delete8').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=optional-phone9').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
