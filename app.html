@@ -485,17 +485,6 @@
         </div>
         <div class="form-group"><label>تاريخ 2ème Examen</label><input type="date" id="exam2D1Date"></div>
 
-        <div class="section-divider">📁 الملف 2</div>
-
-        <div class="form-group"><label>رقم الملف 2</label><input type="text" id="dossier2" placeholder="Dossier N° 2"></div>
-        <div class="form-group"><label>1er Examen</label>
-          <select id="exam1D2"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
-        </div>
-        <div class="form-group"><label>تاريخ 1er Examen</label><input type="date" id="exam1D2Date"></div>
-        <div class="form-group"><label>2ème Examen</label>
-          <select id="exam2D2"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
-        </div>
-        <div class="form-group"><label>تاريخ 2ème Examen</label><input type="date" id="exam2D2Date"></div>
 
         <div class="section-divider">📋 نوع الرخصة</div>
 
@@ -573,7 +562,7 @@
         <thead>
           <tr>
             <th>📷</th><th>N°</th><th>الاسم</th><th>الهاتف</th><th>العمر</th>
-            <th>الرخصة</th><th>ملف1</th><th>امتحانات1</th><th>ملف2</th><th>امتحانات2</th>
+            <th>الرخصة</th><th>ملف1</th><th>امتحانات1</th>
             <th>الدفع</th><th>العربة</th><th>إضافية</th><th style="text-align:center">⚙️</th>
           </tr>
         </thead>
@@ -795,7 +784,7 @@
     document.getElementById('stUnpaid').textContent = candidates.filter(function(c){return c.paymentStatus==='unpaid';}).length;
     document.getElementById('stToday').textContent = candidates.filter(function(c){return c.registerDate===today;}).length;
     document.getElementById('stExam').textContent = candidates.filter(function(c){
-      return c.exam1D1==='pass'||c.exam2D1==='pass'||c.exam1D2==='pass'||c.exam2D2==='pass';
+      return c.exam1D1==='pass'||c.exam2D1==='pass';
     }).length;
   }
 
@@ -950,7 +939,7 @@
       var mlt = lt==='all' || c.licenseType===lt;
       var met = true;
       if (et!=='all') {
-        var exams = [c.exam1D1, c.exam2D1, c.exam1D2, c.exam2D2];
+        var exams = [c.exam1D1, c.exam2D1];
         met = exams.some(function(e){return e===et;});
       }
       return ms && mst && mlt && met;
@@ -974,8 +963,6 @@
         '<td>' + licBadge(c.licenseType) + '</td>' +
         '<td class="td-small">' + (c.dossier1||'—') + '</td>' +
         '<td>' + exBadge(c.exam1D1) + ' ' + exBadge(c.exam2D1) + '</td>' +
-        '<td class="td-small">' + (c.dossier2||'—') + '</td>' +
-        '<td>' + exBadge(c.exam1D2) + ' ' + exBadge(c.exam2D2) + '</td>' +
         '<td>' + payBadge(c.paymentStatus) + '</td>' +
         '<td class="td-small">' + (c.voitureNumber||'—') + '</td>' +
         '<td class="td-small">' + c.registerDate + '</td>' +
@@ -1037,11 +1024,6 @@
       exam1D1Date: document.getElementById('exam1D1Date').value,
       exam2D1: document.getElementById('exam2D1').value,
       exam2D1Date: document.getElementById('exam2D1Date').value,
-      dossier2: document.getElementById('dossier2').value.trim(),
-      exam1D2: document.getElementById('exam1D2').value,
-      exam1D2Date: document.getElementById('exam1D2Date').value,
-      exam2D2: document.getElementById('exam2D2').value,
-      exam2D2Date: document.getElementById('exam2D2Date').value,
       voitureNumber: document.getElementById('voitureNumber').value.trim(),
       licenseType: document.getElementById('licenseType').value,
       totalPrice: paymentNumber('totalPrice'),
@@ -1106,11 +1088,6 @@
     document.getElementById('exam1D1Date').value = c.exam1D1Date||'';
     document.getElementById('exam2D1').value = c.exam2D1||'';
     document.getElementById('exam2D1Date').value = c.exam2D1Date||'';
-    document.getElementById('dossier2').value = c.dossier2||'';
-    document.getElementById('exam1D2').value = c.exam1D2||'';
-    document.getElementById('exam1D2Date').value = c.exam1D2Date||'';
-    document.getElementById('exam2D2').value = c.exam2D2||'';
-    document.getElementById('exam2D2Date').value = c.exam2D2Date||'';
     document.getElementById('voitureNumber').value = c.voitureNumber||'';
     document.getElementById('licenseType').value = c.licenseType||'';
     document.getElementById('totalPrice').value = c.totalPrice||'';
@@ -1147,7 +1124,6 @@
       '<div class="dr"><span class="dl">الهاتف:</span><span class="dv" style="direction:ltr">'+c.phone+'</span></div>' +
       '<div class="dr"><span class="dl">Date de Saisie:</span><span class="dv">'+(c.saisieNumber||'—')+' '+(c.saisieDate||'')+'</span></div>' +
       '<div class="dr"><span class="dl">الملف 1:</span><span class="dv">'+(c.dossier1||'—')+' | 1er: '+exLine(c.exam1D1,c.exam1D1Date)+' | 2ème: '+exLine(c.exam2D1,c.exam2D1Date)+'</span></div>' +
-      '<div class="dr"><span class="dl">الملف 2:</span><span class="dv">'+(c.dossier2||'—')+' | 1er: '+exLine(c.exam1D2,c.exam1D2Date)+' | 2ème: '+exLine(c.exam2D2,c.exam2D2Date)+'</span></div>' +
       '<div class="dr"><span class="dl">رقم العربة:</span><span class="dv">'+(c.voitureNumber||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">الرخصة:</span><span class="dv">'+licLabel(c.licenseType)+' ('+c.licenseType+')</span></div>' +
       '<div class="dr"><span class="dl">الثمن الإجمالي:</span><span class="dv">'+(Number(c.totalPrice||0).toFixed(2))+'</span></div>' +
@@ -1209,7 +1185,7 @@
       'الدفعة الثانية': Number(c.secondPayment||0), 'الباقي': Number(c.remainingAmount||0),
       'حالة الدفع': pyL[c.paymentStatus]||'', 'تاريخ الإضافية': c.registerDate||'',
       'امتحان السياقة 1': c.exam1D1Date||'', 'امتحان السياقة 2': c.exam2D1Date||'',
-      'امتحان القانون 1': c.exam1D2Date||'', 'امتحان القانون 2': c.exam2D2Date||'',
+      
       'العنوان': c.address||'', 'ملاحظات': c.notes||''
     }; });
     var ws = XLSX.utils.json_to_sheet(rows);
@@ -1273,7 +1249,7 @@
   function getExamEvents() {
     var events = {};
     candidates.forEach(function(c) {
-      [['exam1D1Date','1er Examen — ملف 1'],['exam2D1Date','2ème Examen — ملف 1'],['exam1D2Date','1er Examen — ملف 2'],['exam2D2Date','2ème Examen — ملف 2']].forEach(function(pair) {
+      [['exam1D1Date','1er Examen — ملف 1'],['exam2D1Date','2ème Examen — ملف 1']].forEach(function(pair) {
         var date = c[pair[0]];
         if (!date) return;
         if (!events[date]) events[date] = [];
@@ -1324,7 +1300,7 @@
     showModal('📅 تقويم الامتحانات',
       '<div class="calendar-toolbar"><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(-1)">‹ السابق</button><strong>'+calendarMonths[calendarMonth]+' '+calendarYear+'</strong><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(1)">التالي ›</button></div>'+
       '<div class="calendar-grid">'+cells+'</div>'+
-      '<div class="calendar-legend"><span><i class="legend-dot legend-drive"></i> الملف 1: امتحان السياقة</span><span><i class="legend-dot legend-law"></i> الملف 2: امتحان القانون</span><span><i class="legend-dot legend-both"></i> النوعان معًا</span></div>',
+      '<div class="calendar-legend"><span><i class="legend-dot legend-drive"></i> الملف 1: امتحان السياقة</span></div>',
       [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
     );
   }
@@ -1376,7 +1352,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=remove-old-pc12').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=remove-file2-13').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
