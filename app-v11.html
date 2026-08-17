@@ -1,0 +1,1472 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سيارة التعليم الكتبية — Gestion Auto Ecole</title>
+<link rel="icon" type="image/jpeg" href="assets/logo-auto-ecole.jpg">
+<link rel="apple-touch-icon" href="assets/logo-auto-ecole.jpg">
+<link rel="manifest" href="manifest.json?v=20260815-2">
+<meta name="theme-color" content="#1a365d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --accent: #d69e2e; --bg: #0f172a; --card: #1e293b; --card-border: #334155;
+    --text: #e2e8f0; --text-muted: #94a3b8;
+    --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --info: #0ea5e9;
+  }
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: linear-gradient(160deg, #0f172a 0%, #1a202c 50%, #0f172a 100%);
+    min-height: 100vh; color: var(--text); padding: 16px;
+  }
+  .container { max-width: 1500px; margin: 0 auto; }
+  .header {
+    text-align: center; margin-bottom: 20px; padding: 20px;
+    background: linear-gradient(135deg, rgba(26,54,93,0.8), rgba(44,82,130,0.6));
+    border-radius: 20px; border: 1px solid var(--card-border);
+  }
+  .header h1 { font-size: 1.8rem; font-weight: 800; color: var(--accent); }
+  .header h2 { font-size: 1rem; color: var(--text-muted); margin-top: 4px; }
+  .site-logo { display:block; width:110px; height:100px; object-fit:contain; margin:0 auto 10px; padding:5px; background:#fff; border:2px solid var(--accent); border-radius:18px; box-shadow:0 8px 22px rgba(0,0,0,.25); }
+  .install-btn { margin-top:10px; background:linear-gradient(135deg,#0ea5e9,#2563eb); }
+  .offline-banner { background:rgba(245,158,11,.16); border:1px solid rgba(245,158,11,.45); color:#fbbf24; border-radius:10px; padding:8px 12px; text-align:center; font-size:.8rem; margin-bottom:12px; }
+  @media (max-width: 768px) { .site-logo { width:88px; height:82px; } .install-btn { width:100%; } }
+  @media (display-mode: standalone) { .install-btn { display:none !important; } }
+
+  .conn-bar {
+    background: var(--card); border: 1px solid var(--card-border); border-radius: 16px;
+    padding: 14px 18px; margin-bottom: 16px; display: flex; flex-wrap: wrap;
+    align-items: center; gap: 10px;
+  }
+  .conn-bar input {
+    flex: 1; min-width: 280px; background: #0f172a; border: 1px solid #475569;
+    border-radius: 10px; padding: 10px 14px; color: var(--text); font-family: 'Cairo', sans-serif; font-size: 0.85rem;
+  }
+  .conn-bar input:focus { outline: none; border-color: var(--accent); }
+  .conn-bar label { color: var(--text-muted); font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .status-ok { background: var(--success); box-shadow: 0 0 8px var(--success); }
+  .status-off { background: var(--danger); }
+  .status-warn { background: var(--warning); animation: blink 1s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat-card { background: var(--card); border: 1px solid var(--card-border); border-radius: 14px; padding: 14px; text-align: center; }
+  .stat-value { font-size: 1.6rem; font-weight: 800; }
+  .stat-label { font-size: 0.75rem; color: var(--text-muted); }
+  .st-acc .stat-value { color: var(--accent); }
+  .st-grn .stat-value { color: var(--success); }
+  .st-red .stat-value { color: var(--danger); }
+  .st-blu .stat-value { color: var(--info); }
+  .st-prp .stat-value { color: #a855f7; }
+
+  .form-section { background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; padding: 20px; margin-bottom: 16px; }
+  .form-title { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--card-border); }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group label { color: var(--text-muted); font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; }
+  .form-group label .req { color: var(--danger); }
+  .form-group input, .form-group select, .form-group textarea {
+    background: #0f172a; border: 1px solid #475569; border-radius: 10px; padding: 9px 12px;
+    color: var(--text); font-family: 'Cairo', sans-serif; font-size: 0.85rem;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
+  .form-group textarea { resize: vertical; min-height: 50px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .section-divider { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; margin: 6px 0; color: var(--accent); font-weight: 700; font-size: 0.85rem; }
+  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--card-border); }
+  .form-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--card-border); }
+  .btn { padding: 9px 18px; border-radius: 10px; border: none; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn-prm { background: linear-gradient(135deg, var(--accent), #c05621); color: #fff; }
+  .btn-sec { background: #334155; color: var(--text); }
+  .btn-suc { background: linear-gradient(135deg, var(--success), #059669); color: #fff; }
+  .btn-inf { background: linear-gradient(135deg, var(--info), #0369a1); color: #fff; }
+  .btn-dng { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; }
+  .btn-wrn { background: linear-gradient(135deg, var(--warning), #d97706); color: #fff; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  .hidden { display: none !important; }
+
+  .photo-area {
+    grid-column: 1 / -1; border: 2px dashed #475569; border-radius: 16px; padding: 16px;
+    text-align: center; cursor: pointer; transition: all 0.3s; background: #0f172a; position: relative;
+  }
+  .photo-area:hover { border-color: var(--accent); }
+  .photo-area.has-img { border-style: solid; border-color: var(--accent); }
+  .photo-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 2; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .photo-preview { width: 100px; height: 125px; object-fit: cover; border-radius: 10px; border: 2px solid var(--accent); display: none; margin: 0 auto 8px; }
+  .photo-preview.show { display: block; }
+  .photo-placeholder { font-size: 2.5rem; }
+  .photo-text { color: var(--text-muted); font-size: 0.8rem; }
+  .photo-hint { color: #64748b; font-size: 0.7rem; }
+  .photo-remove { position: absolute; top: 6px; left: 6px; background: var(--danger); color: #fff; border: none; width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 0.75rem; display: none; }
+  .photo-area.has-img .photo-remove { display: flex; align-items: center; justify-content: center; }
+  .phone-actions { display:flex; gap:6px; margin-top:6px; }
+  .phone-actions .btn { flex:1; padding:6px 8px; font-size:.72rem; text-decoration:none; justify-content:center; }
+  .document-upload { background:#0f172a; border:1px dashed #475569; border-radius:12px; padding:10px; text-align:center; position:relative; }
+  .document-upload input[type=file] { width:100%; font-size:.75rem; color:var(--text-muted); }
+  .document-preview { width:100%; max-height:130px; object-fit:contain; border-radius:8px; margin-top:8px; display:none; background:#fff; }
+  .document-preview.show { display:block; }
+
+  .filters-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
+  .search-box { flex: 1; min-width: 200px; position: relative; }
+  .search-box input { width: 100%; background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 9px 12px 9px 36px; color: var(--text); font-family: 'Cairo', sans-serif; font-size: 0.85rem; }
+  .search-box input:focus { outline: none; border-color: var(--accent); }
+  .search-box .icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 0.9rem; }
+  .filter-select { background: var(--card); border: 1px solid var(--card-border); border-radius: 10px; padding: 9px 12px; color: var(--text); font-family: 'Cairo', sans-serif; font-size: 0.8rem; min-width: 140px; }
+
+  .table-wrapper { background: var(--card); border: 1px solid var(--card-border); border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+  .table-scroll { overflow-x: auto; max-height: 550px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+  thead { position: sticky; top: 0; z-index: 10; }
+  th { background: linear-gradient(180deg, #0f172a, #1e293b); color: var(--accent); font-weight: 700; padding: 10px 6px; text-align: right; white-space: nowrap; border-bottom: 2px solid var(--card-border); font-size: 0.72rem; }
+  td { padding: 8px 6px; border-bottom: 1px solid #33415555; vertical-align: middle; }
+  tbody tr { transition: all 0.15s; }
+  tbody tr:hover { background: rgba(51,65,85,0.3); }
+  tbody tr:nth-child(even) { background: rgba(15,23,42,0.3); }
+  .td-name { font-weight: 700; color: #fff; }
+  .td-phone { font-family: monospace; direction: ltr; text-align: right; color: #cbd5e1; font-size: 0.75rem; }
+  .td-small { color: #94a3b8; font-size: 0.72rem; }
+  .td-photo { width: 44px; }
+  .table-photo { width: 36px; height: 45px; object-fit: cover; border-radius: 5px; border: 1px solid var(--card-border); cursor: pointer; transition: transform 0.2s; }
+  .table-photo:hover { transform: scale(2.5); z-index: 100; border-color: var(--accent); }
+  .no-photo { width: 36px; height: 45px; border-radius: 5px; background: #1e293b; border: 1px dashed #475569; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+
+  .badge { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 999px; font-size: 0.65rem; font-weight: 700; gap: 2px; white-space: nowrap; }
+  .badge-paid { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+  .badge-unpaid { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  .badge-partial { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+  .badge-lic { background: rgba(14,165,233,0.15); color: #38bdf8; border: 1px solid rgba(14,165,233,0.25); }
+  .badge-pass { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.25); }
+  .badge-fail { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+  .badge-pend { background: rgba(148,163,184,0.15); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+
+  .actions-cell { display: flex; gap: 3px; justify-content: center; }
+  .act-btn { width: 28px; height: 28px; border-radius: 7px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: all 0.2s; }
+  .act-btn:hover { transform: scale(1.1); }
+  .act-edit { background: rgba(14,165,233,0.15); color: #38bdf8; }
+  .act-del { background: rgba(239,68,68,0.15); color: #f87171; }
+  .act-view { background: rgba(168,85,247,0.15); color: #c084fc; }
+
+  .empty-state { text-align: center; padding: 40px 20px; }
+  .empty-state .icon { font-size: 3rem; margin-bottom: 10px; }
+  .empty-state h3 { color: var(--text-muted); font-size: 1rem; }
+  .footer { text-align: center; padding: 14px; color: #64748b; font-size: 0.75rem; }
+
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.25s; padding: 16px; }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal-box { background: var(--card); border: 1px solid var(--card-border); border-radius: 18px; padding: 20px; max-width: 550px; width: 100%; max-height: 90vh; overflow-y: auto; transform: scale(0.92); transition: transform 0.25s; }
+  .modal-overlay.active .modal-box { transform: scale(1); }
+  .modal-title { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
+  .modal-body { color: #cbd5e1; line-height: 1.7; margin-bottom: 16px; font-size: 0.85rem; }
+  .modal-body .dr { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #33415544; }
+  .modal-body .dr:last-child { border-bottom: none; }
+  .modal-body .dl { color: var(--text-muted); font-weight: 600; font-size: 0.8rem; }
+  .modal-body .dv { color: #fff; font-weight: 700; text-align: left; font-size: 0.85rem; }
+  .modal-photo { width: 90px; height: 110px; object-fit: cover; border-radius: 10px; border: 2px solid var(--accent); margin: 0 auto 12px; display: block; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  .img-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.92); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 3000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .img-modal.active { opacity: 1; pointer-events: auto; }
+  .img-modal img { max-width: 90vw; max-height: 90vh; border-radius: 14px; border: 3px solid var(--accent); }
+  .img-modal .close-btn { position: absolute; top: 16px; right: 16px; background: var(--danger); color: #fff; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 1rem; cursor: pointer; }
+
+  .spinner-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 5000; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .spinner-overlay.active { opacity: 1; pointer-events: auto; }
+  .spinner-box { text-align: center; }
+  .spinner { width: 50px; height: 50px; border: 4px solid rgba(214,158,46,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-text { color: var(--accent); margin-top: 12px; font-weight: 700; font-size: 0.9rem; }
+
+  .toast-container { position: fixed; top: 14px; left: 14px; z-index: 2000; display: flex; flex-direction: column; gap: 6px; }
+  .toast { padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s; box-shadow: 0 6px 20px rgba(0,0,0,0.4); max-width: 320px; }
+  .toast-suc { background: var(--success); color: #fff; }
+  .toast-err { background: var(--danger); color: #fff; }
+  .toast-inf { background: var(--info); color: #fff; }
+  .toast-wrn { background: var(--warning); color: #fff; }
+  @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+  @media print {
+    body { background: white; color: black; padding: 0; }
+    .form-section, .filters-bar, .actions-cell, .footer, .stats-grid, .conn-bar { display: none !important; }
+    .table-wrapper { border: 1px solid #ccc; border-radius: 0; }
+    th { color: black; background: #eee; }
+  }
+  .calendar-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
+  .calendar-toolbar strong { color:var(--accent); font-size:1rem; }
+  .calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; direction:rtl; }
+  .calendar-weekday { color:var(--text-muted); text-align:center; font-size:.7rem; font-weight:700; padding:5px 2px; }
+  .calendar-day { min-height:42px; border:1px solid var(--card-border); border-radius:8px; background:#0f172a; color:var(--text); cursor:pointer; font-family:'Cairo',sans-serif; font-weight:600; position:relative; }
+  .calendar-day:hover { border-color:var(--accent); }
+  .calendar-day.muted { opacity:.35; }
+  .calendar-day.today { outline:2px solid var(--info); }
+  .calendar-day.has-exam { border-width:2px; color:#fff; }
+  .calendar-day.drive-day { background:rgba(59,130,246,.28); border-color:#3b82f6; }
+  .calendar-day.law-day { background:rgba(249,115,22,.28); border-color:#f97316; }
+  .calendar-day.both-day { background:linear-gradient(135deg,rgba(59,130,246,.38) 0 50%,rgba(249,115,22,.38) 50% 100%); border-color:#a78bfa; }
+  .calendar-day .exam-count { display:block; color:#fff; font-size:.6rem; line-height:1.1; }
+  .calendar-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; color:var(--text-muted); font-size:.72rem; }
+  .calendar-legend span { display:inline-flex; align-items:center; gap:5px; }
+  .legend-dot { width:11px; height:11px; display:inline-block; border-radius:3px; }
+  .legend-drive { background:#3b82f6; }
+  .legend-law { background:#f97316; }
+  .legend-both { background:linear-gradient(135deg,#3b82f6 0 50%,#f97316 50% 100%); }
+  .exam-list { display:flex; flex-direction:column; gap:8px; }
+  .exam-item { background:#0f172a; border:1px solid var(--card-border); border-radius:10px; padding:9px 11px; font-size:.8rem; }
+  .exam-item strong { color:var(--accent); }
+  .exam-alerts { background:rgba(245,158,11,.12); border:1px solid rgba(245,158,11,.45); border-radius:16px; padding:14px 16px; margin-bottom:16px; }
+  .exam-alerts-title { color:#fbbf24; font-weight:800; margin-bottom:9px; }
+  .exam-alert-item { background:rgba(15,23,42,.65); border:1px solid rgba(245,158,11,.25); border-radius:10px; padding:8px 10px; margin-top:7px; font-size:.8rem; }
+  .exam-alert-item strong { color:#fde68a; }
+
+  .auth-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(160deg, #0f172a 0%, #1a202c 50%, #0f172a 100%); }
+  .auth-card { width: min(420px, 100%); padding: 28px; text-align: center; background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
+  .auth-card h1 { color: var(--accent); font-size: 1.35rem; margin-bottom: 8px; }
+  .auth-card p { color: var(--text-muted); font-size: .85rem; margin-bottom: 18px; }
+  .auth-card input { width: 100%; background: #0f172a; border: 1px solid #475569; border-radius: 10px; padding: 11px 13px; color: var(--text); font-family: 'Cairo', sans-serif; text-align: center; font-size: 1rem; margin-bottom: 10px; }
+  .auth-card input:focus { outline: none; border-color: var(--accent); }
+  .auth-error { min-height: 22px; color: #f87171; font-size: .78rem; margin-bottom: 4px; }
+  body.auth-locked > .container { visibility: hidden; }
+
+  @media (max-width: 768px) {
+    .header h1 { font-size: 1.2rem; }
+    .conn-bar { flex-direction: column; align-items: stretch; }
+    .conn-bar input { min-width: auto; }
+    .form-grid { grid-template-columns: 1fr; }
+    .filters-bar { flex-direction: column; }
+    th, td { padding: 6px 4px; font-size: 0.7rem; }
+    .btn { padding: 7px 12px; font-size: 0.75rem; }
+  }
+  @media (max-width: 768px) {
+    body { padding: 8px; }
+    .header { padding: 14px 10px; margin-bottom: 10px; }
+    .header h1 { font-size: 1.15rem; }
+    .header h2 { font-size: .78rem; }
+    .conn-bar { padding: 10px; gap: 7px; }
+    .conn-bar input { width:100%; min-width:0; font-size:.75rem; }
+    .conn-bar .btn { flex:1; min-width:0; }
+    .stats-grid { grid-template-columns:repeat(2,1fr); gap:7px; }
+    .stat-card { padding:10px 5px; }
+    .filters-bar { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+    .search-box { grid-column:1 / -1; width:100%; }
+    .filter-select, .filters-bar .btn { width:100%; min-width:0; }
+    .filters-bar .btn { grid-column:1 / -1; }
+    .form-actions { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+    .form-actions .btn { width:100%; min-height:42px; padding:8px 6px; }
+    input, select, textarea { font-size:16px !important; }
+    .table-wrapper { border-radius:10px; }
+    .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    table { min-width:980px; }
+    .modal-box { width:calc(100vw - 20px); max-height:88vh; padding:14px; }
+    .modal-actions { display:grid; grid-template-columns:1fr 1fr; }
+  }
+  @media (max-width: 420px) {
+    .form-actions { grid-template-columns:1fr; }
+    .stats-grid { grid-template-columns:repeat(2,1fr); }
+    .calendar-grid { gap:2px; }
+    .calendar-day { min-height:36px; font-size:.75rem; }
+  }
+  /* ====== VISUAL REFRESH ====== */
+  :root { --accent:#f2b84b; --accent-2:#f97316; --bg:#08111f; --card:#132238; --card-border:rgba(148,163,184,.22); --text:#f8fafc; --text-muted:#a7b5c8; --surface:rgba(19,34,56,.86); }
+  html { scroll-behavior:smooth; color-scheme:dark; }
+  body { background:radial-gradient(circle at 8% 0%,rgba(37,99,235,.18),transparent 30%),radial-gradient(circle at 92% 8%,rgba(242,184,75,.12),transparent 28%),linear-gradient(145deg,#07111f 0%,#0d1b2e 52%,#07111f 100%); }
+  .container { max-width:1540px; }
+  .header { position:relative; overflow:hidden; padding:30px 22px 24px; background:linear-gradient(135deg,rgba(17,45,78,.96),rgba(18,35,59,.88)); border:1px solid rgba(242,184,75,.28); box-shadow:0 18px 45px rgba(0,0,0,.24); }
+  .header::before { content:''; position:absolute; width:240px; height:240px; border-radius:50%; background:rgba(242,184,75,.08); top:-130px; left:-70px; }
+  .header::after { content:''; position:absolute; width:180px; height:180px; border-radius:50%; background:rgba(14,165,233,.08); bottom:-110px; right:-50px; }
+  .header > * { position:relative; z-index:1; }
+  .header h1 { letter-spacing:.2px; text-shadow:0 2px 18px rgba(242,184,75,.2); }
+  .header h2 { max-width:520px; margin:5px auto 0; }
+  .site-logo { width:118px; height:108px; border-radius:24px; border:3px solid var(--accent); box-shadow:0 0 0 6px rgba(242,184,75,.08),0 14px 30px rgba(0,0,0,.35); }
+  .conn-bar, .form-section, .table-wrapper, .stat-card { background:linear-gradient(145deg,rgba(19,34,56,.94),rgba(15,29,48,.9)); border-color:rgba(148,163,184,.2); box-shadow:0 10px 28px rgba(0,0,0,.14); }
+  .conn-bar { border-radius:14px; }
+  .conn-bar label { color:#cbd5e1; }
+  .stats-grid { gap:12px; }
+  .stat-card { position:relative; overflow:hidden; transition:transform .2s,border-color .2s,box-shadow .2s; }
+  .stat-card::after { content:''; position:absolute; inset:auto 0 0; height:3px; background:linear-gradient(90deg,var(--accent),transparent); opacity:.7; }
+  .stat-card:hover { transform:translateY(-3px); border-color:rgba(242,184,75,.42); box-shadow:0 14px 30px rgba(0,0,0,.22); }
+  .stat-value { font-size:1.8rem; }
+  .form-section { padding:24px; }
+  .form-title { display:flex; align-items:center; gap:10px; color:#ffd477; border-bottom:0; padding-bottom:12px; margin-bottom:18px; }
+  .form-title::after { content:''; flex:1; height:2px; border-radius:2px; background:linear-gradient(90deg,rgba(242,184,75,.7),transparent); }
+  .section-divider { margin:14px 0 4px; color:#ffd477; }
+  .section-divider::before, .section-divider::after { background:linear-gradient(90deg,transparent,rgba(148,163,184,.3)); }
+  .form-group input, .form-group select, .form-group textarea, .conn-bar input { background:rgba(5,15,28,.7); border-color:rgba(148,163,184,.28); transition:border-color .2s,box-shadow .2s,background .2s; }
+  .form-group input:hover, .form-group select:hover, .form-group textarea:hover { border-color:rgba(242,184,75,.42); }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus, .conn-bar input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(242,184,75,.12); background:rgba(5,15,28,.9); }
+  .btn { box-shadow:0 5px 14px rgba(0,0,0,.15); }
+  .btn:hover { box-shadow:0 8px 18px rgba(0,0,0,.25); }
+  .btn-prm { background:linear-gradient(135deg,#f2b84b,#d97706); }
+  .filters-bar { padding:12px; border-radius:14px; background:rgba(19,34,56,.62); border:1px solid rgba(148,163,184,.16); }
+  .table-wrapper { border-radius:18px; }
+  th { background:linear-gradient(180deg,#10223a,#172d49); color:#ffd477; }
+  tbody tr:hover { background:rgba(242,184,75,.07); }
+  .photo-area { background:linear-gradient(145deg,rgba(5,15,28,.72),rgba(19,34,56,.55)); border-color:rgba(148,163,184,.35); }
+  .photo-area:hover { background:rgba(242,184,75,.06); box-shadow:0 0 0 4px rgba(242,184,75,.06); }
+  .document-upload { background:rgba(5,15,28,.45); border-color:rgba(148,163,184,.3); }
+  .modal-box { background:linear-gradient(145deg,#162a44,#0f2035); border-color:rgba(242,184,75,.3); box-shadow:0 24px 70px rgba(0,0,0,.45); }
+  .auth-gate { background:radial-gradient(circle at 20% 10%,rgba(37,99,235,.2),transparent 30%),radial-gradient(circle at 80% 90%,rgba(242,184,75,.12),transparent 30%),#07111f; }
+  .auth-card { position:relative; overflow:hidden; background:linear-gradient(145deg,#193657 0%,#0b1a2e 72%); border:1px solid rgba(242,184,75,.55); border-top:4px solid #f2b84b; box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 45px rgba(37,99,235,.12); }
+  .auth-card::before { content:''; position:absolute; width:180px; height:180px; border-radius:50%; background:rgba(242,184,75,.08); top:-100px; right:-70px; }
+  .auth-card > * { position:relative; z-index:1; }
+  .auth-brand { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:12px; color:#f2b84b; font-size:.72rem; font-weight:800; letter-spacing:2px; }
+  .auth-brand img { width:58px; height:58px; object-fit:contain; background:#fff; border:2px solid #f2b84b; border-radius:15px; padding:3px; box-shadow:0 7px 20px rgba(0,0,0,.3); }
+  .brand-badge { display:inline-flex; align-items:center; gap:6px; margin-top:12px; padding:5px 13px; border-radius:999px; background:rgba(242,184,75,.12); border:1px solid rgba(242,184,75,.35); color:#ffe4a3; font-size:.72rem; font-weight:700; }
+  .auth-card input { background:rgba(5,15,28,.75); border-color:rgba(148,163,184,.3); }
+  .footer { color:#8191a7; }
+  @media (max-width:768px) { body { padding:10px; } .header { padding:24px 14px 20px; border-radius:18px; } .form-section { padding:16px 12px; border-radius:16px; } .stats-grid { gap:8px; } .stat-value { font-size:1.5rem; } .filters-bar { padding:9px; } .photo-area { padding:18px 12px; } }
+  /* ====== MODERN JOYFUL THEME ====== */
+  :root {
+    --accent:#ffd166; --accent-2:#ff8c42; --mint:#2dd4bf; --sky:#38bdf8; --violet:#8b5cf6;
+    --bg:#071426; --card:#12243b; --card-border:rgba(148,163,184,.22);
+  }
+  body {
+    background:
+      radial-gradient(circle at 8% 12%, rgba(56,189,248,.22), transparent 24%),
+      radial-gradient(circle at 92% 8%, rgba(139,92,246,.20), transparent 25%),
+      radial-gradient(circle at 54% 100%, rgba(45,212,191,.13), transparent 30%),
+      linear-gradient(135deg,#071426 0%,#102946 48%,#09172b 100%);
+    background-attachment:fixed;
+  }
+  body::before { content:''; position:fixed; inset:0; pointer-events:none; opacity:.25; background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px); background-size:34px 34px; mask-image:linear-gradient(to bottom,black,transparent 85%); }
+  .header {
+    background:linear-gradient(120deg,rgba(18,61,94,.96),rgba(55,35,93,.92) 55%,rgba(17,71,77,.94));
+    border:1px solid rgba(255,209,102,.46); box-shadow:0 22px 60px rgba(0,0,0,.28),0 0 38px rgba(56,189,248,.10);
+    animation:heroIn .7s ease both;
+  }
+  .header::before { background:rgba(255,209,102,.13); animation:orbFloat 7s ease-in-out infinite; }
+  .header::after { background:rgba(45,212,191,.12); animation:orbFloat 8s ease-in-out infinite reverse; }
+  .site-logo { border-color:#ffd166; box-shadow:0 0 0 6px rgba(255,209,102,.10),0 0 32px rgba(255,209,102,.22),0 14px 30px rgba(0,0,0,.35); animation:logoFloat 4s ease-in-out infinite; }
+  .header h1, .header .form-title { background:linear-gradient(90deg,#fff1ae,#ffd166,#ff9f68); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .brand-badge { background:linear-gradient(90deg,rgba(255,209,102,.18),rgba(45,212,191,.16)); border-color:rgba(255,209,102,.45); box-shadow:0 0 18px rgba(255,209,102,.10); }
+  .conn-bar, .form-section, .table-wrapper, .stat-card { background:linear-gradient(145deg,rgba(21,45,72,.92),rgba(17,29,53,.88)); box-shadow:0 14px 34px rgba(0,0,0,.16); }
+  .conn-bar { border-color:rgba(56,189,248,.27); }
+  .stat-card { border-top:2px solid rgba(255,209,102,.42); }
+  .stat-card:nth-child(2) { border-top-color:rgba(45,212,191,.55); }
+  .stat-card:nth-child(3) { border-top-color:rgba(56,189,248,.55); }
+  .stat-card:nth-child(4) { border-top-color:rgba(139,92,246,.60); }
+  .stat-card:hover { transform:translateY(-5px) scale(1.015); box-shadow:0 18px 40px rgba(0,0,0,.24),0 0 20px rgba(56,189,248,.10); }
+  .form-section { animation:sectionIn .55s ease both; }
+  .form-section:nth-of-type(2) { animation-delay:.08s; }
+  .form-section:nth-of-type(3) { animation-delay:.16s; }
+  .form-title { color:#ffe7a0; }
+  .form-title::after { background:linear-gradient(90deg,#ffd166,#38bdf8,transparent); box-shadow:0 0 10px rgba(56,189,248,.25); }
+  .btn { position:relative; overflow:hidden; box-shadow:0 7px 16px rgba(0,0,0,.18); }
+  .btn::after { content:''; position:absolute; inset:0; transform:translateX(-110%) skewX(-18deg); background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent); transition:transform .5s ease; }
+  .btn:hover::after { transform:translateX(110%) skewX(-18deg); }
+  .btn-prm { background:linear-gradient(135deg,#ffd166,#ff8c42); color:#172033; }
+  .btn-suc { background:linear-gradient(135deg,#2dd4bf,#0ea5a4); }
+  .btn-inf { background:linear-gradient(135deg,#38bdf8,#6366f1); }
+  .btn-sec { background:linear-gradient(135deg,#334b6c,#263b5a); }
+  .filters-bar { background:linear-gradient(90deg,rgba(21,45,72,.86),rgba(55,35,93,.52)); border-color:rgba(139,92,246,.25); }
+  .table-wrapper { border-color:rgba(56,189,248,.22); }
+  th { background:linear-gradient(90deg,#173b5f,#31265b,#174b52); color:#ffe7a0; }
+  .badge-paid { box-shadow:0 0 12px rgba(16,185,129,.15); }
+  .photo-area:hover, .document-upload:hover { border-color:#ffd166; box-shadow:0 0 0 4px rgba(255,209,102,.07),0 0 22px rgba(255,209,102,.10); }
+  .auth-gate { background:radial-gradient(circle at 15% 15%,rgba(56,189,248,.24),transparent 28%),radial-gradient(circle at 85% 85%,rgba(139,92,246,.22),transparent 30%),linear-gradient(135deg,#061223,#122d4c 52%,#181334); }
+  .auth-card { border-top-color:#ffd166; box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 50px rgba(56,189,248,.14); animation:authIn .65s cubic-bezier(.2,.8,.2,1) both; }
+  .auth-brand img { animation:logoFloat 4s ease-in-out infinite; }
+  .toast { backdrop-filter:blur(10px); }
+  @keyframes heroIn { from { opacity:0; transform:translateY(-12px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes sectionIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes authIn { from { opacity:0; transform:translateY(18px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+  @keyframes orbFloat { 0%,100% { transform:translate(0,0) scale(1); } 50% { transform:translate(18px,12px) scale(1.08); } }
+  @keyframes logoFloat { 0%,100% { transform:translateY(0) rotate(-1deg); } 50% { transform:translateY(-4px) rotate(1deg); } }
+  @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; } }
+  @media (max-width:768px) { .header { padding:22px 12px 20px; } .site-logo { width:98px; height:90px; } .stat-card:hover { transform:none; } }
+</style>
+</head>
+<body class="auth-locked">
+
+<div class="auth-gate" id="authGate">
+  <form class="auth-card" id="authForm" autocomplete="off">
+    <div class="auth-brand"><img src="assets/logo-auto-ecole.jpg" alt="شعار سيارة التعليم الكتبية"><span>GESTION AUTO ECOLE</span></div>
+    <h1>سيارة التعليم الكتبية</h1>
+    <p>سجّل الدخول للوصول إلى Gestion Auto Ecole</p>
+    <input type="email" id="authEmail" placeholder="البريد الإلكتروني" autocomplete="username" required>
+    <input type="password" id="authPassword" placeholder="كلمة المرور" autocomplete="current-password" required>
+    <div class="auth-error" id="authError" aria-live="polite"></div>
+    <button type="submit" class="btn btn-prm" style="width:100%;justify-content:center">دخول آمن</button>
+    <button type="button" class="btn btn-sec" style="width:100%;justify-content:center;margin-top:8px" onclick="sendPasswordReset()">نسيت كلمة المرور؟</button>
+  </form>
+</div>
+
+<div class="container">
+  <div class="header">
+    <img class="site-logo" src="assets/logo-auto-ecole.jpg" alt="شعار سيارة التعليم الكتبية">
+    <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:4px">سيارة التعليم الكتبية</div>
+    <h1>Gestion Auto Ecole</h1>
+    <h2>مزامنة فورية بين جميع أجهزة المؤسسة</h2>
+    <div class="brand-badge">✦ لوحة الإدارة الرقمية</div>
+    <button type="button" class="btn btn-sec" onclick="logoutUser()" style="margin-top:10px">🚪 تسجيل الخروج</button>
+    <button type="button" class="btn install-btn hidden" id="installButton" onclick="installApp()">📱 تثبيت التطبيق</button>
+  </div>
+
+  <div class="offline-banner hidden" id="offlineBanner">⚠️ أنت غير متصل بالإنترنت. يمكنك العمل على البيانات المحلية، وستحتاج اتصالًا للمزامنة مع Firebase.</div>
+
+  <!-- Connection Bar -->
+  <div class="conn-bar">
+    <label>🔥 رابط Firebase Database الثابت:</label>
+    <input type="text" id="fbUrl" value="https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/" readonly aria-readonly="true" title="رابط Firebase ثابت وغير قابل للتغيير">
+    <button class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
+    <button class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
+    <span id="connStatus">
+      <span class="status-dot status-off" id="statusDot"></span>
+      <span id="statusText" style="color:var(--text-muted);font-size:0.75rem">غير متصل</span>
+    </span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card st-acc"><div class="stat-value" id="stTotal">0</div><div class="stat-label">👥 إجمالي</div></div>
+    <div class="stat-card st-grn"><div class="stat-value" id="stPaid">0</div><div class="stat-label">💰 مدفوع</div></div>
+    <div class="stat-card st-red"><div class="stat-value" id="stUnpaid">0</div><div class="stat-label">⏳ غير مدفوع</div></div>
+    <div class="stat-card st-blu"><div class="stat-value" id="stToday">0</div><div class="stat-label">📅 اليوم</div></div>
+    <div class="stat-card st-prp"><div class="stat-value" id="stExam">0</div><div class="stat-label">🎓 ناجحين</div></div>
+  </div>
+
+  <div class="exam-alerts hidden" id="examAlerts" role="alert" aria-live="polite"></div>
+
+  <!-- Form -->
+  <div class="form-section">
+    <div class="form-title" id="formTitle">➕ إضافة بطاقة جديدة</div>
+    <form id="candForm">
+      <input type="hidden" id="editId">
+      <div class="form-grid">
+
+        <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
+          <input type="file" id="photoInput" accept="image/*" capture="user" onclick="event.stopPropagation()" onchange="handlePhoto(event)">
+          <button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto()">✕</button>
+          <img class="photo-preview" id="photoPreview">
+          <div class="photo-placeholder" id="photoPlc">📷</div>
+          <div class="photo-text" id="photoTxt">اضغط لإضافة صورة المرشح</div>
+          <div class="photo-hint">jpg, png — أقصى 2 ميجا</div>
+        </div>
+
+        <div class="section-divider">📝 معلومات شخصية</div>
+
+        <div class="form-group"><label>رقم البطاقة <span class="req">*</span></label><input type="text" id="cardNumber" required placeholder="N° ..."></div>
+        <div class="form-group"><label>الاسم الكامل <span class="req">*</span></label><input type="text" id="fullName" required placeholder="Prénom & Nom"></div>
+        <div class="form-group"><label>تاريخ الميلاد <span class="req">*</span></label><input type="date" id="birthDate" required></div>
+        <div class="form-group"><label>المهنة</label><input type="text" id="profession" placeholder="Profession"></div>
+        <div class="form-group full"><label>العنوان</label><input type="text" id="address" placeholder="Adresse"></div>
+        <div class="form-group"><label>الهاتف <span class="td-small">(اختياري)</span></label><input type="tel" id="phone" placeholder="05XX XX XX XX" autocomplete="tel"><div class="phone-actions"><a class="btn btn-suc" id="callPhoneBtn" href="#">📞 اتصال</a><a class="btn btn-inf" id="whatsappPhoneBtn" href="#" target="_blank" rel="noopener">💬 واتساب</a></div></div>
+
+        <div class="section-divider">🆔 البطاقة الوطنية</div>
+
+        <div class="form-group"><label>C.I.N N°</label><input type="text" id="cinNumber" placeholder="AB123456"></div>
+        <div class="form-group"><label>تاريخ CIN (Du)</label><input type="date" id="cinDate"></div>
+        <div class="section-divider">📄 صور الوثائق</div>
+        <div class="document-upload"><label>صورة البطاقة الوطنية</label><input type="file" id="cinDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'cinDocument')"><img id="cinDocumentPreview" class="document-preview" alt="صورة البطاقة الوطنية"><button type="button" class="btn btn-dng hidden" id="removeCinDocument" onclick="removeDocument('cinDocument')">حذف الصورة</button></div>
+        <div class="document-upload"><label>وثيقة إضافية</label><input type="file" id="extraDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'extraDocument')"><img id="extraDocumentPreview" class="document-preview" alt="وثيقة إضافية"><button type="button" class="btn btn-dng hidden" id="removeExtraDocument" onclick="removeDocument('extraDocument')">حذف الصورة</button></div>
+
+        <div class="section-divider">📋 إضافية</div>
+
+        <div class="form-group"><label>N° d'ancien P.C</label><input type="text" id="ancienPC" placeholder="رقم البطاقة القديمة"></div>
+        <div class="form-group"><label>تاريخ الإصدار</label><input type="date" id="ancienPCDate"></div>
+        <div class="form-group"><label>مكان الإصدار (Par)</label><input type="text" id="ancienPCLieu" placeholder="المكان"></div>
+        <div class="form-group"><label>N° Saisie</label><input type="text" id="saisieNumber" placeholder="رقم السيزي"></div>
+        <div class="form-group"><label>Date de Saisie</label><input type="date" id="saisieDate"></div>
+
+        <div class="section-divider">📁 الملف 1</div>
+
+        <div class="form-group"><label>رقم الملف 1</label><input type="text" id="dossier1" placeholder="Dossier N° 1"></div>
+        <div class="form-group"><label>1er Examen</label>
+          <select id="exam1D1"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
+        </div>
+        <div class="form-group"><label>تاريخ 1er Examen</label><input type="date" id="exam1D1Date"></div>
+        <div class="form-group"><label>2ème Examen</label>
+          <select id="exam2D1"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
+        </div>
+        <div class="form-group"><label>تاريخ 2ème Examen</label><input type="date" id="exam2D1Date"></div>
+
+        <div class="section-divider">📁 الملف 2</div>
+
+        <div class="form-group"><label>رقم الملف 2</label><input type="text" id="dossier2" placeholder="Dossier N° 2"></div>
+        <div class="form-group"><label>1er Examen</label>
+          <select id="exam1D2"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
+        </div>
+        <div class="form-group"><label>تاريخ 1er Examen</label><input type="date" id="exam1D2Date"></div>
+        <div class="form-group"><label>2ème Examen</label>
+          <select id="exam2D2"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
+        </div>
+        <div class="form-group"><label>تاريخ 2ème Examen</label><input type="date" id="exam2D2Date"></div>
+
+        <div class="section-divider">📋 نوع الرخصة</div>
+
+        <div class="form-group"><label>رقم العربة</label><input type="text" id="voitureNumber" placeholder="رقم العربة"></div>
+        <div class="form-group"><label>نوع الرخصة <span class="req">*</span></label>
+          <select id="licenseType" required>
+            <option value="">-- اختر --</option>
+            <option value="A">A — دراجات نارية</option>
+            <option value="B">B — سيارات خفيفة</option>
+            <option value="C">C — شاحنات</option>
+            <option value="D">D — حافلات</option>
+            <option value="E">E — مقطورات</option>
+          </select>
+        </div>
+
+        <div class="section-divider">💰 التسجيل والدفع</div>
+
+        <div class="form-group"><label>الثمن الإجمالي</label><input type="number" id="totalPrice" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="form-group"><label>الدفعة الأولى</label><input type="number" id="firstPayment" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="form-group"><label>الدفعة الثانية</label><input type="number" id="secondPayment" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="form-group"><label>الباقي</label><input type="number" id="remainingAmount" readonly placeholder="0.00"></div>
+        <div class="form-group"><label>حالة الدفع <span class="req">*</span></label>
+          <select id="paymentStatus" required>
+            <option value="paid">✅ مدفوع كامل</option>
+            <option value="unpaid">❌ غير مدفوع</option>
+            <option value="partial">⚠️ دفع جزئي</option>
+          </select>
+        </div>
+        <div class="form-group"><label>إضافية <span class="req">*</span></label><input type="date" id="registerDate" required></div>
+        <div class="form-group full"><label>ملاحظات</label><textarea id="notes" placeholder="ملاحظات..."></textarea></div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-prm" id="submitBtn">💾 حفظ محلياً</button>
+          <button type="button" class="btn btn-sec hidden" id="cancelBtn" onclick="resetForm()">❌ إلغاء</button>
+          <button type="button" class="btn btn-wrn" onclick="syncToFirebase()">📤 رفع للسحابة</button>
+          <button type="button" class="btn btn-inf" onclick="window.print()">🖨️ طباعة</button>
+          <button type="button" class="btn btn-suc" onclick="exportExcel()">📊 Excel</button>
+          <button type="button" class="btn btn-prm" onclick="exportPDF()">📄 PDF</button>
+          <button type="button" class="btn btn-suc" onclick="exportJSON()">📦 نسخ احتياطي</button>
+          <button type="button" class="btn btn-dng" onclick="confirmClear()">🗑️ مسح الكل</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <span class="icon">🔍</span>
+      <input type="text" id="searchInput" oninput="renderTable()" placeholder="بحث بالاسم أو الهاتف أو رقم البطاقة...">
+    </div>
+    <select class="filter-select" id="filterStatus" onchange="renderTable()">
+      <option value="all">📋 كل الحالات</option>
+      <option value="paid">✅ مدفوع</option>
+      <option value="unpaid">❌ غير مدفوع</option>
+      <option value="partial">⚠️ جزئي</option>
+    </select>
+    <select class="filter-select" id="filterLicense" onchange="renderTable()">
+      <option value="all">🪪 كل الرخص</option>
+      <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
+    </select>
+    <select class="filter-select" id="filterExam" onchange="renderTable()">
+      <option value="all">🎓 كل الامتحانات</option>
+      <option value="pass">✅ ناجح</option>
+      <option value="fail">❌ راسب</option>
+      <option value="pending">⏳ لم يتم</option>
+    </select>
+    <button type="button" class="btn btn-prm" onclick="openExamCalendar()">📅 تقويم الامتحانات</button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>📷</th><th>N°</th><th>الاسم</th><th>الهاتف</th><th>العمر</th>
+            <th>الرخصة</th><th>ملف1</th><th>امتحانات1</th><th>ملف2</th><th>امتحانات2</th>
+            <th>الدفع</th><th>العربة</th><th>إضافية</th><th style="text-align:center">⚙️</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="empty-state hidden" id="emptyState">
+      <div class="icon">📭</div><h3>لا يوجد بطاقات مسجلة</h3>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>🔥 البيانات تُحفظ محلياً + في Firebase للمزامنة الفورية بين جميع الأجهزة</p>
+    <p>🚗 سيارة التعليم الكتبية — Gestion Auto Ecole</p>
+  </div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<div class="img-modal" id="imgModal" onclick="closeImgModal()">
+  <button class="close-btn" onclick="closeImgModal()">✕</button>
+  <img id="modalImg" src="" alt="صورة">
+</div>
+
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner-box"><div class="spinner"></div><div class="spinner-text" id="spinnerText">جارٍ...</div></div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  // ====== CONFIG ======
+  var LOCAL_KEY = 'koutoubia_fb_cache';
+  var URL_KEY   = 'koutoubia_fb_url';
+  var DEFAULT_FB_URL = 'https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/';
+  var candidates = [];
+  var currentPhoto = '';
+  var currentCinDocument = '';
+  var currentExtraDocument = '';
+  var fbUrl = '';
+  var firebaseConfig = {
+    apiKey: 'AIzaSyD32obOSEGVfyazTRco3bK6MFE2DYI0CtI',
+    authDomain: 'koutoubia-auto-ecole.firebaseapp.com',
+    databaseURL: 'https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app',
+    projectId: 'koutoubia-auto-ecole',
+    storageBucket: 'koutoubia-auto-ecole.firebasestorage.app',
+    messagingSenderId: '636600155525',
+    appId: '1:636600155525:web:d527ab8af8a623461f58ec',
+    measurementId: 'G-MQTTSKYV0G'
+  };
+  var firebaseApp = firebase.initializeApp(firebaseConfig);
+  var firebaseAuth = firebase.auth(firebaseApp);
+
+  // ====== INIT ======
+  function init() {
+    fbUrl = DEFAULT_FB_URL;
+    localStorage.setItem(URL_KEY, DEFAULT_FB_URL);
+    document.getElementById('fbUrl').value = fbUrl;
+    updateStatus();
+    loadLocal();
+    checkFirebaseConnection();
+    document.getElementById('registerDate').value = new Date().toISOString().split('T')[0];
+  }
+
+  // ====== FIREBASE API ======
+  async function firebaseRequest(url, options) {
+    var user = firebaseAuth.currentUser;
+    if (!user) throw new Error('AUTH_REQUIRED');
+    var token = await user.getIdToken();
+    var separator = url.indexOf('?') === -1 ? '?' : '&';
+    return fetch(url + separator + 'auth=' + encodeURIComponent(token), options || {});
+  }
+
+  function getDbUrl() {
+    var url = fbUrl.trim();
+    if (!url) return '';
+    if (!url.endsWith('/')) url += '/';
+    return url + 'candidates.json';
+  }
+
+  async function checkFirebaseConnection() {
+    var url = getDbUrl();
+    if (!url) { updateStatus(false); return; }
+    try {
+      var res = await firebaseRequest(url, { method: 'GET', cache: 'no-store' });
+      if (res.ok) updateStatus(true); else updateStatus(false);
+    } catch(e) { updateStatus(false); }
+  }
+
+  async function syncFromFirebase() {
+    var url = getDbUrl();
+    if (!url) { toast('⚠️ أدخل رابط Firebase أولاً', 'wrn'); return; }
+    showSpin('📥 جارٍ تحميل البيانات من Firebase...');
+    try {
+      var res = await firebaseRequest(url);
+      var data = await res.json();
+      if (data) {
+        // Firebase returns object {id1: {...}, id2: {...}} or array
+        if (Array.isArray(data)) {
+          candidates = data.filter(Boolean);
+        } else {
+          candidates = Object.keys(data).map(function(k) { return data[k]; }).filter(Boolean);
+        }
+        saveLocal();
+        renderTable();
+        updateStats();
+        toast('✅ تم تحميل ' + candidates.length + ' بطاقة من Firebase', 'suc');
+        updateStatus(true);
+      } else {
+        toast('ℹ️ قاعدة البيانات فارغة في Firebase', 'inf');
+        updateStatus(true);
+      }
+    } catch(e) {
+      toast('❌ فشل الاتصال: ' + e.message, 'err');
+    } finally {
+      hideSpin();
+    }
+  }
+
+  async function syncToFirebase(options) {
+    options = options || {};
+    var url = getDbUrl();
+    if (!url) { toast('⚠️ أدخل رابط Firebase أولاً', 'wrn'); return false; }
+    if (candidates.length === 0 && !options.allowEmpty) { toast('ℹ️ لا يوجد بيانات لرفعها', 'inf'); return false; }
+    var clearing = candidates.length === 0;
+    showSpin(clearing ? '🗑️ جارٍ حذف السجلات من Firebase...' : '📤 جارٍ رفع البيانات إلى Firebase...');
+    try {
+      var payload = {};
+      candidates.forEach(function(c, i) { payload['cand_' + i] = c; });
+      var request = { method: clearing ? 'DELETE' : 'PUT' };
+      if (!clearing) {
+        request.headers = { 'Content-Type': 'application/json' };
+        request.body = JSON.stringify(payload);
+      }
+      var res = await firebaseRequest(url, request);
+      if (res.ok) {
+        toast(clearing ? '✅ تم حذف السجلات من Firebase' : '✅ تمت مزامنة ' + candidates.length + ' بطاقة مع Firebase', 'suc');
+        updateStatus(true);
+        return true;
+      }
+      toast('❌ فشلت المزامنة: ' + res.status, 'err');
+      return false;
+    } catch(e) {
+      toast('❌ فشلت المزامنة: ' + e.message, 'err');
+      return false;
+    } finally {
+      hideSpin();
+    }
+  }
+
+  // ====== CONNECTION ======
+  function saveFbUrl() {
+    fbUrl = DEFAULT_FB_URL;
+    localStorage.setItem(URL_KEY, DEFAULT_FB_URL);
+    document.getElementById('fbUrl').value = DEFAULT_FB_URL;
+    updateStatus();
+    checkFirebaseConnection();
+    toast('✅ رابط Firebase ثابت ولا يمكن تغييره من الواجهة', 'inf');
+  }
+
+  function updateStatus(connected) {
+    var dot = document.getElementById('statusDot');
+    var txt = document.getElementById('statusText');
+    if (!fbUrl) {
+      dot.className = 'status-dot status-off';
+      txt.textContent = 'غير متصل — أدخل رابط Firebase';
+    } else if (connected) {
+      dot.className = 'status-dot status-ok';
+      txt.textContent = '✅ متصل بـ Firebase';
+    } else {
+      dot.className = 'status-dot status-warn';
+      txt.textContent = 'جاهز — اضغط تحميل أو رفع';
+    }
+  }
+
+  // ====== SPINNER ======
+  function showSpin(text) {
+    document.getElementById('spinnerText').textContent = text;
+    document.getElementById('spinnerOverlay').classList.add('active');
+  }
+  function hideSpin() { document.getElementById('spinnerOverlay').classList.remove('active'); }
+
+  // ====== LOCAL STORAGE ======
+  function loadLocal() {
+    try {
+      var data = localStorage.getItem(LOCAL_KEY);
+      if (data) candidates = JSON.parse(data);
+    } catch(e) { candidates = []; }
+    renderTable();
+    updateStats();
+    renderExamAlerts();
+  }
+  function saveLocal() {
+    try {
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(candidates));
+      updateStats();
+      renderExamAlerts();
+      return true;
+    } catch (e) {
+      console.error('LocalStorage save failed:', e);
+      toast('⚠️ تم حفظ البطاقة مؤقتًا، لكن مساحة التخزين المحلية ممتلئة. اضغط مزامنة Firebase لحفظها سحابيًا.', 'wrn');
+      updateStats();
+      renderExamAlerts();
+      return false;
+    }
+  }
+
+  function updateStats() {
+    var today = new Date().toISOString().split('T')[0];
+    document.getElementById('stTotal').textContent = candidates.length;
+    document.getElementById('stPaid').textContent = candidates.filter(function(c){return c.paymentStatus==='paid';}).length;
+    document.getElementById('stUnpaid').textContent = candidates.filter(function(c){return c.paymentStatus==='unpaid';}).length;
+    document.getElementById('stToday').textContent = candidates.filter(function(c){return c.registerDate===today;}).length;
+    document.getElementById('stExam').textContent = candidates.filter(function(c){
+      return c.exam1D1==='pass'||c.exam2D1==='pass'||c.exam1D2==='pass'||c.exam2D2==='pass';
+    }).length;
+  }
+
+  // ====== PHOTO ======
+  function compressImageFile(file, maxWidth, maxHeight, quality) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = function(ev) {
+        var img = new Image();
+        img.onerror = reject;
+        img.onload = function() {
+          var scale = Math.min(1, maxWidth / img.width, maxHeight / img.height);
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          var ctx = canvas.getContext('2d', {alpha:false});
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handlePhoto(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
+    try {
+      currentPhoto = await compressImageFile(file, 700, 900, 0.78);
+      var img = document.getElementById('photoPreview');
+      img.src = currentPhoto;
+      img.classList.add('show');
+      document.getElementById('photoPlc').style.display = 'none';
+      document.getElementById('photoTxt').textContent = '✅ تم تجهيز الصورة وحفظها';
+      document.getElementById('photoArea').classList.add('has-img');
+    } catch (err) {
+      console.error(err);
+      toast('❌ تعذر تجهيز الصورة، حاول مرة أخرى', 'err');
+    }
+  }
+
+  function normalizePhone(phone) {
+    var digits = String(phone || '').replace(/\D/g, '');
+    if (digits.indexOf('00') === 0) digits = digits.slice(2);
+    if (digits.indexOf('0') === 0) digits = '212' + digits.slice(1);
+    if (digits.indexOf('212') !== 0 && digits.length >= 9) digits = '212' + digits;
+    return digits;
+  }
+  function phoneActionsHtml(phone) {
+    if (!phone) return '—';
+    var normalized = normalizePhone(phone);
+    return '<div style="display:flex;gap:4px;margin-top:4px;direction:ltr"><a class="btn btn-suc" style="padding:3px 6px;font-size:.65rem;text-decoration:none" href="tel:'+phone+'">📞</a><a class="btn btn-inf" style="padding:3px 6px;font-size:.65rem;text-decoration:none" href="https://wa.me/'+normalized+'" target="_blank" rel="noopener">💬</a></div>';
+  }
+  function updatePhoneActions() {
+    var phone = document.getElementById('phone').value.trim();
+    var normalized = normalizePhone(phone);
+    document.getElementById('callPhoneBtn').href = phone ? 'tel:' + phone : '#';
+    document.getElementById('whatsappPhoneBtn').href = normalized ? 'https://wa.me/' + normalized : '#';
+  }
+  document.getElementById('phone').addEventListener('input', updatePhoneActions);
+  async function handleDocument(event, type) {
+    var file = event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
+    try {
+      var compressed = await compressImageFile(file, 1500, 1800, 0.68);
+      if (type === 'cinDocument') currentCinDocument = compressed;
+      if (type === 'extraDocument') currentExtraDocument = compressed;
+      var preview = document.getElementById(type + 'Preview');
+      preview.src = compressed;
+      preview.classList.add('show');
+      document.getElementById('remove' + (type === 'cinDocument' ? 'Cin' : 'Extra') + 'Document').classList.remove('hidden');
+    } catch (err) {
+      console.error(err);
+      toast('❌ تعذر تجهيز الوثيقة، حاول مرة أخرى', 'err');
+    }
+  }
+  function removeDocument(type) {
+    if (type === 'cinDocument') currentCinDocument = '';
+    if (type === 'extraDocument') currentExtraDocument = '';
+    var suffix = type === 'cinDocument' ? 'Cin' : 'Extra';
+    document.getElementById(type + 'Input').value = '';
+    document.getElementById(type + 'Preview').src = '';
+    document.getElementById(type + 'Preview').classList.remove('show');
+    document.getElementById('remove' + suffix + 'Document').classList.add('hidden');
+  }
+
+  function removePhoto() {
+    currentPhoto = '';
+    document.getElementById('photoInput').value = '';
+    document.getElementById('photoPreview').classList.remove('show');
+    document.getElementById('photoPlc').style.display = 'block';
+    document.getElementById('photoTxt').textContent = 'اضغط لإضافة صورة المرشح';
+    document.getElementById('photoArea').classList.remove('has-img');
+  }
+
+  function openImgModal(src) {
+    document.getElementById('modalImg').src = src;
+    document.getElementById('imgModal').classList.add('active');
+  }
+  function closeImgModal() { document.getElementById('imgModal').classList.remove('active'); }
+
+  // ====== HELPERS ======
+  function calcAge(bd) {
+    if (!bd) return '—';
+    var t = new Date(), b = new Date(bd);
+    var a = t.getFullYear() - b.getFullYear();
+    var m = t.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && t.getDate() < b.getDate())) a--;
+    return a;
+  }
+
+  function payBadge(s) {
+    var m = {paid:'<span class="badge badge-paid">✅ مدفوع</span>', unpaid:'<span class="badge badge-unpaid">❌ غير مدفوع</span>', partial:'<span class="badge badge-partial">⚠️ جزئي</span>'};
+    return m[s]||s;
+  }
+
+  function licLabel(t) {
+    var m = {A:'دراجات',B:'سيارات',C:'شاحنات',D:'حافلات',E:'مقطورات'};
+    return m[t]||t;
+  }
+
+  function licBadge(t) {
+    return '<span class="badge badge-lic">' + t + ' — ' + licLabel(t) + '</span>';
+  }
+
+  function exBadge(s) {
+    var m = {pass:'<span class="badge badge-pass">✅</span>', fail:'<span class="badge badge-fail">❌</span>', pending:'<span class="badge badge-pend">⏳</span>'};
+    return m[s]||'<span class="badge badge-pend">—</span>';
+  }
+
+  function photoCell(p) {
+    if (!p) return '<div class="no-photo">👤</div>';
+    return '<img src="' + p + '" class="table-photo" onclick="event.stopPropagation();openImgModal(&quot;' + p + '&quot;)" alt="صورة">';
+  }
+
+  // ====== RENDER ======
+  function renderTable() {
+    var search = document.getElementById('searchInput').value.toLowerCase().trim();
+    var st = document.getElementById('filterStatus').value;
+    var lt = document.getElementById('filterLicense').value;
+    var et = document.getElementById('filterExam').value;
+
+    var filtered = candidates.filter(function(c) {
+      var ms = !search || (c.fullName+' '+c.phone+' '+c.cardNumber).toLowerCase().includes(search);
+      var mst = st==='all' || c.paymentStatus===st;
+      var mlt = lt==='all' || c.licenseType===lt;
+      var met = true;
+      if (et!=='all') {
+        var exams = [c.exam1D1, c.exam2D1, c.exam1D2, c.exam2D2];
+        met = exams.some(function(e){return e===et;});
+      }
+      return ms && mst && mlt && met;
+    });
+
+    filtered.sort(function(a,b){return new Date(b.registerDate)-new Date(a.registerDate);});
+
+    var tbody = document.getElementById('tableBody');
+    var empty = document.getElementById('emptyState');
+
+    if (filtered.length === 0) { tbody.innerHTML=''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+
+    tbody.innerHTML = filtered.map(function(c){
+      return '<tr>' +
+        '<td class="td-photo">' + photoCell(c.photo) + '</td>' +
+        '<td class="td-small">' + (c.cardNumber||'—') + '</td>' +
+        '<td class="td-name">' + c.fullName + '</td>' +
+        '<td class="td-phone">' + (c.phone||'—') + phoneActionsHtml(c.phone) + '</td>' +
+        '<td class="td-small">' + calcAge(c.birthDate) + '</td>' +
+        '<td>' + licBadge(c.licenseType) + '</td>' +
+        '<td class="td-small">' + (c.dossier1||'—') + '</td>' +
+        '<td>' + exBadge(c.exam1D1) + ' ' + exBadge(c.exam2D1) + '</td>' +
+        '<td class="td-small">' + (c.dossier2||'—') + '</td>' +
+        '<td>' + exBadge(c.exam1D2) + ' ' + exBadge(c.exam2D2) + '</td>' +
+        '<td>' + payBadge(c.paymentStatus) + '</td>' +
+        '<td class="td-small">' + (c.voitureNumber||'—') + '</td>' +
+        '<td class="td-small">' + c.registerDate + '</td>' +
+        '<td class="actions-cell">' +
+          '<button class="act-btn act-view" onclick="viewCand(\'' + c.id + '\')" title="عرض">👁️</button>' +
+          '<button class="act-btn act-edit" onclick="editCand(\'' + c.id + '\')" title="تعديل">✏️</button>' +
+          '<button class="act-btn act-del" onclick="delCand(\'' + c.id + '\')" title="حذف">🗑️</button>' +
+        '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  // ====== PAYMENT CALCULATION ======
+  function paymentNumber(id) { return Math.max(0, parseFloat(document.getElementById(id).value) || 0); }
+  function updatePaymentAmounts() {
+    var total = paymentNumber('totalPrice');
+    var first = paymentNumber('firstPayment');
+    var second = paymentNumber('secondPayment');
+    var remaining = Math.max(0, total - first - second);
+    document.getElementById('remainingAmount').value = remaining.toFixed(2);
+  }
+  ['totalPrice','firstPayment','secondPayment'].forEach(function(id){
+    document.getElementById(id).addEventListener('input', updatePaymentAmounts);
+  });
+
+  // ====== FORM SUBMIT ======
+  document.getElementById('candForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var editId = document.getElementById('editId').value;
+    var photoToSave = currentPhoto;
+    var cinDocumentToSave = currentCinDocument;
+    var extraDocumentToSave = currentExtraDocument;
+    if (editId) {
+      var ex = candidates.find(function(c){return c.id===editId;});
+      if (ex) {
+        if (!photoToSave) photoToSave = ex.photo || '';
+        if (!cinDocumentToSave) cinDocumentToSave = ex.cinDocument || '';
+        if (!extraDocumentToSave) extraDocumentToSave = ex.extraDocument || '';
+      }
+    }
+
+    var data = {
+      id: editId || Date.now().toString(36)+Math.random().toString(36).substr(2,9),
+      photo: photoToSave,
+      cinDocument: cinDocumentToSave,
+      extraDocument: extraDocumentToSave,
+      cardNumber: document.getElementById('cardNumber').value.trim(),
+      fullName: document.getElementById('fullName').value.trim(),
+      birthDate: document.getElementById('birthDate').value,
+      profession: document.getElementById('profession').value.trim(),
+      address: document.getElementById('address').value.trim(),
+      cinNumber: document.getElementById('cinNumber').value.trim(),
+      cinDate: document.getElementById('cinDate').value,
+      phone: document.getElementById('phone').value.trim(),
+      ancienPC: document.getElementById('ancienPC').value.trim(),
+      ancienPCDate: document.getElementById('ancienPCDate').value,
+      ancienPCLieu: document.getElementById('ancienPCLieu').value.trim(),
+      saisieNumber: document.getElementById('saisieNumber').value.trim(),
+      saisieDate: document.getElementById('saisieDate').value,
+      dossier1: document.getElementById('dossier1').value.trim(),
+      exam1D1: document.getElementById('exam1D1').value,
+      exam1D1Date: document.getElementById('exam1D1Date').value,
+      exam2D1: document.getElementById('exam2D1').value,
+      exam2D1Date: document.getElementById('exam2D1Date').value,
+      dossier2: document.getElementById('dossier2').value.trim(),
+      exam1D2: document.getElementById('exam1D2').value,
+      exam1D2Date: document.getElementById('exam1D2Date').value,
+      exam2D2: document.getElementById('exam2D2').value,
+      exam2D2Date: document.getElementById('exam2D2Date').value,
+      voitureNumber: document.getElementById('voitureNumber').value.trim(),
+      licenseType: document.getElementById('licenseType').value,
+      totalPrice: paymentNumber('totalPrice'),
+      firstPayment: paymentNumber('firstPayment'),
+      secondPayment: paymentNumber('secondPayment'),
+      remainingAmount: paymentNumber('remainingAmount'),
+      paymentStatus: document.getElementById('paymentStatus').value,
+      registerDate: document.getElementById('registerDate').value,
+      notes: document.getElementById('notes').value.trim()
+    };
+
+    if (editId) {
+      var idx = candidates.findIndex(function(c){return c.id===editId;});
+      if (idx!==-1) candidates[idx]=data;
+      toast('✅ تم تحديث البطاقة', 'suc');
+    } else {
+      candidates.push(data);
+      toast('✅ تم إضافة البطاقة', 'suc');
+    }
+
+    saveLocal();
+    renderTable();
+    resetForm();
+  });
+
+  // ====== EDIT / VIEW / DELETE ======
+  function editCand(id) {
+    var c = candidates.find(function(x){return x.id===id;});
+    if (!c) return;
+    document.getElementById('editId').value = c.id;
+    currentPhoto = c.photo||'';
+    if (c.photo) {
+      var img = document.getElementById('photoPreview');
+      img.src = c.photo; img.classList.add('show');
+      document.getElementById('photoPlc').style.display='none';
+      document.getElementById('photoTxt').textContent='✅ تم اختيار الصورة';
+      document.getElementById('photoArea').classList.add('has-img');
+    } else removePhoto();
+
+    document.getElementById('cardNumber').value = c.cardNumber||'';
+    document.getElementById('fullName').value = c.fullName||'';
+    document.getElementById('birthDate').value = c.birthDate||'';
+    document.getElementById('profession').value = c.profession||'';
+    document.getElementById('address').value = c.address||'';
+    document.getElementById('cinNumber').value = c.cinNumber||'';
+    document.getElementById('cinDate').value = c.cinDate||'';
+    document.getElementById('phone').value = c.phone||'';
+    updatePhoneActions();
+    currentCinDocument = c.cinDocument||'';
+    currentExtraDocument = c.extraDocument||'';
+    ['cinDocument','extraDocument'].forEach(function(type){
+      var value = type === 'cinDocument' ? currentCinDocument : currentExtraDocument;
+      var suffix = type === 'cinDocument' ? 'Cin' : 'Extra';
+      var preview = document.getElementById(type+'Preview');
+      if (value) { preview.src=value; preview.classList.add('show'); document.getElementById('remove'+suffix+'Document').classList.remove('hidden'); }
+      else { preview.src=''; preview.classList.remove('show'); document.getElementById('remove'+suffix+'Document').classList.add('hidden'); }
+    });
+    document.getElementById('ancienPC').value = c.ancienPC||'';
+    document.getElementById('ancienPCDate').value = c.ancienPCDate||'';
+    document.getElementById('ancienPCLieu').value = c.ancienPCLieu||'';
+    document.getElementById('saisieNumber').value = c.saisieNumber||'';
+    document.getElementById('saisieDate').value = c.saisieDate||'';
+    document.getElementById('dossier1').value = c.dossier1||'';
+    document.getElementById('exam1D1').value = c.exam1D1||'';
+    document.getElementById('exam1D1Date').value = c.exam1D1Date||'';
+    document.getElementById('exam2D1').value = c.exam2D1||'';
+    document.getElementById('exam2D1Date').value = c.exam2D1Date||'';
+    document.getElementById('dossier2').value = c.dossier2||'';
+    document.getElementById('exam1D2').value = c.exam1D2||'';
+    document.getElementById('exam1D2Date').value = c.exam1D2Date||'';
+    document.getElementById('exam2D2').value = c.exam2D2||'';
+    document.getElementById('exam2D2Date').value = c.exam2D2Date||'';
+    document.getElementById('voitureNumber').value = c.voitureNumber||'';
+    document.getElementById('licenseType').value = c.licenseType||'';
+    document.getElementById('totalPrice').value = c.totalPrice||'';
+    document.getElementById('firstPayment').value = c.firstPayment||'';
+    document.getElementById('secondPayment').value = c.secondPayment||'';
+    document.getElementById('remainingAmount').value = typeof c.remainingAmount==='number' ? c.remainingAmount.toFixed(2) : '';
+    updatePaymentAmounts();
+    document.getElementById('paymentStatus').value = c.paymentStatus||'paid';
+    document.getElementById('registerDate').value = c.registerDate||'';
+    document.getElementById('notes').value = c.notes||'';
+    document.getElementById('formTitle').textContent = '✏️ تعديل بطاقة';
+    document.getElementById('submitBtn').textContent = '💾 تحديث';
+    document.getElementById('cancelBtn').classList.remove('hidden');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function viewCand(id) {
+    var c = candidates.find(function(x){return x.id===id;});
+    if (!c) return;
+    var exL = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
+    var pyL = {paid:'✅ مدفوع', unpaid:'❌ غير مدفوع', partial:'⚠️ جزئي'};
+    var ph = c.photo ? '<img src="'+c.photo+'" class="modal-photo" onclick="openImgModal(&quot;'+c.photo+'&quot;)" style="cursor:pointer">' : '<div style="text-align:center;font-size:2.5rem;margin-bottom:12px">👤</div>';
+    var docs = '<div class="dr"><span class="dl">الوثائق:</span><span class="dv">' + (c.cinDocument ? '<img src="'+c.cinDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.cinDocument+'&quot;)" style="cursor:pointer" alt="البطاقة الوطنية">' : 'لا توجد صورة للبطاقة') + (c.extraDocument ? '<img src="'+c.extraDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.extraDocument+'&quot;)" style="cursor:pointer" alt="وثيقة إضافية">' : '') + '</span></div>';
+    function exLine(e,d){ return (exL[e]||'—') + (d?' ('+d+')':''); }
+
+    showModal('👁️ '+c.fullName,
+      ph +
+      '<div class="dr"><span class="dl">رقم البطاقة:</span><span class="dv">'+(c.cardNumber||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">الاسم:</span><span class="dv">'+c.fullName+'</span></div>' +
+      '<div class="dr"><span class="dl">الميلاد:</span><span class="dv">'+(c.birthDate||'—')+' ('+calcAge(c.birthDate)+' سنة)</span></div>' +
+      '<div class="dr"><span class="dl">المهنة:</span><span class="dv">'+(c.profession||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">العنوان:</span><span class="dv">'+(c.address||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">C.I.N:</span><span class="dv">'+(c.cinNumber||'—')+' '+(c.cinDate||'')+'</span></div>' +
+      '<div class="dr"><span class="dl">الهاتف:</span><span class="dv" style="direction:ltr">'+c.phone+'</span></div>' +
+      '<div class="dr"><span class="dl">Ancien PC:</span><span class="dv">'+(c.ancienPC||'—')+' '+(c.ancienPCDate||'')+' '+(c.ancienPCLieu||'')+'</span></div>' +
+      '<div class="dr"><span class="dl">Date de Saisie:</span><span class="dv">'+(c.saisieNumber||'—')+' '+(c.saisieDate||'')+'</span></div>' +
+      '<div class="dr"><span class="dl">الملف 1:</span><span class="dv">'+(c.dossier1||'—')+' | 1er: '+exLine(c.exam1D1,c.exam1D1Date)+' | 2ème: '+exLine(c.exam2D1,c.exam2D1Date)+'</span></div>' +
+      '<div class="dr"><span class="dl">الملف 2:</span><span class="dv">'+(c.dossier2||'—')+' | 1er: '+exLine(c.exam1D2,c.exam1D2Date)+' | 2ème: '+exLine(c.exam2D2,c.exam2D2Date)+'</span></div>' +
+      '<div class="dr"><span class="dl">رقم العربة:</span><span class="dv">'+(c.voitureNumber||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">الرخصة:</span><span class="dv">'+licLabel(c.licenseType)+' ('+c.licenseType+')</span></div>' +
+      '<div class="dr"><span class="dl">الثمن الإجمالي:</span><span class="dv">'+(Number(c.totalPrice||0).toFixed(2))+'</span></div>' +
+      '<div class="dr"><span class="dl">الدفعة الأولى:</span><span class="dv">'+(Number(c.firstPayment||0).toFixed(2))+'</span></div>' +
+      '<div class="dr"><span class="dl">الدفعة الثانية:</span><span class="dv">'+(Number(c.secondPayment||0).toFixed(2))+'</span></div>' +
+      '<div class="dr"><span class="dl">الباقي:</span><span class="dv">'+(Number(c.remainingAmount||0).toFixed(2))+'</span></div>' +
+      '<div class="dr"><span class="dl">حالة الدفع:</span><span class="dv">'+(pyL[c.paymentStatus]||'—')+'</span></div>' +
+      '<div class="dr"><span class="dl">إضافية:</span><span class="dv">'+c.registerDate+'</span></div>' +
+      '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>' + docs,
+      [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
+    );
+  }
+
+  function delCand(id) {
+    showModal('🗑️ تأكيد الحذف', 'هل أنت متأكد من حذف هذه البطاقة محليًا ومن Firebase؟', [
+      {text:'إلغاء', cls:'btn btn-sec', act:hideModal},
+      {text:'نعم، احذف', cls:'btn btn-dng', act:async function(){
+        candidates = candidates.filter(function(c){return c.id!==id;});
+        saveLocal(); renderTable(); hideModal();
+        toast('🗑️ تم الحذف محليًا، جارٍ تحديث Firebase...', 'inf');
+        await syncToFirebase({allowEmpty:true, action:'delete'});
+      }}
+    ]);
+  }
+
+  function confirmClear() {
+    if (candidates.length===0) { toast('ℹ️ لا يوجد بيانات', 'inf'); return; }
+    showModal('⚠️ مسح الكل', 'سيتم حذف '+candidates.length+' بطاقة من الجهاز وFirebase نهائيًا. هل أنت متأكد؟', [
+      {text:'إلغاء', cls:'btn btn-sec', act:hideModal},
+      {text:'نعم، امسح الكل', cls:'btn btn-dng', act:async function(){
+        candidates=[]; saveLocal(); renderTable(); hideModal();
+        toast('🗑️ تم المسح محليًا، جارٍ حذف السجلات من Firebase...', 'inf');
+        await syncToFirebase({allowEmpty:true, action:'clear'});
+      }}
+    ]);
+  }
+
+  function resetForm() {
+    document.getElementById('candForm').reset();
+    document.getElementById('editId').value='';
+    currentPhoto=''; removePhoto();
+    currentCinDocument=''; currentExtraDocument='';
+    removeDocument('cinDocument'); removeDocument('extraDocument');
+    updatePhoneActions();
+    document.getElementById('registerDate').value=new Date().toISOString().split('T')[0];
+    document.getElementById('formTitle').textContent='➕ إضافة بطاقة جديدة';
+    document.getElementById('submitBtn').textContent='💾 حفظ محلياً';
+    document.getElementById('cancelBtn').classList.add('hidden');
+  }
+
+  function exportExcel() {
+    if (candidates.length===0) { toast('ℹ️ لا توجد بطاقات للتصدير', 'inf'); return; }
+    if (!window.XLSX) { toast('❌ مكتبة Excel غير متاحة، تحقق من اتصال الإنترنت', 'err'); return; }
+    var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
+    var rows = candidates.map(function(c){ return {
+      'رقم البطاقة': c.cardNumber||'', 'الاسم الكامل': c.fullName||'', 'الهاتف': c.phone||'',
+      'نوع الرخصة': c.licenseType||'', 'رقم العربة': c.voitureNumber||'',
+      'الثمن الإجمالي': Number(c.totalPrice||0), 'الدفعة الأولى': Number(c.firstPayment||0),
+      'الدفعة الثانية': Number(c.secondPayment||0), 'الباقي': Number(c.remainingAmount||0),
+      'حالة الدفع': pyL[c.paymentStatus]||'', 'تاريخ الإضافية': c.registerDate||'',
+      'امتحان السياقة 1': c.exam1D1Date||'', 'امتحان السياقة 2': c.exam2D1Date||'',
+      'امتحان القانون 1': c.exam1D2Date||'', 'امتحان القانون 2': c.exam2D2Date||'',
+      'العنوان': c.address||'', 'ملاحظات': c.notes||''
+    }; });
+    var ws = XLSX.utils.json_to_sheet(rows);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'المرشحون');
+    XLSX.writeFile(wb, 'Auto-Ecole-Koutoubia-'+new Date().toISOString().split('T')[0]+'.xlsx');
+    toast('✅ تم تصدير ملف Excel', 'suc');
+  }
+
+  function exportPDF() {
+    if (candidates.length===0) { toast('ℹ️ لا توجد بطاقات للتصدير', 'inf'); return; }
+    var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
+    var rows = candidates.map(function(c){ return '<tr><td>'+(c.cardNumber||'—')+'</td><td>'+(c.fullName||'—')+'</td><td>'+(c.phone||'—')+'</td><td>'+(c.licenseType||'—')+'</td><td>'+Number(c.totalPrice||0).toFixed(2)+'</td><td>'+Number(c.firstPayment||0).toFixed(2)+'</td><td>'+Number(c.secondPayment||0).toFixed(2)+'</td><td>'+Number(c.remainingAmount||0).toFixed(2)+'</td><td>'+(pyL[c.paymentStatus]||'—')+'</td><td>'+(c.registerDate||'—')+'</td></tr>'; }).join('');
+    var w = window.open('', '_blank');
+    if (!w) { toast('⚠️ اسمح بالنوافذ المنبثقة لتصدير PDF', 'wrn'); return; }
+    w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير التسجيل والدفع</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{text-align:center;color:#1e3a5f}p{text-align:center;color:#555}img{display:block;width:80px;height:75px;object-fit:contain;margin:0 auto 8px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:6px;text-align:center}th{background:#dbeafe} @media print{button{display:none}}</style></head><body><img src="'+location.origin+'/assets/logo-auto-ecole.jpg"><h1>سيارة التعليم الكتبية — Gestion Auto Ecole</h1><p>تقرير التسجيل والدفع — '+new Date().toLocaleDateString('ar-MA')+'</p><table><thead><tr><th>رقم البطاقة</th><th>الاسم</th><th>الهاتف</th><th>الرخصة</th><th>الإجمالي</th><th>الدفعة 1</th><th>الدفعة 2</th><th>الباقي</th><th>الحالة</th><th>الإضافية</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print();};<\/script></body></html>');
+    w.document.close();
+    toast('✅ تم تجهيز تقرير PDF، اختر Save as PDF من نافذة الطباعة', 'suc');
+  }
+
+  function exportJSON() {
+    if (candidates.length===0) { toast('ℹ️ لا يوجد بيانات', 'inf'); return; }
+    var blob = new Blob([JSON.stringify(candidates,null,2)], {type:'application/json'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href=url; a.download='Koutoubia_Backup_'+new Date().toISOString().split('T')[0]+'.json';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast('📦 تم التصدير', 'suc');
+  }
+
+  // ====== MODAL ======
+  function showModal(title, body, buttons) {
+    document.getElementById('modalTitle').textContent = title;
+    document.getElementById('modalBody').innerHTML = body;
+    var acts = document.getElementById('modalActions');
+    acts.innerHTML = '';
+    buttons.forEach(function(b){
+      var btn = document.createElement('button');
+      btn.className = b.cls; btn.textContent = b.text; btn.onclick = b.act;
+      acts.appendChild(btn);
+    });
+    document.getElementById('modalOverlay').classList.add('active');
+  }
+  function hideModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+  document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target===e.currentTarget) hideModal(); });
+
+  // ====== TOAST ======
+  function toast(msg, type) {
+    var c = document.getElementById('toastContainer');
+    var t = document.createElement('div');
+    t.className = 'toast toast-'+type; t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 3000);
+  }
+
+  // ====== EXAM CALENDAR ======
+  var calendarYear, calendarMonth;
+  var calendarMonths = ['يناير','فبراير','مارس','أبريل','ماي','يونيو','يوليوز','غشت','شتنبر','أكتوبر','نونبر','دجنبر'];
+  var calendarWeekdays = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+  function getExamEvents() {
+    var events = {};
+    candidates.forEach(function(c) {
+      [['exam1D1Date','1er Examen — ملف 1'],['exam2D1Date','2ème Examen — ملف 1'],['exam1D2Date','1er Examen — ملف 2'],['exam2D2Date','2ème Examen — ملف 2']].forEach(function(pair) {
+        var date = c[pair[0]];
+        if (!date) return;
+        if (!events[date]) events[date] = [];
+        events[date].push({name:c.fullName||'—', card:c.cardNumber||'—', type:pair[1], category:pair[0].includes('D1')?'drive':'law', status:c[pair[0].replace('Date','')]||'pending'});
+      });
+    });
+    return events;
+  }
+  function renderExamAlerts() {
+    var box = document.getElementById('examAlerts');
+    if (!box) return;
+    var tomorrowDate = new Date();
+    tomorrowDate.setHours(0,0,0,0);
+    tomorrowDate.setDate(tomorrowDate.getDate()+1);
+    var tomorrow = tomorrowDate.toISOString().split('T')[0];
+    var events = getExamEvents()[tomorrow] || [];
+    if (!events.length) { box.classList.add('hidden'); box.innerHTML=''; return; }
+    box.classList.remove('hidden');
+    box.innerHTML = '<div class="exam-alerts-title">🔔 تنبيه: امتحانات غدًا ('+tomorrow+')</div>' +
+      events.map(function(e){
+        var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
+        return '<div class="exam-alert-item"><strong>'+e.name+'</strong> — رقم البطاقة: '+e.card+'<br>'+e.type+' — '+(statusLabels[e.status]||'—')+'</div>';
+      }).join('');
+  }
+
+  function openExamCalendar() {
+    var now = new Date(); calendarYear = now.getFullYear(); calendarMonth = now.getMonth();
+    renderExamCalendar();
+  }
+  function renderExamCalendar() {
+    var events = getExamEvents();
+    var first = new Date(calendarYear, calendarMonth, 1);
+    var days = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+    var leading = first.getDay();
+    var today = new Date().toISOString().split('T')[0];
+    var cells = calendarWeekdays.map(function(w){ return '<div class="calendar-weekday">'+w+'</div>'; }).join('');
+    for (var i=0;i<leading;i++) cells += '<div class="calendar-day muted"></div>';
+    for (var d=1;d<=days;d++) {
+      var key = calendarYear+'-'+String(calendarMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      var dayEvents = events[key] || [];
+      var count = dayEvents.length;
+      var hasDrive = dayEvents.some(function(e){ return e.category==='drive'; });
+      var hasLaw = dayEvents.some(function(e){ return e.category==='law'; });
+      var typeClass = hasDrive && hasLaw ? ' both-day' : hasDrive ? ' drive-day' : hasLaw ? ' law-day' : '';
+      var cls = 'calendar-day'+(key===today?' today':'')+(count?' has-exam':'')+typeClass;
+      cells += '<button type="button" class="'+cls+'" onclick="showCalendarDay(\''+key+'\')">'+d+(count?'<span class="exam-count">'+count+' امتحان</span>':'')+'</button>';
+    }
+    showModal('📅 تقويم الامتحانات',
+      '<div class="calendar-toolbar"><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(-1)">‹ السابق</button><strong>'+calendarMonths[calendarMonth]+' '+calendarYear+'</strong><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(1)">التالي ›</button></div>'+
+      '<div class="calendar-grid">'+cells+'</div>'+
+      '<div class="calendar-legend"><span><i class="legend-dot legend-drive"></i> الملف 1: امتحان السياقة</span><span><i class="legend-dot legend-law"></i> الملف 2: امتحان القانون</span><span><i class="legend-dot legend-both"></i> النوعان معًا</span></div>',
+      [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
+    );
+  }
+  function changeCalendarMonth(delta) {
+    calendarMonth += delta;
+    if (calendarMonth < 0) { calendarMonth=11; calendarYear--; }
+    if (calendarMonth > 11) { calendarMonth=0; calendarYear++; }
+    renderExamCalendar();
+  }
+  function showCalendarDay(date) {
+    var events = getExamEvents()[date] || [];
+    var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
+    var body = '<p style="color:var(--accent);font-weight:700;margin-bottom:10px">📅 '+date+'</p>';
+    body += events.length ? '<div class="exam-list">'+events.map(function(e){         var categoryLabel = e.category==='drive' ? '🔵 سياقة' : '🟠 قانون';
+        return '<div class="exam-item"><strong>'+e.name+'</strong><br>رقم البطاقة: '+e.card+'<br>'+categoryLabel+' — '+e.type+' — '+(statusLabels[e.status]||'—')+'</div>'; }).join('')+'</div>' : '<p style="color:var(--text-muted)">لا توجد امتحانات في هذا اليوم.</p>';
+    showModal('📋 امتحانات اليوم', body, [{text:'العودة للتقويم', cls:'btn btn-inf', act:renderExamCalendar}, {text:'إغلاق', cls:'btn btn-sec', act:hideModal}]);
+  }
+
+  // ====== PWA / MOBILE INSTALL ======
+  var deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', function(event) {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    var button = document.getElementById('installButton');
+    if (button) button.classList.remove('hidden');
+  });
+  window.addEventListener('appinstalled', function() {
+    deferredInstallPrompt = null;
+    var button = document.getElementById('installButton');
+    if (button) button.classList.add('hidden');
+    if (typeof toast === 'function') toast('✅ تم تثبيت التطبيق على الهاتف', 'suc');
+  });
+  async function installApp() {
+    if (!deferredInstallPrompt) {
+      toast('ℹ️ من قائمة المتصفح اختر «إضافة إلى الشاشة الرئيسية»', 'inf');
+      return;
+    }
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    document.getElementById('installButton').classList.add('hidden');
+  }
+  function updateOnlineStatus() {
+    var banner = document.getElementById('offlineBanner');
+    if (banner) banner.classList.toggle('hidden', navigator.onLine);
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./service-worker.js?v=fresh-parent11').catch(function(error) { console.warn('Service Worker:', error); });
+    });
+  }
+
+  // ====== FIREBASE AUTHENTICATION ======
+  var appStarted = false;
+  function unlockApp(user) {
+    document.body.classList.remove('auth-locked');
+    var gate = document.getElementById('authGate');
+    if (gate) gate.remove();
+    if (!appStarted) { appStarted = true; init(); }
+    toast('✅ تم تسجيل الدخول: ' + (user.email || ''), 'suc');
+  }
+  function authErrorMessage(code) {
+    var messages = {
+      'auth/invalid-credential':'البريد الإلكتروني أو كلمة المرور غير صحيحة',
+      'auth/invalid-email':'صيغة البريد الإلكتروني غير صحيحة',
+      'auth/user-not-found':'لا يوجد حساب بهذا البريد الإلكتروني',
+      'auth/wrong-password':'كلمة المرور غير صحيحة',
+      'auth/too-many-requests':'تمت محاولات كثيرة، حاول لاحقًا',
+      'auth/network-request-failed':'تعذر الاتصال بالإنترنت'
+    };
+    return messages[code] || 'تعذر تسجيل الدخول، تحقق من البيانات وحاول مرة أخرى';
+  }
+  document.getElementById('authForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    var email = document.getElementById('authEmail').value.trim();
+    var password = document.getElementById('authPassword').value;
+    var error = document.getElementById('authError');
+    error.textContent = '';
+    try {
+      var result = await firebaseAuth.signInWithEmailAndPassword(email, password);
+      unlockApp(result.user);
+    } catch (err) {
+      error.textContent = authErrorMessage(err.code);
+      document.getElementById('authPassword').value = '';
+      document.getElementById('authPassword').focus();
+    }
+  });
+  document.getElementById('authEmail').focus();
+
+  async function sendPasswordReset() {
+    var email = document.getElementById('authEmail').value.trim();
+    var error = document.getElementById('authError');
+    if (!email) { error.textContent = 'أدخل البريد الإلكتروني أولًا لإرسال رابط الاستعادة'; return; }
+    try {
+      await firebaseAuth.sendPasswordResetEmail(email);
+      error.textContent = '✅ تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك';
+    } catch (err) { error.textContent = authErrorMessage(err.code); }
+  }
+
+  function openPasswordChange() {
+    showModal('🔑 تغيير كلمة المرور',
+      '<div class="form-group"><label>كلمة المرور الجديدة</label><input type="password" id="newPasswordChange" autocomplete="new-password" minlength="6"></div>' +
+      '<div class="form-group" style="margin-top:10px"><label>تأكيد كلمة المرور الجديدة</label><input type="password" id="confirmPasswordChange" autocomplete="new-password" minlength="6"></div>' +
+      '<p style="color:var(--text-muted);font-size:.75rem;margin-top:10px">يجب أن تتكون كلمة المرور من 6 أحرف على الأقل.</p>',
+      [{text:'حفظ التغيير', cls:'btn btn-prm', act:savePasswordChange}, {text:'إلغاء', cls:'btn btn-sec', act:hideModal}]
+    );
+  }
+  async function savePasswordChange() {
+    var user = firebaseAuth.currentUser;
+    var next = document.getElementById('newPasswordChange').value;
+    var confirm = document.getElementById('confirmPasswordChange').value;
+    if (!user) { toast('❌ يجب تسجيل الدخول أولًا', 'err'); return; }
+    if (next.length < 6) { toast('⚠️ يجب أن تتكون كلمة المرور من 6 أحرف على الأقل', 'wrn'); return; }
+    if (next !== confirm) { toast('⚠️ تأكيد كلمة المرور غير مطابق', 'wrn'); return; }
+    try {
+      await user.updatePassword(next);
+      hideModal();
+      toast('✅ تم تغيير كلمة المرور في Firebase بنجاح', 'suc');
+    } catch (err) {
+      toast(err.code === 'auth/requires-recent-login' ? '⚠️ أعد تسجيل الدخول ثم حاول تغيير كلمة المرور' : '❌ تعذر تغيير كلمة المرور', 'err');
+    }
+  }
+  function logoutUser() {
+    firebaseAuth.signOut().then(function(){ window.location.reload(); });
+  }
+  firebaseAuth.onAuthStateChanged(function(user) {
+    if (user && !appStarted) unlockApp(user);
+  });
+</script>
+
+</body>
+</html>
