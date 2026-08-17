@@ -1357,7 +1357,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=password-reauth18').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=empty-password19').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
@@ -1411,12 +1411,20 @@
 
   function openPasswordChange() {
     showModal('🔑 تغيير كلمة المرور',
-      '<div class="form-group"><label>كلمة المرور الحالية <span class="req">*</span></label><input type="password" id="currentPasswordChange" autocomplete="current-password" required></div>' +
-      '<div class="form-group" style="margin-top:10px"><label>كلمة المرور الجديدة <span class="req">*</span></label><input type="password" id="newPasswordChange" autocomplete="new-password" minlength="6" required></div>' +
-      '<div class="form-group" style="margin-top:10px"><label>تأكيد كلمة المرور الجديدة <span class="req">*</span></label><input type="password" id="confirmPasswordChange" autocomplete="new-password" minlength="6" required></div>' +
+      '<div class="form-group"><label>كلمة المرور الحالية <span class="req">*</span></label><input type="password" id="currentPasswordChange" name="current-password-manual" autocomplete="new-password" value="" required></div>' +
+      '<div class="form-group" style="margin-top:10px"><label>كلمة المرور الجديدة <span class="req">*</span></label><input type="password" id="newPasswordChange" name="new-password-manual" autocomplete="new-password" value="" minlength="6" required></div>' +
+      '<div class="form-group" style="margin-top:10px"><label>تأكيد كلمة المرور الجديدة <span class="req">*</span></label><input type="password" id="confirmPasswordChange" name="confirm-password-manual" autocomplete="new-password" value="" minlength="6" required></div>' +
       '<p style="color:var(--text-muted);font-size:.75rem;margin-top:10px">يجب أن تتكون كلمة المرور الجديدة من 6 أحرف على الأقل.</p>',
       [{text:'حفظ التغيير', cls:'btn btn-prm', act:savePasswordChange}, {text:'إلغاء', cls:'btn btn-sec', act:hideModal}]
     );
+    setTimeout(function(){
+      ['currentPasswordChange','newPasswordChange','confirmPasswordChange'].forEach(function(id){
+        var field = document.getElementById(id);
+        if (field) field.value = '';
+      });
+      var first = document.getElementById('currentPasswordChange');
+      if (first) first.focus();
+    }, 0);
   }
   async function savePasswordChange() {
     var user = firebaseAuth.currentUser;
