@@ -657,13 +657,17 @@
     return url + 'candidates.json';
   }
 
+  function getCandidatesRef() {
+    return firebase.database(firebaseApp).ref('candidates');
+  }
   async function checkFirebaseConnection() {
-    var url = getDbUrl();
-    if (!url) { updateStatus(false); return; }
     try {
-      var res = await firebaseRequest(url, { method: 'GET', cache: 'no-store' });
-      if (res.ok) updateStatus(true); else updateStatus(false);
-    } catch(e) { updateStatus(false); }
+      await getCandidatesRef().once('value');
+      updateStatus(true);
+    } catch(e) {
+      updateStatus(false);
+      setRealtimeStatus(false, e.code === 'PERMISSION_DENIED' ? 'الصلاحيات مرفوضة' : 'خطأ في الاتصال');
+    }
   }
 
   function normalizeCandidateData(data) {
@@ -677,15 +681,8 @@
     if (!url) { toast('⚠️ أدخل رابط Firebase أولاً', 'wrn'); return; }
     showSpin('📥 جارٍ تحميل البيانات من Firebase...');
     try {
-      var freshUrl = url + (url.indexOf('?') === -1 ? '?' : '&') + 'refresh=' + Date.now();
-      var res = await firebaseRequest(freshUrl, { method: 'GET', cache: 'no-store', headers: {'Cache-Control':'no-cache'} });
-      if (!res.ok) throw new Error('Firebase HTTP ' + res.status);
-      var data = await res.json();
-      if (data === null) {
-        var rootUrl = DEFAULT_FB_URL + '?fallback=' + Date.now();
-        var rootRes = await firebaseRequest(rootUrl, { method:'GET', cache:'no-store', headers:{'Cache-Control':'no-cache'} });
-        if (rootRes.ok) data = await rootRes.json();
-      }
+      var snapshot = await getCandidatesRef().once('value');
+      var data = snapshot.val();
       var normalized = normalizeCandidateData(data);
       if (normalized.length) {
         candidates = normalized;
@@ -773,21 +770,11 @@
       try {
         var payload = {};
         candidates.forEach(function(c, i) { payload['cand_' + i] = c; });
-        var request = { method: clearing ? 'DELETE' : 'PUT', cache: 'no-store' };
+        if (clearing) await getCandidatesRef().remove();
+        else await getCandidatesRef().set(payload);
         if (!clearing) {
-          request.headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' };
-          request.body = JSON.stringify(payload);
-        }
-        var res = await firebaseRequest(url, request);
-        if (!res.ok) {
-          var errorBody = await res.text().catch(function(){ return ''; });
-          throw new Error('Firebase HTTP ' + res.status + (errorBody ? ' — ' + errorBody.slice(0,160) : ''));
-        }
-        if (!clearing) {
-          var verifyUrl = url + '?verify=' + Date.now();
-          var verify = await firebaseRequest(verifyUrl, {method:'GET', cache:'no-store', headers:{'Cache-Control':'no-cache'}});
-          if (!verify.ok) throw new Error('تم الرفع لكن تعذر التحقق من القراءة: HTTP ' + verify.status);
-          var saved = await verify.json();
+          var verifySnapshot = await getCandidatesRef().once('value');
+          var saved = verifySnapshot.val();
           var savedCount = saved && !Array.isArray(saved) ? Object.keys(saved).length : (Array.isArray(saved) ? saved.filter(Boolean).length : 0);
           if (savedCount !== candidates.length) throw new Error('تم الرفع لكن عدد السجلات المقروءة (' + savedCount + ') لا يطابق العدد المرسل (' + candidates.length + ')');
         }
@@ -795,7 +782,8 @@
         updateStatus(true);
         return true;
       } catch(e) {
-        toast('❌ فشلت المزامنة: ' + e.message, 'err');
+        var syncMessage = e.code === 'PERMISSION_DENIED' ? 'الصلاحيات مرفوضة في Firebase' : e.code === 'NETWORK_ERROR' ? 'تعذر الوصول إلى Firebase، تحقق من الإنترنت' : (e.message || 'خطأ غير معروف');
+        toast('❌ فشلت المزامنة: ' + syncMessage, 'err');
         return false;
       } finally {
         realtimeWritePending = false;
@@ -1438,7 +1426,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=load-normalize26').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=sdk-firebase27').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
