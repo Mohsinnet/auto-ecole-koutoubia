@@ -669,7 +669,9 @@
     if (!url) { toast('⚠️ أدخل رابط Firebase أولاً', 'wrn'); return; }
     showSpin('📥 جارٍ تحميل البيانات من Firebase...');
     try {
-      var res = await firebaseRequest(url);
+      var freshUrl = url + (url.indexOf('?') === -1 ? '?' : '&') + 'refresh=' + Date.now();
+      var res = await firebaseRequest(freshUrl, { method: 'GET', cache: 'no-store', headers: {'Cache-Control':'no-cache'} });
+      if (!res.ok) throw new Error('Firebase HTTP ' + res.status);
       var data = await res.json();
       if (data) {
         // Firebase returns object {id1: {...}, id2: {...}} or array
@@ -1357,7 +1359,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=empty-password19').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=firebase-load20').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
