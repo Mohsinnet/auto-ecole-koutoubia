@@ -982,6 +982,13 @@
   function closeImgModal() { document.getElementById('imgModal').classList.remove('active'); }
 
   // ====== HELPERS ======
+  function formatDateDisplay(value) {
+    if (!value) return '—';
+    var s = String(value).trim();
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (m) return m[3] + '/' + m[2] + '/' + m[1];
+    return s;
+  }
   function calcAge(bd) {
     if (!bd) return '—';
     var t = new Date(), b = new Date(bd);
@@ -1054,7 +1061,7 @@
         '<td>' + exBadge(c.exam1D1) + ' ' + exBadge(c.exam2D1) + '</td>' +
         '<td>' + payBadge(c.paymentStatus) + '</td>' +
         '<td class="td-small">' + (c.voitureNumber||'—') + '</td>' +
-        '<td class="td-small">' + c.registerDate + '</td>' +
+        '<td class="td-small">' + formatDateDisplay(c.registerDate) + '</td>' +
         '<td class="actions-cell">' +
           '<button class="act-btn act-view" onclick="viewCand(\'' + c.id + '\')" title="عرض">👁️</button>' +
           '<button class="act-btn act-edit" onclick="editCand(\'' + c.id + '\')" title="تعديل">✏️</button>' +
@@ -1201,18 +1208,18 @@
     var pyL = {paid:'✅ مدفوع', unpaid:'❌ غير مدفوع', partial:'⚠️ جزئي'};
     var ph = c.photo ? '<img src="'+c.photo+'" class="modal-photo" onclick="openImgModal(&quot;'+c.photo+'&quot;)" style="cursor:pointer">' : '<div style="text-align:center;font-size:2.5rem;margin-bottom:12px">👤</div>';
     var docs = '<div class="dr"><span class="dl">الوثائق:</span><span class="dv">' + (c.cinDocument ? '<img src="'+c.cinDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.cinDocument+'&quot;)" style="cursor:pointer" alt="البطاقة الوطنية">' : 'لا توجد صورة للبطاقة') + (c.extraDocument ? '<img src="'+c.extraDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.extraDocument+'&quot;)" style="cursor:pointer" alt="وثيقة إضافية">' : '') + '</span></div>';
-    function exLine(e,d){ return (exL[e]||'—') + (d?' ('+d+')':''); }
+    function exLine(e,d){ return (exL[e]||'—') + (d?' ('+formatDateDisplay(d)+')':''); }
 
     showModal('👁️ '+c.fullName,
       ph +
       '<div class="dr"><span class="dl">رقم البطاقة:</span><span class="dv">'+(c.cardNumber||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">الاسم:</span><span class="dv">'+c.fullName+'</span></div>' +
-      '<div class="dr"><span class="dl">الميلاد:</span><span class="dv">'+(c.birthDate||'—')+' ('+calcAge(c.birthDate)+' سنة)</span></div>' +
+      '<div class="dr"><span class="dl">الميلاد:</span><span class="dv">'+formatDateDisplay(c.birthDate)+' ('+calcAge(c.birthDate)+' سنة)</span></div>' +
       '<div class="dr"><span class="dl">مكان الازدياد:</span><span class="dv">'+(c.birthPlace||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">العنوان:</span><span class="dv">'+(c.address||'—')+'</span></div>' +
-      '<div class="dr"><span class="dl">C.I.N:</span><span class="dv">'+(c.cinNumber||'—')+' '+(c.cinDate||'')+'</span></div>' +
+      '<div class="dr"><span class="dl">C.I.N:</span><span class="dv">'+(c.cinNumber||'—')+' '+formatDateDisplay(c.cinDate)+'</span></div>' +
       '<div class="dr"><span class="dl">الهاتف:</span><span class="dv" style="direction:ltr">'+c.phone+'</span></div>' +
-      '<div class="dr"><span class="dl">Date de Saisie:</span><span class="dv">'+(c.saisieNumber||'—')+' '+(c.saisieDate||'')+'</span></div>' +
+      '<div class="dr"><span class="dl">Date de Saisie:</span><span class="dv">'+(c.saisieNumber||'—')+' '+formatDateDisplay(c.saisieDate)+'</span></div>' +
       '<div class="dr"><span class="dl">الملف 1:</span><span class="dv">'+(c.dossier1||'—')+' | 1er: '+exLine(c.exam1D1,c.exam1D1Date)+' | 2ème: '+exLine(c.exam2D1,c.exam2D1Date)+'</span></div>' +
       '<div class="dr"><span class="dl">رقم العربة:</span><span class="dv">'+(c.voitureNumber||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">الرخصة:</span><span class="dv">'+licLabel(c.licenseType)+' ('+c.licenseType+')</span></div>' +
@@ -1221,7 +1228,7 @@
       '<div class="dr"><span class="dl">الدفعة الثانية:</span><span class="dv">'+(Number(c.secondPayment||0).toFixed(2))+'</span></div>' +
       '<div class="dr"><span class="dl">الباقي:</span><span class="dv">'+(Number(c.remainingAmount||0).toFixed(2))+'</span></div>' +
       '<div class="dr"><span class="dl">حالة الدفع:</span><span class="dv">'+(pyL[c.paymentStatus]||'—')+'</span></div>' +
-      '<div class="dr"><span class="dl">إضافية:</span><span class="dv">'+c.registerDate+'</span></div>' +
+      '<div class="dr"><span class="dl">إضافية:</span><span class="dv">'+formatDateDisplay(c.registerDate)+'</span></div>' +
       '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>' + docs,
       [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
     );
@@ -1273,8 +1280,8 @@
       'نوع الرخصة': c.licenseType||'', 'رقم العربة': c.voitureNumber||'',
       'الثمن الإجمالي': Number(c.totalPrice||0), 'الدفعة الأولى': Number(c.firstPayment||0),
       'الدفعة الثانية': Number(c.secondPayment||0), 'الباقي': Number(c.remainingAmount||0),
-      'حالة الدفع': pyL[c.paymentStatus]||'', 'تاريخ الإضافية': c.registerDate||'',
-      'امتحان السياقة 1': c.exam1D1Date||'', 'امتحان السياقة 2': c.exam2D1Date||'',
+      'حالة الدفع': pyL[c.paymentStatus]||'', 'تاريخ الإضافية': formatDateDisplay(c.registerDate),
+      'امتحان السياقة 1': formatDateDisplay(c.exam1D1Date), 'امتحان السياقة 2': formatDateDisplay(c.exam2D1Date),
       
       'العنوان': c.address||'', 'ملاحظات': c.notes||''
     }; });
@@ -1288,10 +1295,10 @@
   function exportPDF() {
     if (candidates.length===0) { toast('ℹ️ لا توجد بطاقات للتصدير', 'inf'); return; }
     var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
-    var rows = candidates.map(function(c){ return '<tr><td>'+(c.cardNumber||'—')+'</td><td>'+(c.fullName||'—')+'</td><td>'+(c.phone||'—')+'</td><td>'+(c.licenseType||'—')+'</td><td>'+Number(c.totalPrice||0).toFixed(2)+'</td><td>'+Number(c.firstPayment||0).toFixed(2)+'</td><td>'+Number(c.secondPayment||0).toFixed(2)+'</td><td>'+Number(c.remainingAmount||0).toFixed(2)+'</td><td>'+(pyL[c.paymentStatus]||'—')+'</td><td>'+(c.registerDate||'—')+'</td></tr>'; }).join('');
+    var rows = candidates.map(function(c){ return '<tr><td>'+(c.cardNumber||'—')+'</td><td>'+(c.fullName||'—')+'</td><td>'+(c.phone||'—')+'</td><td>'+(c.licenseType||'—')+'</td><td>'+Number(c.totalPrice||0).toFixed(2)+'</td><td>'+Number(c.firstPayment||0).toFixed(2)+'</td><td>'+Number(c.secondPayment||0).toFixed(2)+'</td><td>'+Number(c.remainingAmount||0).toFixed(2)+'</td><td>'+(pyL[c.paymentStatus]||'—')+'</td><td>'+formatDateDisplay(c.registerDate)+'</td></tr>'; }).join('');
     var w = window.open('', '_blank');
     if (!w) { toast('⚠️ اسمح بالنوافذ المنبثقة لتصدير PDF', 'wrn'); return; }
-    w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير التسجيل والدفع</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{text-align:center;color:#1e3a5f}p{text-align:center;color:#555}img{display:block;width:80px;height:75px;object-fit:contain;margin:0 auto 8px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:6px;text-align:center}th{background:#dbeafe} @media print{button{display:none}}</style></head><body><img src="'+location.origin+'/assets/logo-auto-ecole.jpg"><h1>سيارة التعليم الكتبية — Gestion Auto Ecole</h1><p>تقرير التسجيل والدفع — '+new Date().toLocaleDateString('ar-MA')+'</p><table><thead><tr><th>رقم البطاقة</th><th>الاسم</th><th>الهاتف</th><th>الرخصة</th><th>الإجمالي</th><th>الدفعة 1</th><th>الدفعة 2</th><th>الباقي</th><th>الحالة</th><th>الإضافية</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print();};<\/script></body></html>');
+    w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير التسجيل والدفع</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{text-align:center;color:#1e3a5f}p{text-align:center;color:#555}img{display:block;width:80px;height:75px;object-fit:contain;margin:0 auto 8px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:6px;text-align:center}th{background:#dbeafe} @media print{button{display:none}}</style></head><body><img src="'+location.origin+'/assets/logo-auto-ecole.jpg"><h1>سيارة التعليم الكتبية — Gestion Auto Ecole</h1><p>تقرير التسجيل والدفع — '+formatDateDisplay(new Date().toISOString().split('T')[0])+'</p><table><thead><tr><th>رقم البطاقة</th><th>الاسم</th><th>الهاتف</th><th>الرخصة</th><th>الإجمالي</th><th>الدفعة 1</th><th>الدفعة 2</th><th>الباقي</th><th>الحالة</th><th>الإضافية</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print();};<\/script></body></html>');
     w.document.close();
     toast('✅ تم تجهيز تقرير PDF، اختر Save as PDF من نافذة الطباعة', 'suc');
   }
@@ -1358,7 +1365,7 @@
     var events = getExamEvents()[tomorrow] || [];
     if (!events.length) { box.classList.add('hidden'); box.innerHTML=''; return; }
     box.classList.remove('hidden');
-    box.innerHTML = '<div class="exam-alerts-title">🔔 تنبيه: امتحانات غدًا ('+tomorrow+')</div>' +
+    box.innerHTML = '<div class="exam-alerts-title">🔔 تنبيه: امتحانات غدًا ('+formatDateDisplay(tomorrow)+')</div>' +
       events.map(function(e){
         var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
         return '<div class="exam-alert-item"><strong>'+e.name+'</strong> — رقم البطاقة: '+e.card+'<br>'+e.type+' — '+(statusLabels[e.status]||'—')+'</div>';
@@ -1403,7 +1410,7 @@
   function showCalendarDay(date) {
     var events = getExamEvents()[date] || [];
     var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
-    var body = '<p style="color:var(--accent);font-weight:700;margin-bottom:10px">📅 '+date+'</p>';
+    var body = '<p style="color:var(--accent);font-weight:700;margin-bottom:10px">📅 '+formatDateDisplay(date)+'</p>';
     body += events.length ? '<div class="exam-list">'+events.map(function(e){         var categoryLabel = e.category==='drive' ? '🔵 سياقة' : '🟠 قانون';
         return '<div class="exam-item"><strong>'+e.name+'</strong><br>رقم البطاقة: '+e.card+'<br>'+categoryLabel+' — '+e.type+' — '+(statusLabels[e.status]||'—')+'</div>'; }).join('')+'</div>' : '<p style="color:var(--text-muted)">لا توجد امتحانات في هذا اليوم.</p>';
     showModal('📋 امتحانات اليوم', body, [{text:'العودة للتقويم', cls:'btn btn-inf', act:renderExamCalendar}, {text:'إغلاق', cls:'btn btn-sec', act:hideModal}]);
@@ -1442,7 +1449,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=path-migration28').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=date-format29').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
