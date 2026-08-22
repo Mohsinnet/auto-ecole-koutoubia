@@ -416,6 +416,16 @@
   @keyframes tabIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
   @media (max-width:768px) { .form-tabs { margin-inline:-4px; padding-inline:4px; } .form-tab { min-width:132px; padding:9px 10px; font-size:.72rem; } .collapse-summary { padding:12px; font-size:.82rem; } .collapse-content { grid-template-columns:1fr; padding-inline:10px; } .form-progress { font-size:.68rem; } }
   @media (prefers-reduced-motion:reduce) { .form-tab-panel.active { animation:none; } }
+  .header-actions { display:flex; flex-wrap:wrap; align-items:stretch; justify-content:center; gap:10px; margin:20px auto 0; padding:10px; border:1px solid rgba(255,209,102,.22); border-radius:16px; background:rgba(3,12,25,.24); backdrop-filter:blur(8px); }
+  .header-action-group { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:7px; padding:5px 7px; border:1px solid rgba(148,163,184,.18); border-radius:12px; background:rgba(8,20,38,.48); }
+  .header-action-label { width:100%; color:#b9c8da; font-size:.64rem; font-weight:800; letter-spacing:.35px; text-align:center; opacity:.9; }
+  .header-actions .btn { min-height:38px; padding:8px 12px; font-size:.74rem; }
+  .header-actions .btn[form] { font-weight:900; }
+  .header-actions .btn:active { transform:scale(.97); }
+  .header-actions .btn.hidden { display:none; }
+  .conn-bar .conn-controls { display:none; }
+  @media (max-width:768px) { .header-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:16px; padding:8px; } .header-action-group { min-width:0; padding:5px; } .header-action-group:first-child { grid-column:1 / -1; } .header-action-label { font-size:.6rem; } .header-actions .btn { width:100%; min-height:40px; padding:8px 5px; font-size:.7rem; } }
+  @media (max-width:420px) { .header-actions { grid-template-columns:1fr; } .header-action-group:first-child { grid-column:auto; } }
 </style>
 </head>
 <body class="auth-locked">
@@ -439,9 +449,32 @@
     <div style="font-size:1.3rem;font-weight:800;color:#fff;margin-bottom:4px">سيارة التعليم الكتبية</div>
     <h1>Gestion Auto Ecole</h1>
     <h2>مزامنة فورية بين جميع أجهزة المؤسسة</h2>
-    <button type="button" class="btn btn-prm" onclick="openPasswordChange()" style="margin-top:12px" title="تغيير كلمة المرور">🔑 تغيير كلمة المرور</button>
-    <button type="button" class="btn btn-sec" onclick="logoutUser()" style="margin-top:10px">🚪 تسجيل الخروج</button>
-    <button type="button" class="btn install-btn hidden" id="installButton" onclick="installApp()">📱 تثبيت التطبيق</button>
+    <div class="header-actions" aria-label="إجراءات الموقع">
+      <div class="header-action-group">
+        <span class="header-action-label">الحساب</span>
+        <button type="button" class="btn btn-prm" onclick="openPasswordChange()" title="تغيير كلمة المرور">🔑 تغيير كلمة المرور</button>
+        <button type="button" class="btn btn-sec" onclick="logoutUser()">🚪 تسجيل الخروج</button>
+        <button type="button" class="btn install-btn hidden" id="installButton" onclick="installApp()">📱 تثبيت التطبيق</button>
+      </div>
+      <div class="header-action-group">
+        <span class="header-action-label">البطاقة</span>
+        <button type="submit" form="candForm" class="btn btn-prm" id="submitBtn">💾 حفظ البطاقة</button>
+        <button type="button" class="btn btn-sec hidden" id="cancelBtn" onclick="resetForm()">❌ إلغاء التعديل</button>
+      </div>
+      <div class="header-action-group">
+        <span class="header-action-label">Firebase</span>
+        <button type="button" class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
+        <button type="button" class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
+      </div>
+      <div class="header-action-group">
+        <span class="header-action-label">التقارير</span>
+        <button type="button" class="btn btn-inf" onclick="openExamCalendar()">📅 التقويم</button>
+        <button type="button" class="btn btn-inf" onclick="window.print()">🖨️ طباعة</button>
+        <button type="button" class="btn btn-suc" onclick="exportExcel()">📊 Excel</button>
+        <button type="button" class="btn btn-prm" onclick="exportPDF()">📄 PDF</button>
+        <button type="button" class="btn btn-suc" onclick="exportJSON()">📦 نسخ احتياطي</button>
+      </div>
+    </div>
   </div>
 
   <div class="offline-banner hidden" id="offlineBanner">⚠️ أنت غير متصل بالإنترنت. يمكنك العمل على البيانات المحلية، وستحتاج اتصالًا للمزامنة مع Firebase.</div>
@@ -450,8 +483,6 @@
   <div class="conn-bar">
     <label>🔥 رابط Firebase Database الثابت:</label>
     <input type="text" id="fbUrl" value="https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/" readonly aria-readonly="true" title="رابط Firebase ثابت وغير قابل للتغيير">
-    <button type="button" class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
-    <button type="button" class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
     <span id="connStatus">
       <span class="status-dot status-off" id="statusDot"></span>
       <span id="statusText" style="color:var(--text-muted);font-size:0.75rem">غير متصل</span>
@@ -585,15 +616,7 @@
         <div class="form-group"><label>إضافية <span class="req">*</span></label><input type="text" id="registerDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off" required></div>
         <div class="form-group full"><label>ملاحظات</label><textarea id="notes" placeholder="ملاحظات..."></textarea></div>
 
-        <div class="form-actions">
-          <button type="submit" class="btn btn-prm" id="submitBtn">💾 حفظ محلياً</button>
-          <button type="button" class="btn btn-sec hidden" id="cancelBtn" onclick="resetForm()">❌ إلغاء</button>
-          <button type="button" class="btn btn-wrn" onclick="syncToFirebase()">📤 رفع للسحابة</button>
-          <button type="button" class="btn btn-inf" onclick="window.print()">🖨️ طباعة</button>
-          <button type="button" class="btn btn-suc" onclick="exportExcel()">📊 Excel</button>
-          <button type="button" class="btn btn-prm" onclick="exportPDF()">📄 PDF</button>
-          <button type="button" class="btn btn-suc" onclick="exportJSON()">📦 نسخ احتياطي</button>
-            </div>
+        
           </details>
         </div>
       </div>
@@ -622,7 +645,7 @@
       <option value="fail">❌ راسب</option>
       <option value="pending">⏳ لم يتم</option>
     </select>
-    <button type="button" class="btn btn-prm" onclick="openExamCalendar()">📅 تقويم الامتحانات</button>
+    
   </div>
 
   <!-- Table -->
@@ -1608,7 +1631,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=file1-order38').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=header-actions39').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
