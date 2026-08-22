@@ -405,6 +405,14 @@
   .collapse-content .section-divider { margin-top:14px; }
   .form-progress { display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--text-muted); font-size:.72rem; margin:-2px 0 10px; }
   .form-progress strong { color:#ffd166; }
+  .vehicle-picker { display:flex; flex-direction:column; gap:8px; }
+  .vehicle-tabs { display:grid; grid-template-columns:repeat(3,1fr); gap:7px; }
+  .vehicle-tab { min-height:43px; padding:8px 7px; border:1px solid rgba(148,163,184,.28); border-radius:11px; background:rgba(5,15,28,.58); color:var(--text-muted); font-family:'Cairo',sans-serif; font-size:.76rem; font-weight:800; cursor:pointer; transition:transform .18s ease, border-color .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease; }
+  .vehicle-tab:hover { transform:translateY(-2px); border-color:rgba(255,209,102,.55); color:#fff; }
+  .vehicle-tab:focus-visible { outline:3px solid rgba(56,189,248,.42); outline-offset:2px; }
+  .vehicle-tab.active { background:linear-gradient(135deg,rgba(255,209,102,.24),rgba(255,140,66,.2)); border-color:#ffd166; color:#fff1ae; box-shadow:0 0 16px rgba(255,209,102,.12); }
+  .vehicle-other-input { margin-top:2px; }
+  @media (max-width:480px) { .vehicle-tabs { grid-template-columns:1fr; } .vehicle-tab { min-height:40px; } }
   @keyframes tabIn { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
   @media (max-width:768px) { .form-tabs { margin-inline:-4px; padding-inline:4px; } .form-tab { min-width:132px; padding:9px 10px; font-size:.72rem; } .collapse-summary { padding:12px; font-size:.82rem; } .collapse-content { grid-template-columns:1fr; padding-inline:10px; } .form-progress { font-size:.68rem; } }
   @media (prefers-reduced-motion:reduce) { .form-tab-panel.active { animation:none; } }
@@ -545,7 +553,7 @@
           <details class="collapse-section" open>
             <summary class="collapse-summary"><span>🪪 نوع الرخصة والعربة</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
-        <div class="form-group"><label>رقم العربة</label><input type="text" id="voitureNumber" placeholder="رقم العربة"></div>
+        <div class="form-group full"><label>رقم العربة <span class="td-small">(اختياري)</span></label><div class="vehicle-picker"><div class="vehicle-tabs" role="tablist" aria-label="اختيار رقم العربة"><button type="button" class="vehicle-tab" data-vehicle="48040-د-26" role="tab" aria-selected="false" onclick="selectVehicleChoice('48040-د-26')">48040-د-26</button><button type="button" class="vehicle-tab" data-vehicle="50529-د-26" role="tab" aria-selected="false" onclick="selectVehicleChoice('50529-د-26')">50529-د-26</button><button type="button" class="vehicle-tab" data-vehicle="other" role="tab" aria-selected="true" onclick="selectVehicleChoice('other')">أصناف أخرى</button></div><input type="text" id="voitureNumber" class="vehicle-other-input" placeholder="أدخل رقم العربة الأخرى" autocomplete="off"></div></div>
         <div class="form-group"><label>نوع الرخصة <span class="req">*</span></label>
           <select id="licenseType" required>
             <option value="">-- اختر --</option>
@@ -700,6 +708,7 @@
     checkFirebaseConnection();
     startRealtimeListener();
     setupFormTabs();
+    setupVehiclePicker();
     wireDatePickers();
     document.getElementById('registerDate').value = formatDateDisplay(new Date().toISOString().split('T')[0]);
   }
@@ -1195,6 +1204,35 @@
     window.formTabsReady = true;
     selectFormTab('personal', false);
   }
+  var presetVehicleNumbers = ['48040-د-26','50529-د-26'];
+  function selectVehicleChoice(value, customValue) {
+    var input = document.getElementById('voitureNumber');
+    var isOther = value === 'other';
+    document.querySelectorAll('.vehicle-tab').forEach(function(btn){
+      var active = btn.dataset.vehicle === value;
+      btn.classList.toggle('active', active);
+      btn.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    if (!input) return;
+    input.value = isOther ? (customValue || '') : value;
+    input.readOnly = !isOther;
+    input.placeholder = isOther ? 'أدخل رقم العربة الأخرى' : value;
+    input.setAttribute('aria-label', isOther ? 'رقم عربة أخرى' : 'رقم العربة المختار');
+  }
+  function setupVehiclePicker() {
+    if (window.vehiclePickerReady) return;
+    window.vehiclePickerReady = true;
+    var input = document.getElementById('voitureNumber');
+    if (input) input.addEventListener('input', function(){
+      if (presetVehicleNumbers.indexOf(input.value.trim()) === -1) selectVehicleChoice('other', input.value);
+    });
+    selectVehicleChoice('other', '');
+  }
+  function setVehicleValue(value) {
+    var clean = String(value || '').trim();
+    if (presetVehicleNumbers.indexOf(clean) !== -1) selectVehicleChoice(clean);
+    else selectVehicleChoice('other', clean);
+  }
   function validateCandidateForm() {
     var requiredFields = [
       {id:'fullName', tab:'personal', message:'أدخل الاسم الكامل'},
@@ -1317,7 +1355,7 @@
     document.getElementById('exam1D1Date').value = formatDateDisplay(c.exam1D1Date);
     document.getElementById('exam2D1').value = c.exam2D1||'';
     document.getElementById('exam2D1Date').value = formatDateDisplay(c.exam2D1Date);
-    document.getElementById('voitureNumber').value = c.voitureNumber||'';
+    setVehicleValue(c.voitureNumber||'');
     document.getElementById('licenseType').value = c.licenseType||'';
     document.getElementById('totalPrice').value = c.totalPrice||'';
     document.getElementById('firstPayment').value = c.firstPayment||'';
@@ -1391,6 +1429,7 @@
     document.getElementById('formTitle').textContent='➕ إضافة بطاقة جديدة';
     document.getElementById('submitBtn').textContent='💾 حفظ محلياً';
     document.getElementById('cancelBtn').classList.add('hidden');
+    setVehicleValue('');
     selectFormTab('personal', false);
   }
 
@@ -1573,7 +1612,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=tabbed-form36').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=vehicle-tabs37').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
