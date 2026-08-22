@@ -434,58 +434,6 @@
   @media (max-width:1100px) and (min-width:769px) { .header-actions { grid-template-columns:repeat(2,minmax(0,1fr)); } .header-action-group:nth-child(4) { grid-column:1 / -1; } }
   @media (max-width:768px) { .header-actions { grid-template-columns:1fr 1fr; } .header-action-group:nth-child(4) { grid-column:1 / -1; } .header-action-group { grid-template-columns:repeat(2,minmax(0,1fr)); } .header-action-group:first-child { grid-template-columns:repeat(3,minmax(0,1fr)); } .header-action-group:first-child .header-action-label { grid-column:1 / -1; } }
   @media (max-width:420px) { .header-actions { grid-template-columns:1fr; } .header-action-group:nth-child(4) { grid-column:auto; } .header-action-group:first-child { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-  /* ====== FINANCIAL DASHBOARD ====== */
-  .finance-dashboard { margin:16px 0; padding:16px; border:1px solid rgba(56,189,248,.25); border-radius:18px; background:linear-gradient(145deg,rgba(21,45,72,.92),rgba(17,29,53,.9)); box-shadow:0 14px 34px rgba(0,0,0,.16); }
-  .finance-dashboard-head, .finance-report-head { display:flex; align-items:center; justify-content:space-between; gap:14px; }
-  .finance-dashboard h2, .finance-report-head h3 { margin:0; color:#ffe7a0; font-size:1rem; }
-  .finance-dashboard p, .finance-report-head p { margin:4px 0 0; color:#9fb2c9; font-size:.72rem; }
-  .finance-period-control { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
-  .finance-period-control label { color:#cbd5e1; font-size:.72rem; font-weight:800; }
-  .finance-period-control input { min-height:36px; padding:7px 9px; border:1px solid rgba(148,163,184,.3); border-radius:9px; background:rgba(5,15,28,.72); color:#fff; font-family:'Cairo',sans-serif; }
-  .finance-period-control .btn, .finance-report-actions .btn { min-height:34px; padding:7px 10px; font-size:.7rem; }
-  .finance-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:14px; }
-  .finance-kpi { min-width:0; padding:12px; border:1px solid rgba(148,163,184,.18); border-radius:13px; background:rgba(5,15,28,.35); }
-  .finance-kpi span, .finance-kpi small { display:block; color:#a9bbcf; font-size:.68rem; }
-  .finance-kpi strong { display:block; margin:5px 0 3px; color:#fff; font-size:1.05rem; direction:ltr; text-align:right; overflow-wrap:anywhere; }
-  .finance-kpi small { font-size:.64rem; }
-  .kpi-total { border-top:3px solid #38bdf8; }
-  .kpi-collected { border-top:3px solid #2dd4bf; }
-  .kpi-remaining { border-top:3px solid #ffd166; }
-  .kpi-unpaid { border-top:3px solid #fb7185; }
-  .finance-progress-wrap { margin:14px 0 17px; }
-  .finance-progress-line { display:flex; justify-content:space-between; color:#cbd5e1; font-size:.72rem; font-weight:800; }
-  .finance-progress-line strong { color:#5eead4; }
-  .finance-progress { height:10px; margin-top:7px; overflow:hidden; border-radius:999px; background:rgba(148,163,184,.18); }
-  .finance-progress span { display:block; width:0; height:100%; border-radius:inherit; background:linear-gradient(90deg,#38bdf8,#2dd4bf,#a7f3d0); transition:width .35s ease; }
-  .finance-report-head { padding-top:12px; border-top:1px solid rgba(148,163,184,.16); }
-  .finance-report-actions { display:flex; gap:7px; flex-wrap:wrap; }
-  .finance-report-table-wrap { margin-top:10px; overflow:auto; border:1px solid rgba(148,163,184,.16); border-radius:11px; }
-  .finance-report-table { width:100%; min-width:620px; border-collapse:collapse; font-size:.72rem; }
-  .finance-report-table th, .finance-report-table td { padding:8px 9px; border-bottom:1px solid rgba(148,163,184,.12); text-align:right; white-space:nowrap; }
-  .finance-report-table th { color:#ffe7a0; background:rgba(23,59,95,.62); }
-  .finance-report-table td { color:#e2e8f0; }
-  .finance-report-table tbody tr:last-child td { border-bottom:0; }
-  .finance-report-table .money { direction:ltr; text-align:right; font-family:monospace; }
-  .finance-empty { padding:18px; color:#a9bbcf; text-align:center; font-size:.78rem; }
-  @media (max-width:768px) {
-    .finance-dashboard { padding:12px; border-radius:15px; }
-    .finance-dashboard-head, .finance-report-head { align-items:stretch; flex-direction:column; }
-    .finance-period-control { justify-content:space-between; }
-    .finance-period-control input { flex:1; min-width:0; }
-    .finance-period-control .btn { flex:0 0 auto; }
-    .finance-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
-    .finance-kpi { padding:9px; }
-    .finance-kpi strong { font-size:.9rem; }
-    .finance-report-actions { display:grid; grid-template-columns:1fr 1fr; }
-    .finance-report-actions .btn { width:100%; }
-  }
-  @media (max-width:420px) {
-    .finance-kpis { grid-template-columns:1fr; }
-    .finance-period-control { display:grid; grid-template-columns:auto 1fr; }
-    .finance-period-control .btn { grid-column:1 / -1; }
-    .finance-report-actions { grid-template-columns:1fr; }
-  }
-  @media print { .finance-dashboard { border:0; box-shadow:none; background:#fff; } .finance-period-control, .finance-report-actions { display:none !important; } .finance-dashboard h2, .finance-report-head h3, .finance-kpi strong, .finance-report-table td { color:#111; } .finance-kpi, .finance-report-table-wrap { border-color:#bbb; } .finance-report-table th { color:#111; background:#eee; } }
   /* ====== MOBILE CANDIDATE CARDS ====== */
   .candidate-card-list { display:none; }
   .candidate-card { border:1px solid rgba(56,189,248,.24); border-radius:16px; overflow:hidden; background:linear-gradient(145deg,rgba(21,45,72,.96),rgba(17,29,53,.94)); box-shadow:0 10px 24px rgba(0,0,0,.16); direction:rtl; }
@@ -592,23 +540,6 @@
     <div class="stat-card st-blu"><div class="stat-value" id="stToday">0</div><div class="stat-label">📅 اليوم</div></div>
     <div class="stat-card st-prp"><div class="stat-value" id="stExam">0</div><div class="stat-label">🎓 ناجحين</div></div>
   </div>
-
-  <section class="finance-dashboard" aria-labelledby="financeDashboardTitle">
-    <div class="finance-dashboard-head">
-      <div><h2 id="financeDashboardTitle">💼 لوحة التسجيل والدفع</h2><p id="financePeriodLabel">جميع الفترات</p></div>
-      <div class="finance-period-control"><label for="financeMonth">الفترة</label><input type="month" id="financeMonth" onchange="updateFinancialDashboard()"><button type="button" class="btn btn-sec" onclick="clearFinancePeriod()">كل الفترات</button></div>
-    </div>
-    <div class="finance-kpis">
-      <div class="finance-kpi kpi-total"><span>الثمن الإجمالي</span><strong id="finTotal">0.00 DH</strong><small id="finCount">0 بطاقة</small></div>
-      <div class="finance-kpi kpi-collected"><span>المحصل</span><strong id="finCollected">0.00 DH</strong><small id="finCollectionRate">نسبة التحصيل 0%</small></div>
-      <div class="finance-kpi kpi-remaining"><span>الباقي</span><strong id="finRemaining">0.00 DH</strong><small id="finPartialCount">0 دفع جزئي</small></div>
-      <div class="finance-kpi kpi-unpaid"><span>غير محصل</span><strong id="finUnpaidAmount">0.00 DH</strong><small id="finUnpaidCount">0 غير مدفوع</small></div>
-    </div>
-    <div class="finance-progress-wrap"><div class="finance-progress-line"><span>نسبة التحصيل</span><strong id="finProgressText">0%</strong></div><div class="finance-progress"><span id="finProgressBar"></span></div></div>
-    <div class="finance-report-head"><div><h3>📋 تقرير مالي تفصيلي</h3><p>يعتمد على تاريخ التسجيل والفترة المختارة</p></div><div class="finance-report-actions"><button type="button" class="btn btn-suc" onclick="exportFinancialExcel()">📊 Excel مالي</button><button type="button" class="btn btn-prm" onclick="exportFinancialPDF()">📄 PDF مالي</button></div></div>
-    <div class="finance-report-table-wrap"><table class="finance-report-table"><thead><tr><th>المرشح</th><th>C.I.N</th><th>الإجمالي</th><th>المحصل</th><th>الباقي</th><th>الحالة</th></tr></thead><tbody id="financeReportBody"></tbody></table></div>
-    <div class="finance-empty hidden" id="financeEmpty">لا توجد سجلات مالية في الفترة المختارة.</div>
-  </section>
 
   <div class="exam-alerts hidden" id="examAlerts" role="alert" aria-live="polite"></div>
 
@@ -1176,76 +1107,7 @@
     document.getElementById('stExam').textContent = candidates.filter(function(c){
       return c.exam1D1==='pass'||c.exam2D1==='pass';
     }).length;
-    updateFinancialDashboard();
   }
-  function moneyValue(value) {
-    var number = Number(value);
-    return Number.isFinite(number) && number > 0 ? number : 0;
-  }
-  function formatMoney(value) {
-    return moneyValue(value).toLocaleString('fr-MA', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' DH';
-  }
-  function financialRowsForPeriod() {
-    var month = document.getElementById('financeMonth') && document.getElementById('financeMonth').value;
-    return candidates.filter(function(c){ return !month || String(c.registerDate || '').slice(0,7) === month; });
-  }
-  function financialAmounts(candidate) {
-    var total = moneyValue(candidate.totalPrice);
-    var collected = moneyValue(candidate.firstPayment) + moneyValue(candidate.secondPayment);
-    return {total:total, collected:collected, remaining:Math.max(0, total - collected)};
-  }
-  function updateFinancialDashboard() {
-    var rows = financialRowsForPeriod();
-    var totals = rows.reduce(function(acc, candidate){
-      var amounts = financialAmounts(candidate);
-      acc.total += amounts.total;
-      acc.collected += amounts.collected;
-      acc.remaining += amounts.remaining;
-      if (candidate.paymentStatus === 'partial') acc.partial += 1;
-      if (candidate.paymentStatus === 'unpaid') { acc.unpaid += 1; acc.unpaidAmount += amounts.remaining; }
-      return acc;
-    }, {total:0, collected:0, remaining:0, partial:0, unpaid:0, unpaidAmount:0});
-    var rate = totals.total > 0 ? Math.min(100, (totals.collected / totals.total) * 100) : 0;
-    var month = document.getElementById('financeMonth') && document.getElementById('financeMonth').value;
-    var periodLabel = document.getElementById('financePeriodLabel');
-    if (periodLabel) periodLabel.textContent = month ? 'تقرير شهر ' + month.replace('-', '/') : 'جميع الفترات';
-    document.getElementById('finTotal').textContent = formatMoney(totals.total);
-    document.getElementById('finCollected').textContent = formatMoney(totals.collected);
-    document.getElementById('finRemaining').textContent = formatMoney(totals.remaining);
-    document.getElementById('finUnpaidAmount').textContent = formatMoney(totals.unpaidAmount);
-    document.getElementById('finCount').textContent = rows.length + ' بطاقة';
-    document.getElementById('finCollectionRate').textContent = 'نسبة التحصيل ' + rate.toFixed(1) + '%';
-    document.getElementById('finPartialCount').textContent = totals.partial + ' دفع جزئي';
-    document.getElementById('finUnpaidCount').textContent = totals.unpaid + ' غير مدفوع';
-    document.getElementById('finProgressText').textContent = rate.toFixed(1) + '%';
-    document.getElementById('finProgressBar').style.width = rate.toFixed(1) + '%';
-    var body = document.getElementById('financeReportBody');
-    var tableWrap = document.querySelector('.finance-report-table-wrap');
-    var empty = document.getElementById('financeEmpty');
-    if (!rows.length) {
-      body.innerHTML = '';
-      if (tableWrap) tableWrap.classList.add('hidden');
-      if (empty) empty.classList.remove('hidden');
-      return;
-    }
-    if (tableWrap) tableWrap.classList.remove('hidden');
-    if (empty) empty.classList.add('hidden');
-    body.innerHTML = rows.map(function(candidate){
-      var amounts = financialAmounts(candidate);
-      return '<tr><td>' + escapeHtml(candidate.fullName || 'بدون اسم') + '</td>' +
-        '<td dir="ltr">' + escapeHtml(candidate.cinNumber || '—') + '</td>' +
-        '<td class="money">' + formatMoney(amounts.total) + '</td>' +
-        '<td class="money">' + formatMoney(amounts.collected) + '</td>' +
-        '<td class="money">' + formatMoney(amounts.remaining) + '</td>' +
-        '<td>' + payBadge(candidate.paymentStatus) + '</td></tr>';
-    }).join('');
-  }
-  function clearFinancePeriod() {
-    var input = document.getElementById('financeMonth');
-    if (input) input.value = '';
-    updateFinancialDashboard();
-  }
-
   // ====== PHOTO ======
   function compressImageFile(file, maxWidth, maxHeight, quality) {
     return new Promise(function(resolve, reject) {
@@ -1856,56 +1718,6 @@
     toast('✅ تم تصدير ملف Excel', 'suc');
   }
 
-  function financialExportLabel() {
-    var month = document.getElementById('financeMonth') && document.getElementById('financeMonth').value;
-    return month ? 'شهر ' + month.replace('-', '/') : 'جميع الفترات';
-  }
-  function exportFinancialExcel() {
-    var rows = financialRowsForPeriod();
-    if (rows.length === 0) { toast('ℹ️ لا توجد سجلات مالية في الفترة المختارة', 'inf'); return; }
-    if (!window.XLSX) { toast('❌ مكتبة Excel غير متاحة، تحقق من اتصال الإنترنت', 'err'); return; }
-    var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
-    var exportRows = rows.map(function(candidate){
-      var amounts = financialAmounts(candidate);
-      return {
-        'الاسم الكامل': candidate.fullName || '',
-        'C.I.N': candidate.cinNumber || '',
-        'تاريخ التسجيل': formatDateDisplay(candidate.registerDate),
-        'نوع الرخصة': candidate.licenseType || '',
-        'الثمن الإجمالي': amounts.total,
-        'المحصل': amounts.collected,
-        'الباقي': amounts.remaining,
-        'حالة الدفع': pyL[candidate.paymentStatus] || ''
-      };
-    });
-    var totals = exportRows.reduce(function(acc, row){ acc.total += row['الثمن الإجمالي']; acc.collected += row['المحصل']; acc.remaining += row['الباقي']; return acc; }, {total:0,collected:0,remaining:0});
-    exportRows.push({'الاسم الكامل':'الإجمالي','C.I.N':'','تاريخ التسجيل':'','نوع الرخصة':'','الثمن الإجمالي':totals.total,'المحصل':totals.collected,'الباقي':totals.remaining,'حالة الدفع':financialExportLabel()});
-    var ws = XLSX.utils.json_to_sheet(exportRows);
-    var wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'التقرير المالي');
-    XLSX.writeFile(wb, 'Koutoubia-Rapport-Financier-' + new Date().toISOString().split('T')[0] + '.xlsx');
-    toast('✅ تم تصدير التقرير المالي إلى Excel', 'suc');
-  }
-  function exportFinancialPDF() {
-    var rows = financialRowsForPeriod();
-    if (rows.length === 0) { toast('ℹ️ لا توجد سجلات مالية في الفترة المختارة', 'inf'); return; }
-    var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
-    var totals = rows.reduce(function(acc, candidate){
-      var amounts = financialAmounts(candidate);
-      acc.total += amounts.total; acc.collected += amounts.collected; acc.remaining += amounts.remaining;
-      return acc;
-    }, {total:0,collected:0,remaining:0});
-    var reportRows = rows.map(function(candidate){
-      var amounts = financialAmounts(candidate);
-      return '<tr><td>' + escapeHtml(candidate.fullName || 'بدون اسم') + '</td><td dir="ltr">' + escapeHtml(candidate.cinNumber || '—') + '</td><td>' + formatMoney(amounts.total) + '</td><td>' + formatMoney(amounts.collected) + '</td><td>' + formatMoney(amounts.remaining) + '</td><td>' + escapeHtml(pyL[candidate.paymentStatus] || '—') + '</td></tr>';
-    }).join('');
-    var w = window.open('', '_blank');
-    if (!w) { toast('⚠️ اسمح بالنوافذ المنبثقة لتصدير PDF', 'wrn'); return; }
-    w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>التقرير المالي</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{text-align:center;color:#1e3a5f;margin:4px 0 8px}p{text-align:center;color:#555;margin:5px}.summary{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin:18px 0;padding:12px;background:#eef6ff;border:1px solid #b8d5ef}.summary strong{color:#1e3a5f}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:7px;text-align:center}th{background:#dbeafe}tfoot td{font-weight:bold;background:#f1f5f9}@media print{button{display:none}}</style></head><body><h1>سيارة التعليم الكتبية — Gestion Auto Ecole</h1><p>التقرير المالي — ' + escapeHtml(financialExportLabel()) + '</p><p>تاريخ الاستخراج: ' + escapeHtml(formatDateDisplay(new Date().toISOString().split('T')[0])) + '</p><div class="summary"><span><strong>الإجمالي:</strong> ' + formatMoney(totals.total) + '</span><span><strong>المحصل:</strong> ' + formatMoney(totals.collected) + '</span><span><strong>الباقي:</strong> ' + formatMoney(totals.remaining) + '</span></div><table><thead><tr><th>المرشح</th><th>C.I.N</th><th>الإجمالي</th><th>المحصل</th><th>الباقي</th><th>حالة الدفع</th></tr></thead><tbody>' + reportRows + '</tbody><tfoot><tr><td colspan="2">الإجمالي</td><td>' + formatMoney(totals.total) + '</td><td>' + formatMoney(totals.collected) + '</td><td>' + formatMoney(totals.remaining) + '</td><td>' + rows.length + ' بطاقة</td></tr></tfoot></table><script>window.onload=function(){window.print();};<\\/script></body></html>');
-    w.document.close();
-    toast('✅ تم تجهيز التقرير المالي، اختر Save as PDF من نافذة الطباعة', 'suc');
-  }
-
   function exportPDF() {
     if (candidates.length===0) { toast('ℹ️ لا توجد بطاقات للتصدير', 'inf'); return; }
     var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
@@ -2064,7 +1876,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=finance-dashboard45').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=remove-finance46').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
