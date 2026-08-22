@@ -434,6 +434,39 @@
   @media (max-width:1100px) and (min-width:769px) { .header-actions { grid-template-columns:repeat(2,minmax(0,1fr)); } .header-action-group:nth-child(4) { grid-column:1 / -1; } }
   @media (max-width:768px) { .header-actions { grid-template-columns:1fr 1fr; } .header-action-group:nth-child(4) { grid-column:1 / -1; } .header-action-group { grid-template-columns:repeat(2,minmax(0,1fr)); } .header-action-group:first-child { grid-template-columns:repeat(3,minmax(0,1fr)); } .header-action-group:first-child .header-action-label { grid-column:1 / -1; } }
   @media (max-width:420px) { .header-actions { grid-template-columns:1fr; } .header-action-group:nth-child(4) { grid-column:auto; } .header-action-group:first-child { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+  /* ====== MOBILE CANDIDATE CARDS ====== */
+  .candidate-card-list { display:none; }
+  .candidate-card { border:1px solid rgba(56,189,248,.24); border-radius:16px; overflow:hidden; background:linear-gradient(145deg,rgba(21,45,72,.96),rgba(17,29,53,.94)); box-shadow:0 10px 24px rgba(0,0,0,.16); direction:rtl; }
+  .candidate-card-head { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; padding:12px; border-bottom:1px solid rgba(148,163,184,.16); }
+  .candidate-card-identity { display:flex; align-items:center; gap:10px; min-width:0; }
+  .candidate-card-photo, .candidate-card-no-photo { width:54px; height:64px; flex:0 0 54px; object-fit:cover; border-radius:11px; border:1px solid rgba(255,209,102,.45); background:rgba(5,15,28,.7); display:flex; align-items:center; justify-content:center; font-size:1.5rem; }
+  .candidate-card-title { margin:0; color:#fff; font-size:.96rem; line-height:1.35; overflow-wrap:anywhere; }
+  .candidate-card-meta { margin-top:4px; color:#b9c8da; font-family:monospace; font-size:.72rem; direction:ltr; text-align:right; }
+  .candidate-card-actions { display:flex; gap:5px; flex:0 0 auto; }
+  .candidate-card-actions .act-btn { width:34px; height:34px; border-radius:9px; font-size:.88rem; }
+  .candidate-card-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:12px; }
+  .candidate-card-field { min-width:0; padding:8px 9px; border:1px solid rgba(148,163,184,.14); border-radius:10px; background:rgba(5,15,28,.28); }
+  .candidate-card-field-wide { grid-column:1 / -1; }
+  .candidate-card-label { display:block; margin-bottom:4px; color:#9fb2c9; font-size:.67rem; font-weight:700; }
+  .candidate-card-value { display:block; color:#fff; font-size:.78rem; font-weight:800; overflow-wrap:anywhere; }
+  .candidate-card-phone { direction:ltr; text-align:right; font-family:monospace; }
+  .candidate-card-field .badge { max-width:100%; }
+  .candidate-card-exams { display:flex; flex-wrap:wrap; gap:4px; }
+  .candidate-card-field .phone-actions { display:flex; gap:4px; margin-top:6px; direction:ltr; }
+  .candidate-card-field .phone-actions .btn { flex:1; min-height:30px; padding:4px 6px; font-size:.66rem; }
+  @media (max-width:768px) {
+    .table-scroll { display:none; }
+    .candidate-card-list { display:grid; gap:11px; padding:11px; }
+    .table-wrapper { overflow:hidden; }
+  }
+  @media (max-width:420px) {
+    .candidate-card-head { padding:10px; }
+    .candidate-card-grid { padding:10px; gap:6px; }
+    .candidate-card-field { padding:7px; }
+    .candidate-card-title { font-size:.88rem; }
+    .candidate-card-actions .act-btn { width:32px; height:32px; }
+  }
+  @media print { .candidate-card-list { display:none !important; } }
 </style>
 </head>
 <body class="auth-locked">
@@ -672,6 +705,7 @@
         <tbody id="tableBody"></tbody>
       </table>
     </div>
+    <div class="candidate-card-list" id="cardList" aria-label="بطاقات المرشحين"></div>
     <div class="empty-state hidden" id="emptyState">
       <div class="icon">📭</div><h3>لا يوجد بطاقات مسجلة</h3>
     </div>
@@ -1239,12 +1273,55 @@
     return m[s]||'<span class="badge badge-pend">—</span>';
   }
 
+  function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, function(char){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char];
+    });
+  }
   function photoCell(p) {
     if (!p) return '<div class="no-photo">👤</div>';
-    return '<img src="' + p + '" class="table-photo" onclick="event.stopPropagation();openImgModal(&quot;' + p + '&quot;)" alt="صورة">';
+    var safePhoto = escapeHtml(p);
+    return '<img src="' + safePhoto + '" class="table-photo" onclick="event.stopPropagation();openImgModal(&quot;' + safePhoto + '&quot;)" alt="صورة">';
+  }
+  function cardPhotoHtml(p) {
+    if (!p) return '<div class="candidate-card-no-photo">👤</div>';
+    var safePhoto = escapeHtml(p);
+    return '<img src="' + safePhoto + '" class="candidate-card-photo" onclick="event.stopPropagation();openImgModal(&quot;' + safePhoto + '&quot;)" alt="صورة المرشح">';
+  }
+  function cardActionButtons(id) {
+    var safeId = escapeHtml(id);
+    return '<div class="candidate-card-actions">' +
+      '<button type="button" class="act-btn act-view" onclick="viewCand(&quot;' + safeId + '&quot;)" title="عرض" aria-label="عرض البطاقة">👁️</button>' +
+      '<button type="button" class="act-btn act-edit" onclick="editCand(&quot;' + safeId + '&quot;)" title="تعديل" aria-label="تعديل البطاقة">✏️</button>' +
+      '<button type="button" class="act-btn act-del" onclick="delCand(&quot;' + safeId + '&quot;)" title="حذف" aria-label="حذف البطاقة">🗑️</button>' +
+      '</div>';
   }
 
   // ====== RENDER ======
+  function renderCandidateCard(c, index) {
+    var fullName = escapeHtml(c.fullName || 'بدون اسم');
+    var cin = escapeHtml(c.cinNumber || '—');
+    var phone = escapeHtml(c.phone || '—');
+    var vehicle = escapeHtml(c.voitureNumber || '—');
+    var registerDate = escapeHtml(formatDateDisplay(c.registerDate));
+    return '<article class="candidate-card">' +
+      '<div class="candidate-card-head">' +
+        '<div class="candidate-card-identity">' + cardPhotoHtml(c.photo) +
+          '<div><h3 class="candidate-card-title">' + fullName + '</h3>' +
+          '<div class="candidate-card-meta">N° ' + (index + 1) + ' · C.I.N: ' + cin + '</div></div>' +
+        '</div>' + cardActionButtons(c.id) +
+      '</div>' +
+      '<div class="candidate-card-grid">' +
+        '<div class="candidate-card-field candidate-card-field-wide"><span class="candidate-card-label">📞 الهاتف</span><strong class="candidate-card-value candidate-card-phone">' + phone + '</strong>' + phoneActionsHtml(c.phone) + '</div>' +
+        '<div class="candidate-card-field"><span class="candidate-card-label">🪪 الرخصة</span><span class="candidate-card-value">' + licBadge(c.licenseType) + '</span></div>' +
+        '<div class="candidate-card-field"><span class="candidate-card-label">🎂 العمر</span><span class="candidate-card-value">' + escapeHtml(calcAge(c.birthDate)) + '</span></div>' +
+        '<div class="candidate-card-field"><span class="candidate-card-label">💰 الدفع</span><span class="candidate-card-value">' + payBadge(c.paymentStatus) + '</span></div>' +
+        '<div class="candidate-card-field"><span class="candidate-card-label">🚗 العربة</span><span class="candidate-card-value">' + vehicle + '</span></div>' +
+        '<div class="candidate-card-field candidate-card-field-wide"><span class="candidate-card-label">🎓 الامتحانات</span><span class="candidate-card-value candidate-card-exams">' + exBadge(c.exam1D1) + exBadge(c.exam2D1) + '</span></div>' +
+        '<div class="candidate-card-field candidate-card-field-wide"><span class="candidate-card-label">📅 تاريخ التسجيل</span><span class="candidate-card-value">' + registerDate + '</span></div>' +
+      '</div>' +
+    '</article>';
+  }
   function renderTable() {
     var search = document.getElementById('searchInput').value.toLowerCase().trim();
     var st = document.getElementById('filterStatus').value;
@@ -1252,7 +1329,7 @@
     var et = document.getElementById('filterExam').value;
 
     var filtered = candidates.filter(function(c) {
-      var ms = !search || (c.fullName+' '+c.phone+' '+c.cardNumber).toLowerCase().includes(search);
+      var ms = !search || (c.fullName+' '+c.phone+' '+c.cardNumber+' '+c.cinNumber).toLowerCase().includes(search);
       var mst = st==='all' || c.paymentStatus===st;
       var mlt = lt==='all' || c.licenseType===lt;
       var met = true;
@@ -1266,30 +1343,28 @@
     filtered.sort(function(a,b){return new Date(b.registerDate)-new Date(a.registerDate);});
 
     var tbody = document.getElementById('tableBody');
+    var cardList = document.getElementById('cardList');
     var empty = document.getElementById('emptyState');
 
-    if (filtered.length === 0) { tbody.innerHTML=''; empty.classList.remove('hidden'); return; }
+    if (filtered.length === 0) { tbody.innerHTML=''; cardList.innerHTML=''; empty.classList.remove('hidden'); return; }
     empty.classList.add('hidden');
 
     tbody.innerHTML = filtered.map(function(c){
       return '<tr>' +
         '<td class="td-photo">' + photoCell(c.photo) + '</td>' +
-        '<td class="td-small">' + (c.cardNumber||'—') + '</td>' +
-        '<td class="td-name">' + c.fullName + '</td>' +
-        '<td class="td-phone">' + (c.phone||'—') + phoneActionsHtml(c.phone) + '</td>' +
-        '<td class="td-small">' + calcAge(c.birthDate) + '</td>' +
+        '<td class="td-small">' + escapeHtml(c.cardNumber||'—') + '</td>' +
+        '<td class="td-name">' + escapeHtml(c.fullName||'—') + '</td>' +
+        '<td class="td-phone">' + escapeHtml(c.phone||'—') + phoneActionsHtml(c.phone) + '</td>' +
+        '<td class="td-small">' + escapeHtml(calcAge(c.birthDate)) + '</td>' +
         '<td>' + licBadge(c.licenseType) + '</td>' +
         '<td>' + exBadge(c.exam1D1) + ' ' + exBadge(c.exam2D1) + '</td>' +
         '<td>' + payBadge(c.paymentStatus) + '</td>' +
-        '<td class="td-small">' + (c.voitureNumber||'—') + '</td>' +
-        '<td class="td-small">' + formatDateDisplay(c.registerDate) + '</td>' +
-        '<td class="actions-cell">' +
-          '<button class="act-btn act-view" onclick="viewCand(\'' + c.id + '\')" title="عرض">👁️</button>' +
-          '<button class="act-btn act-edit" onclick="editCand(\'' + c.id + '\')" title="تعديل">✏️</button>' +
-          '<button class="act-btn act-del" onclick="delCand(\'' + c.id + '\')" title="حذف">🗑️</button>' +
-        '</td>' +
+        '<td class="td-small">' + escapeHtml(c.voitureNumber||'—') + '</td>' +
+        '<td class="td-small">' + escapeHtml(formatDateDisplay(c.registerDate)) + '</td>' +
+        '<td class="actions-cell">' + cardActionButtons(c.id) + '</td>' +
       '</tr>';
     }).join('');
+    cardList.innerHTML = filtered.map(renderCandidateCard).join('');
   }
 
   // ====== PAYMENT CALCULATION ======
@@ -1802,7 +1877,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=stable-sync43').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=mobile-cards44').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
