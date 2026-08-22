@@ -457,15 +457,15 @@
         <div class="section-divider">📝 معلومات شخصية</div>
 
         <div class="form-group"><label>الاسم الكامل <span class="req">*</span></label><input type="text" id="fullName" required placeholder="Prénom & Nom"></div>
-        <div class="form-group"><label>تاريخ الميلاد <span class="req">*</span></label><input type="text" id="birthDate" inputmode="numeric" placeholder="DD/MM/AAAA" autocomplete="off" required></div>
+        <div class="form-group"><label>تاريخ الميلاد <span class="td-small">(اختياري)</span></label><input type="text" id="birthDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
         <div class="form-group"><label>مكان الازدياد</label><select id="birthPlace"><option value="">اختر مدينة الازدياد</option><option>أكادير</option><option>الحسيمة</option><option>الدار البيضاء</option><option>الجديدة</option><option>الداخلة</option><option>الرباط</option><option>الرشيدية</option><option>العرائش</option><option>الفقيه بن صالح</option><option>القنيطرة</option><option>السمارة</option><option>الصويرة</option><option>العيون</option><option>العرائش</option><option>بني ملال</option><option>برشيد</option><option>تارودانت</option><option>تازة</option><option>تاونات</option><option>تطوان</option><option>تمارة</option><option>تنغير</option><option>جرادة</option><option>خريبكة</option><option>خنيفرة</option><option>سلا</option><option>سوق الأربعاء الغرب</option><option>سطات</option><option>سيدي إفني</option><option>سيدي قاسم</option><option>سيدي سليمان</option><option>شفشاون</option><option>صفرو</option><option>طنجة</option><option>طاطا</option><option>طانطان</option><option>فاس</option><option>قلعة السراغنة</option><option>كلميم</option><option>مراكش</option><option>مكناس</option><option>ميدلت</option><option>الناظور</option><option>ورزازات</option><option>وزان</option><option>وجدة</option><option>اليوسفية</option><option>إفران</option><option>آسفي</option><option>أزيلال</option><option>المحمدية</option></select></div>
         <div class="form-group full"><label>العنوان</label><input type="text" id="address" placeholder="Adresse"></div>
         <div class="form-group"><label>الهاتف <span class="td-small">(اختياري)</span></label><input type="tel" id="phone" placeholder="05XX XX XX XX" autocomplete="tel"><div class="phone-actions"><a class="btn btn-suc" id="callPhoneBtn" href="#">📞 اتصال</a><a class="btn btn-inf" id="whatsappPhoneBtn" href="#" target="_blank" rel="noopener">💬 واتساب</a></div></div>
 
         <div class="section-divider">🆔 البطاقة الوطنية</div>
 
-        <div class="form-group"><label>C.I.N N°</label><input type="text" id="cinNumber" placeholder="AB123456"></div>
-        <div class="form-group"><label>تاريخ CIN (Du)</label><input type="text" id="cinDate" inputmode="numeric" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+        <div class="form-group"><label>C.I.N N° <span class="req">*</span></label><input type="text" id="cinNumber" placeholder="AB123456" required autocomplete="off"></div>
+        <div class="form-group"><label>تاريخ CIN (Du)</label><input type="text" id="cinDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
         <div class="section-divider">📄 صور الوثائق</div>
         <div class="document-upload"><label>صورة البطاقة الوطنية</label><input type="file" id="cinDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'cinDocument')"><img id="cinDocumentPreview" class="document-preview" alt="صورة البطاقة الوطنية"><button type="button" class="btn btn-dng hidden" id="removeCinDocument" onclick="removeDocument('cinDocument')">حذف الصورة</button></div>
         <div class="document-upload"><label>وثيقة إضافية</label><input type="file" id="extraDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'extraDocument')"><img id="extraDocumentPreview" class="document-preview" alt="وثيقة إضافية"><button type="button" class="btn btn-dng hidden" id="removeExtraDocument" onclick="removeDocument('extraDocument')">حذف الصورة</button></div>
@@ -473,7 +473,7 @@
         <div class="section-divider">📋 إضافية</div>
 
         <div class="form-group"><label>N° Saisie</label><input type="text" id="saisieNumber" placeholder="رقم السيزي"></div>
-        <div class="form-group"><label>Date de Saisie</label><input type="text" id="saisieDate" inputmode="numeric" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+        <div class="form-group"><label>Date de Saisie</label><input type="text" id="saisieDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
 
         <div class="section-divider">📁 الملف 1</div>
 
@@ -481,11 +481,11 @@
         <div class="form-group"><label>1er Examen</label>
           <select id="exam1D1"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
         </div>
-        <div class="form-group"><label>تاريخ 1er Examen</label><input type="text" id="exam1D1Date" inputmode="numeric" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+        <div class="form-group"><label>تاريخ 1er Examen</label><input type="text" id="exam1D1Date" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
         <div class="form-group"><label>2ème Examen</label>
           <select id="exam2D1"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
         </div>
-        <div class="form-group"><label>تاريخ 2ème Examen</label><input type="text" id="exam2D1Date" inputmode="numeric" placeholder="DD/MM/AAAA" autocomplete="off"></div>
+        <div class="form-group"><label>تاريخ 2ème Examen</label><input type="text" id="exam2D1Date" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
 
 
         <div class="section-divider">📋 نوع الرخصة</div>
@@ -515,7 +515,7 @@
             <option value="partial">⚠️ دفع جزئي</option>
           </select>
         </div>
-        <div class="form-group"><label>إضافية <span class="req">*</span></label><input type="text" id="registerDate" inputmode="numeric" placeholder="DD/MM/AAAA" autocomplete="off" required></div>
+        <div class="form-group"><label>إضافية <span class="req">*</span></label><input type="text" id="registerDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off" required></div>
         <div class="form-group full"><label>ملاحظات</label><textarea id="notes" placeholder="ملاحظات..."></textarea></div>
 
         <div class="form-actions">
@@ -638,6 +638,7 @@
     loadLocal();
     checkFirebaseConnection();
     startRealtimeListener();
+    wireDatePickers();
     document.getElementById('registerDate').value = formatDateDisplay(new Date().toISOString().split('T')[0]);
   }
 
@@ -987,6 +988,24 @@
     var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
     if (m) return m[3] + '-' + String(m[2]).padStart(2,'0') + '-' + String(m[1]).padStart(2,'0');
     return s;
+  }
+  function wireDatePickers() {
+    document.querySelectorAll('input.date-display').forEach(function(input) {
+      if (input.dataset.datePickerReady) return;
+      input.dataset.datePickerReady = '1';
+      input.addEventListener('click', function() {
+        var picker = document.createElement('input');
+        picker.type = 'date';
+        picker.value = toISODate(input.value);
+        picker.style.position = 'fixed'; picker.style.left = '-10000px'; picker.style.top = '0'; picker.style.opacity = '0';
+        document.body.appendChild(picker);
+        var closed = false;
+        function closePicker() { if (closed) return; closed = true; setTimeout(function(){ picker.remove(); }, 0); }
+        picker.addEventListener('change', function() { input.value = formatDateDisplay(picker.value); input.dispatchEvent(new Event('input', {bubbles:true})); closePicker(); });
+        picker.addEventListener('blur', closePicker);
+        try { if (picker.showPicker) picker.showPicker(); else picker.click(); } catch (e) { picker.click(); }
+      });
+    });
   }
   function formatDateDisplay(value) {
     if (!value) return '—';
@@ -1353,10 +1372,10 @@
     var events = {};
     candidates.forEach(function(c) {
       [['exam1D1Date','1er Examen — ملف 1'],['exam2D1Date','2ème Examen — ملف 1']].forEach(function(pair) {
-        var date = c[pair[0]];
-        if (!date) return;
+        var date = toISODate(c[pair[0]]);
+        if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
         if (!events[date]) events[date] = [];
-        events[date].push({name:c.fullName||'—', card:c.cardNumber||'—', type:pair[1], category:pair[0].includes('D1')?'drive':'law', status:c[pair[0].replace('Date','')]||'pending'});
+        events[date].push({name:c.fullName||'—', card:c.cardNumber||'—', type:pair[1], category:'drive', status:c[pair[0].replace('Date','')]||'pending'});
       });
     });
     return events;
@@ -1398,7 +1417,8 @@
       var hasLaw = dayEvents.some(function(e){ return e.category==='law'; });
       var typeClass = hasDrive && hasLaw ? ' both-day' : hasDrive ? ' drive-day' : hasLaw ? ' law-day' : '';
       var cls = 'calendar-day'+(key===today?' today':'')+(count?' has-exam':'')+typeClass;
-      cells += '<button type="button" class="'+cls+'" onclick="showCalendarDay(\''+key+'\')">'+d+(count?'<span class="exam-count">'+count+' امتحان</span>':'')+'</button>';
+      var examLabels = dayEvents.map(function(e){ return e.type.indexOf('1er')===0 ? '1er' : '2ème'; }).join(' · ');
+      cells += '<button type="button" class="'+cls+'" onclick="showCalendarDay(\''+key+'\')">'+d+(count?'<span class="exam-count">'+examLabels+'</span><span class="exam-count">'+count+' امتحان</span>':'')+'</button>';
     }
     showModal('📅 تقويم الامتحانات',
       '<div class="calendar-toolbar"><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(-1)">‹ السابق</button><strong>'+calendarMonths[calendarMonth]+' '+calendarYear+'</strong><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(1)">التالي ›</button></div>'+
@@ -1455,7 +1475,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=date-input30').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=required-cin34').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
