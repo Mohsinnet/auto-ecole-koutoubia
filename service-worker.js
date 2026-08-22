@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v44-mobile-cards';
+const CACHE_NAME = 'auto-ecole-koutoubia-v45-finance-dashboard';
 const APP_SHELL = [
   './',
   './index.html',
