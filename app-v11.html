@@ -622,7 +622,7 @@
             <option value="partial">⚠️ دفع جزئي</option>
           </select>
         </div>
-        <div class="form-group"><label>إضافية <span class="req">*</span></label><input type="text" id="registerDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off" required></div>
+        <div class="form-group"><label>تاريخ التسجيل <span class="req">*</span></label><input type="text" id="registerDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off" required></div>
         <div class="form-group full"><label>ملاحظات</label><textarea id="notes" placeholder="ملاحظات..."></textarea></div>
 
         
@@ -1272,23 +1272,89 @@
     if (presetVehicleNumbers.indexOf(clean) !== -1) selectVehicleChoice(clean);
     else selectVehicleChoice('other', clean);
   }
+  function normalizeCinValue(value) {
+    return String(value || '').trim().toUpperCase().replace(/\s+/g, ' ');
+  }
+  function cinKey(value) {
+    return normalizeCinValue(value).replace(/[\s-]/g, '');
+  }
+  function isValidISODate(value) {
+    var m = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (!m) return false;
+    var year = Number(m[1]), month = Number(m[2]), day = Number(m[3]);
+    var date = new Date(Date.UTC(year, month - 1, day));
+    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+  }
+  function normalizedDateValue(id) {
+    var field = document.getElementById(id);
+    if (!field) return '';
+    var raw = String(field.value || '').trim();
+    if (!raw) return '';
+    var iso = toISODate(raw);
+    return isValidISODate(iso) ? iso : null;
+  }
+  function focusValidationField(id, tab, message) {
+    selectFormTab(tab, true);
+    var field = document.getElementById(id);
+    if (field) setTimeout(function(target){ return function(){ target.focus(); }; }(field), 80);
+    toast('⚠️ ' + message, 'wrn');
+    return false;
+  }
   function validateCandidateForm() {
     var requiredFields = [
       {id:'fullName', tab:'personal', message:'أدخل الاسم الكامل'},
       {id:'cinNumber', tab:'documents', message:'أدخل رقم C.I.N'},
       {id:'licenseType', tab:'license', message:'اختر نوع الرخصة'},
       {id:'paymentStatus', tab:'payment', message:'حدد حالة الدفع'},
-      {id:'registerDate', tab:'payment', message:'اختر تاريخ الإضافية'}
+      {id:'registerDate', tab:'payment', message:'اختر تاريخ التسجيل'}
     ];
     for (var i=0; i<requiredFields.length; i++) {
       var rule = requiredFields[i], field = document.getElementById(rule.id);
-      if (!field || !String(field.value || '').trim()) {
-        selectFormTab(rule.tab, true);
-        if (field) setTimeout(function(target){ return function(){ target.focus(); }; }(field), 80);
-        toast('⚠️ ' + rule.message, 'wrn');
-        return false;
-      }
+      if (!field || !String(field.value || '').trim()) return focusValidationField(rule.id, rule.tab, rule.message);
     }
+
+    var normalizedCin = cinKey(document.getElementById('cinNumber').value);
+    if (!normalizedCin) return focusValidationField('cinNumber', 'documents', 'أدخل رقم C.I.N صالح');
+    var editId = document.getElementById('editId').value;
+    var duplicate = candidates.some(function(c) {
+      return c.id !== editId && cinKey(c.cinNumber) === normalizedCin;
+    });
+    if (duplicate) return focusValidationField('cinNumber', 'documents', 'رقم C.I.N مسجل مسبقًا لمرشح آخر');
+
+    var dateRules = [
+      {id:'birthDate', tab:'personal', label:'تاريخ الميلاد'},
+      {id:'cinDate', tab:'documents', label:'تاريخ C.I.N'},
+      {id:'saisieDate', tab:'extra', label:'Date de Saisie'},
+      {id:'exam1D1Date', tab:'dossier', label:'تاريخ 1er Examen'},
+      {id:'exam2D1Date', tab:'dossier', label:'تاريخ 2ème Examen'},
+      {id:'registerDate', tab:'payment', label:'تاريخ التسجيل'}
+    ];
+    var dates = {};
+    for (var d=0; d<dateRules.length; d++) {
+      var dateRule = dateRules[d];
+      dates[dateRule.id] = normalizedDateValue(dateRule.id);
+      if (dates[dateRule.id] === null) return focusValidationField(dateRule.id, dateRule.tab, dateRule.label + ' غير صحيح؛ استعمل DD/MM/AAAA');
+    }
+    if (dates.exam1D1Date && dates.exam2D1Date && dates.exam2D1Date < dates.exam1D1Date) {
+      return focusValidationField('exam2D1Date', 'dossier', 'تاريخ 2ème Examen لا يمكن أن يسبق تاريخ 1er Examen');
+    }
+
+    var amountIds = ['totalPrice','firstPayment','secondPayment'];
+    var amounts = {};
+    for (var a=0; a<amountIds.length; a++) {
+      var amountId = amountIds[a], rawAmount = String(document.getElementById(amountId).value || '').trim();
+      if (rawAmount && (! /^(?:\d+)(?:[.,]\d{1,2})?$/.test(rawAmount) || Number(rawAmount.replace(',', '.')) < 0)) {
+        return focusValidationField(amountId, 'payment', 'قيمة المبلغ غير صحيحة');
+      }
+      amounts[amountId] = rawAmount ? Number(rawAmount.replace(',', '.')) : 0;
+    }
+    var total = amounts.totalPrice, paid = amounts.firstPayment + amounts.secondPayment;
+    var paymentStatus = document.getElementById('paymentStatus').value;
+    if (paid > 0 && total <= 0) return focusValidationField('totalPrice', 'payment', 'أدخل الثمن الإجمالي قبل تسجيل دفعة');
+    if (paid > total) return focusValidationField('secondPayment', 'payment', 'مجموع الدفعات لا يمكن أن يتجاوز الثمن الإجمالي');
+    if (paymentStatus === 'paid' && (total <= 0 || paid < total)) return focusValidationField('paymentStatus', 'payment', 'حالة الدفع «مدفوع كامل» تتطلب دفع الثمن الإجمالي');
+    if (paymentStatus === 'partial' && (total <= 0 || paid <= 0 || paid >= total)) return focusValidationField('paymentStatus', 'payment', 'الدفع الجزئي يجب أن يكون أكبر من صفر ويترك مبلغًا متبقيًا');
+    if (paymentStatus === 'unpaid' && paid > 0) return focusValidationField('paymentStatus', 'payment', 'لا يمكن اختيار «غير مدفوع» مع وجود دفعة مسجلة');
     return true;
   }
 
@@ -1319,7 +1385,7 @@
       birthDate: toISODate(document.getElementById('birthDate').value),
       birthPlace: document.getElementById('birthPlace').value,
       address: document.getElementById('address').value.trim(),
-      cinNumber: document.getElementById('cinNumber').value.trim(),
+      cinNumber: normalizeCinValue(document.getElementById('cinNumber').value),
       cinDate: toISODate(document.getElementById('cinDate').value),
       phone: document.getElementById('phone').value.trim(),
       saisieNumber: document.getElementById('saisieNumber').value.trim(),
@@ -1333,7 +1399,7 @@
       totalPrice: paymentNumber('totalPrice'),
       firstPayment: paymentNumber('firstPayment'),
       secondPayment: paymentNumber('secondPayment'),
-      remainingAmount: paymentNumber('remainingAmount'),
+      remainingAmount: Math.max(0, paymentNumber('totalPrice') - paymentNumber('firstPayment') - paymentNumber('secondPayment')),
       paymentStatus: document.getElementById('paymentStatus').value,
       registerDate: toISODate(document.getElementById('registerDate').value),
       notes: document.getElementById('notes').value.trim()
