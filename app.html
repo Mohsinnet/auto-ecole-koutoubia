@@ -473,6 +473,7 @@
         <span class="header-action-label">Firebase</span>
         <button type="button" class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
         <button type="button" class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
+        <button type="button" class="btn btn-suc" onclick="syncNow()" id="btnSync">🔄 مزامنة</button>
       </div>
       <div class="header-action-group">
         <span class="header-action-label">التقارير</span>
@@ -875,6 +876,15 @@
   }
 
   var syncInFlight = null;
+  async function syncNow() {
+    var btn = document.getElementById('btnSync');
+    if (btn) btn.disabled = true;
+    try {
+      await syncToFirebase({manual: true});
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
   async function syncToFirebase(options) {
     options = options || {};
     if (syncInFlight) return syncInFlight;
@@ -884,7 +894,7 @@
       if (candidates.length === 0 && !options.allowEmpty) { toast('ℹ️ لا توجد بطاقات محفوظة للرفع', 'inf'); return false; }
       var clearing = candidates.length === 0;
       realtimeWritePending = true;
-      showSpin(clearing ? '🗑️ جارٍ حذف السجلات من Firebase...' : '📤 جارٍ رفع البيانات إلى Firebase...');
+      showSpin(options.manual ? '🔄 جارٍ مزامنة البيانات مع Firebase...' : (clearing ? '🗑️ جارٍ حذف السجلات من Firebase...' : '📤 جارٍ رفع البيانات إلى Firebase...'));
       try {
         var payload = {};
         candidates.forEach(function(c, i) { payload['cand_' + i] = c; });
@@ -896,7 +906,7 @@
           var savedCount = saved && !Array.isArray(saved) ? Object.keys(saved).length : (Array.isArray(saved) ? saved.filter(Boolean).length : 0);
           if (savedCount !== candidates.length) throw new Error('تم الرفع لكن عدد السجلات المقروءة (' + savedCount + ') لا يطابق العدد المرسل (' + candidates.length + ')');
         }
-        toast(clearing ? '✅ تم حذف السجلات من Firebase' : '✅ تم رفع والتحقق من حفظ ' + candidates.length + ' بطاقة في Firebase', 'suc');
+        toast(options.manual ? '✅ تمت مزامنة ' + candidates.length + ' بطاقة مع Firebase بنجاح' : (clearing ? '✅ تم حذف السجلات من Firebase' : '✅ تم رفع والتحقق من حفظ ' + candidates.length + ' بطاقة في Firebase'), 'suc');
         updateStatus(true);
         return true;
       } catch(e) {
