@@ -535,15 +535,14 @@
           <details class="collapse-section" open>
             <summary class="collapse-summary"><span>📁 الملف 1 والامتحانات</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
-        <div class="form-group"><label>رقم الملف 1</label><input type="text" id="dossier1" placeholder="Dossier N° 1"></div>
+        <div class="form-group"><label>تاريخ 1er Examen</label><input type="text" id="exam1D1Date" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
         <div class="form-group"><label>1er Examen</label>
           <select id="exam1D1"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
         </div>
-        <div class="form-group"><label>تاريخ 1er Examen</label><input type="text" id="exam1D1Date" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
+        <div class="form-group"><label>تاريخ 2ème Examen</label><input type="text" id="exam2D1Date" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
         <div class="form-group"><label>2ème Examen</label>
           <select id="exam2D1"><option value="">-- الحالة --</option><option value="pending">⏳ لم يتم</option><option value="pass">✅ ناجح</option><option value="fail">❌ راسب</option></select>
         </div>
-        <div class="form-group"><label>تاريخ 2ème Examen</label><input type="text" id="exam2D1Date" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
 
 
             </div>
@@ -633,7 +632,7 @@
         <thead>
           <tr>
             <th>📷</th><th>N°</th><th>الاسم</th><th>الهاتف</th><th>العمر</th>
-            <th>الرخصة</th><th>ملف1</th><th>امتحانات1</th>
+            <th>الرخصة</th><th>امتحانات1</th>
             <th>الدفع</th><th>العربة</th><th>إضافية</th><th style="text-align:center">⚙️</th>
           </tr>
         </thead>
@@ -1153,7 +1152,6 @@
         '<td class="td-phone">' + (c.phone||'—') + phoneActionsHtml(c.phone) + '</td>' +
         '<td class="td-small">' + calcAge(c.birthDate) + '</td>' +
         '<td>' + licBadge(c.licenseType) + '</td>' +
-        '<td class="td-small">' + (c.dossier1||'—') + '</td>' +
         '<td>' + exBadge(c.exam1D1) + ' ' + exBadge(c.exam2D1) + '</td>' +
         '<td>' + payBadge(c.paymentStatus) + '</td>' +
         '<td class="td-small">' + (c.voitureNumber||'—') + '</td>' +
@@ -1285,7 +1283,6 @@
       phone: document.getElementById('phone').value.trim(),
       saisieNumber: document.getElementById('saisieNumber').value.trim(),
       saisieDate: toISODate(document.getElementById('saisieDate').value),
-      dossier1: document.getElementById('dossier1').value.trim(),
       exam1D1: document.getElementById('exam1D1').value,
       exam1D1Date: toISODate(document.getElementById('exam1D1Date').value),
       exam2D1: document.getElementById('exam2D1').value,
@@ -1350,7 +1347,6 @@
     });
     document.getElementById('saisieNumber').value = c.saisieNumber||'';
     document.getElementById('saisieDate').value = formatDateDisplay(c.saisieDate);
-    document.getElementById('dossier1').value = c.dossier1||'';
     document.getElementById('exam1D1').value = c.exam1D1||'';
     document.getElementById('exam1D1Date').value = formatDateDisplay(c.exam1D1Date);
     document.getElementById('exam2D1').value = c.exam2D1||'';
@@ -1391,7 +1387,7 @@
       '<div class="dr"><span class="dl">C.I.N:</span><span class="dv">'+(c.cinNumber||'—')+' '+formatDateDisplay(c.cinDate)+'</span></div>' +
       '<div class="dr"><span class="dl">الهاتف:</span><span class="dv" style="direction:ltr">'+c.phone+'</span></div>' +
       '<div class="dr"><span class="dl">Date de Saisie:</span><span class="dv">'+(c.saisieNumber||'—')+' '+formatDateDisplay(c.saisieDate)+'</span></div>' +
-      '<div class="dr"><span class="dl">الملف 1:</span><span class="dv">'+(c.dossier1||'—')+' | 1er: '+exLine(c.exam1D1,c.exam1D1Date)+' | 2ème: '+exLine(c.exam2D1,c.exam2D1Date)+'</span></div>' +
+      '<div class="dr"><span class="dl">الامتحانات:</span><span class="dv">1er: '+exLine(c.exam1D1,c.exam1D1Date)+' | 2ème: '+exLine(c.exam2D1,c.exam2D1Date)+'</span></div>' +
       '<div class="dr"><span class="dl">رقم العربة:</span><span class="dv">'+(c.voitureNumber||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">الرخصة:</span><span class="dv">'+licLabel(c.licenseType)+' ('+c.licenseType+')</span></div>' +
       '<div class="dr"><span class="dl">الثمن الإجمالي:</span><span class="dv">'+(Number(c.totalPrice||0).toFixed(2))+'</span></div>' +
@@ -1612,7 +1608,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=vehicle-tabs37').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=file1-order38').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
