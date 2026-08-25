@@ -7,11 +7,12 @@
 <link rel="icon" type="image/jpeg" href="assets/logo-auto-ecole.jpg">
 <link rel="apple-touch-icon" href="assets/logo-auto-ecole.jpg">
 <link rel="manifest" href="manifest.json?v=20260815-2">
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <meta name="theme-color" content="#1a365d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -224,6 +225,14 @@
   .exam-alerts-title { color:#fbbf24; font-weight:800; margin-bottom:9px; }
   .exam-alert-item { background:rgba(15,23,42,.65); border:1px solid rgba(245,158,11,.25); border-radius:10px; padding:8px 10px; margin-top:7px; font-size:.8rem; }
   .exam-alert-item strong { color:#fde68a; }
+  .exam-alert-more { color:var(--text-muted); font-size:.74rem; margin-top:8px; text-align:center; }
+  .payment-alert-item { border-color:rgba(248,113,113,.3); }
+  .payment-alert-item b { color:#fca5a5; }
+  .audit-list { display:grid; gap:7px; max-height:52vh; overflow:auto; }
+  .audit-row { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:9px 10px; border:1px solid var(--card-border); border-radius:10px; background:rgba(15,23,42,.55); font-size:.78rem; }
+  .audit-row strong { color:var(--accent); }
+  .audit-row small { color:var(--text-muted); white-space:nowrap; direction:ltr; }
+  @media (max-width:520px) { .audit-row { align-items:flex-start; flex-direction:column; gap:4px; } .audit-row small { white-space:normal; } }
 
   .auth-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(160deg, #0f172a 0%, #1a202c 50%, #0f172a 100%); }
   .auth-card { width: min(420px, 100%); padding: 28px; text-align: center; background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
@@ -492,7 +501,15 @@
   .btn:hover { filter:brightness(1.08); transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.18); }
   .btn:active { transform:scale(.97); }
   .filters-bar { padding:11px; background:rgba(23,43,69,.72); }
+  .filter-date-range { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
+  .filter-date-range label { display:flex; align-items:center; gap:5px; color:var(--text-muted); font-size:.72rem; font-weight:800; white-space:nowrap; }
+  .filter-date-range input { width:120px; padding:8px 9px; font-size:.72rem; }
+  .clear-filters-btn { white-space:nowrap; min-height:38px; }
   .table-wrapper { background:rgba(16,34,58,.72); }
+  .pagination { display:flex; justify-content:center; align-items:center; gap:12px; padding:14px 10px 4px; color:var(--text-muted); font-size:.78rem; font-weight:800; }
+  .pagination .btn { min-width:92px; }
+  .pagination .btn:disabled { opacity:.42; cursor:not-allowed; transform:none; filter:none; }
+  @media (max-width:520px) { .pagination { gap:7px; } .pagination .btn { min-width:80px; padding:9px 8px; font-size:.72rem; } }
   .table-scroll { scrollbar-color:rgba(56,189,248,.55) rgba(5,15,28,.3); }
   .candidate-card { box-shadow:0 14px 30px rgba(0,0,0,.2); }
   @media (max-width:768px) {
@@ -503,6 +520,10 @@
     .form-tab { min-height:42px; }
     .collapse-content { padding:12px 10px; }
     .conn-bar { padding:12px; }
+    .filter-date-range { width:100%; display:grid; grid-template-columns:1fr 1fr; }
+    .filter-date-range label { min-width:0; }
+    .filter-date-range input { width:100%; min-width:0; }
+    .clear-filters-btn { width:100%; }
   }
   @media (prefers-reduced-motion:reduce) {
     *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; }
@@ -534,6 +555,7 @@
       <div class="header-action-group">
         <span class="header-action-label">الحساب</span>
         <button type="button" class="btn btn-prm" onclick="openPasswordChange()" title="تغيير كلمة المرور">🔑 تغيير كلمة المرور</button>
+        <button type="button" class="btn btn-inf" onclick="openAuditLog()" title="سجل العمليات">🧾 سجل العمليات</button>
         <button type="button" class="btn btn-sec" onclick="logoutUser()">🚪 تسجيل الخروج</button>
         <button type="button" class="btn install-btn hidden" id="installButton" onclick="installApp()">📱 تثبيت التطبيق</button>
       </div>
@@ -578,6 +600,9 @@
     <div class="stat-card st-red"><div class="stat-value" id="stUnpaid">0</div><div class="stat-label">⏳ غير مدفوع</div></div>
     <div class="stat-card st-blu"><div class="stat-value" id="stToday">0</div><div class="stat-label">📅 اليوم</div></div>
     <div class="stat-card st-prp"><div class="stat-value" id="stExam">0</div><div class="stat-label">🎓 ناجحين</div></div>
+    <div class="stat-card st-blu"><div class="stat-value" id="stUpcoming">0</div><div class="stat-label">📆 خلال 7 أيام</div></div>
+    <div class="stat-card st-red"><div class="stat-value" id="stDue">0</div><div class="stat-label">💳 متأخرات</div></div>
+    <div class="stat-card st-acc"><div class="stat-value" id="stMonth">0</div><div class="stat-label">🆕 هذا الشهر</div></div>
   </div>
 
   <div class="exam-alerts hidden" id="examAlerts" role="alert" aria-live="polite"></div>
@@ -705,25 +730,29 @@
   <div class="filters-bar">
     <div class="search-box">
       <span class="icon">🔍</span>
-      <input type="text" id="searchInput" oninput="renderTable()" placeholder="بحث بالاسم أو الهاتف أو رقم البطاقة...">
+      <input type="text" id="searchInput" oninput="onFilterChange()" placeholder="بحث بالاسم أو الهاتف أو C.I.N..." aria-label="البحث في السجلات">
     </div>
-    <select class="filter-select" id="filterStatus" onchange="renderTable()">
+    <select class="filter-select" id="filterStatus" onchange="onFilterChange()">
       <option value="all">📋 كل الحالات</option>
       <option value="paid">✅ مدفوع</option>
       <option value="unpaid">❌ غير مدفوع</option>
       <option value="partial">⚠️ جزئي</option>
     </select>
-    <select class="filter-select" id="filterLicense" onchange="renderTable()">
+    <select class="filter-select" id="filterLicense" onchange="onFilterChange()">
       <option value="all">🪪 كل الرخص</option>
       <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
     </select>
-    <select class="filter-select" id="filterExam" onchange="renderTable()">
+    <select class="filter-select" id="filterExam" onchange="onFilterChange()">
       <option value="all">🎓 كل الامتحانات</option>
       <option value="pass">✅ ناجح</option>
       <option value="fail">❌ راسب</option>
       <option value="pending">⏳ لم يتم</option>
     </select>
-    
+    <div class="filter-date-range" aria-label="التصفية حسب تاريخ التسجيل">
+      <label>من <input type="text" id="filterDateFrom" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off" onchange="onFilterChange()"></label>
+      <label>إلى <input type="text" id="filterDateTo" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off" onchange="onFilterChange()"></label>
+    </div>
+    <button type="button" class="btn btn-sec clear-filters-btn" onclick="resetFilters()">↺ مسح التصفية</button>
   </div>
 
   <!-- Table -->
@@ -741,6 +770,11 @@
       </table>
     </div>
     <div class="candidate-card-list" id="cardList" aria-label="بطاقات المرشحين"></div>
+    <div class="pagination hidden" id="pagination" aria-label="صفحات السجلات">
+      <button type="button" class="btn btn-sec" id="prevPageBtn" onclick="changePage(-1)">‹ السابق</button>
+      <span id="pageInfo">صفحة 1 من 1</span>
+      <button type="button" class="btn btn-sec" id="nextPageBtn" onclick="changePage(1)">التالي ›</button>
+    </div>
     <div class="empty-state hidden" id="emptyState">
       <div class="icon">📭</div><h3>لا يوجد بطاقات مسجلة</h3>
     </div>
@@ -899,13 +933,65 @@
   function setSyncQueueStatus(pending) {
     var el = document.getElementById('syncQueueStatus');
     if (!el) return;
-    el.textContent = pending ? '🟠 تغييرات محلية غير متزامنة' : '🟢 لا توجد تغييرات معلقة';
+    var last = '';
+    try { last = localStorage.getItem('koutoubia_last_sync') || ''; } catch(e) {}
+    el.textContent = pending ? '🟠 تغييرات محلية غير متزامنة' : (last ? '🟢 تمت المزامنة '+formatDateDisplay(last.slice(0,10))+' '+last.slice(11,16) : '🟢 لا توجد تغييرات معلقة');
+    el.title = pending ? 'توجد تغييرات محلية لم تصل إلى Firebase' : (last ? 'آخر مزامنة: '+last : 'لا توجد تغييرات معلقة');
     el.style.color = pending ? 'var(--warning)' : 'var(--success)';
   }
   function markSyncPending(pending) {
     syncPending = !!pending;
-    try { localStorage.setItem('koutoubia_sync_pending', pending ? '1' : '0'); } catch(e) {}
+    try {
+      localStorage.setItem('koutoubia_sync_pending', pending ? '1' : '0');
+      if (!pending) localStorage.setItem('koutoubia_last_sync', new Date().toISOString());
+    } catch(e) {}
     setSyncQueueStatus(pending);
+  }
+  function auditActionLabel(action) {
+    return {create:'إضافة', update:'تعديل', delete:'حذف'}[action] || action;
+  }
+  function getLocalAuditLog() {
+    try {
+      var raw = JSON.parse(localStorage.getItem('koutoubia_audit_log') || '[]');
+      return Array.isArray(raw) ? raw : [];
+    } catch(e) { return []; }
+  }
+  function writeAuditLog(action, candidate) {
+    var user = firebaseAuth && firebaseAuth.currentUser;
+    var entry = {
+      action: action,
+      actionLabel: auditActionLabel(action),
+      candidateId: String(candidate && candidate.id || ''),
+      candidateName: String(candidate && candidate.fullName || 'بدون اسم'),
+      cinNumber: String(candidate && candidate.cinNumber || ''),
+      at: new Date().toISOString(),
+      actor: user && user.email ? user.email : 'محلي'
+    };
+    try {
+      var logs = getLocalAuditLog();
+      logs.unshift(entry);
+      localStorage.setItem('koutoubia_audit_log', JSON.stringify(logs.slice(0,50)));
+    } catch(e) {}
+    if (window.firebase && firebase.database && user) {
+      firebase.database(firebaseApp).ref('audit').push(entry).catch(function(error){ console.warn('Audit log unavailable:', error); });
+    }
+  }
+  function auditRowsHtml(logs) {
+    if (!logs.length) return '<p style="color:var(--text-muted);text-align:center">لا توجد عمليات مسجلة بعد.</p>';
+    return '<div class="audit-list">' + logs.map(function(log){
+      return '<div class="audit-row"><div><strong>'+escapeHtml(log.actionLabel || auditActionLabel(log.action))+'</strong> — '+escapeHtml(log.candidateName || 'بدون اسم')+'</div><small>'+escapeHtml(log.actor || 'محلي')+' · '+escapeHtml(formatDateDisplay(String(log.at || '').slice(0,10)))+' '+escapeHtml(String(log.at || '').slice(11,16))+'</small></div>';
+    }).join('') + '</div>';
+  }
+  async function openAuditLog() {
+    var logs = getLocalAuditLog();
+    if (window.firebase && firebase.database && firebaseAuth && firebaseAuth.currentUser) {
+      try {
+        var snapshot = await firebase.database(firebaseApp).ref('audit').limitToLast(50).once('value');
+        var cloud = snapshot.val() || {};
+        logs = Object.keys(cloud).map(function(key){ return cloud[key]; }).sort(function(a,b){ return String(b.at||'').localeCompare(String(a.at||'')); });
+      } catch(e) { /* عرض السجل المحلي عند رفض مسار audit */ }
+    }
+    showModal('🧾 سجل العمليات', auditRowsHtml(logs), [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]);
   }
   async function readCloudCandidates() {
     var primary = await getCandidatesRef().once('value');
@@ -1032,12 +1118,29 @@
         var remote = remoteSnapshot.val();
         if (Array.isArray(remote)) remote = remote.reduce(function(obj, candidate, index){ if (candidate) obj['cand_' + index] = candidate; return obj; }, {});
         remote = remote && typeof remote === 'object' ? remote : {};
+        var remoteCandidates = normalizeCandidateData(remote);
+        var remoteById = {};
+        remoteCandidates.forEach(function(candidate){ remoteById[candidate.id] = candidate; });
         var localIds = {};
-        var updates = {};
+        var mergedCandidates = [];
+        var conflictCount = 0;
         candidates.forEach(function(candidate){
           localIds[candidate.id] = true;
-          updates[firebaseCandidateKey(candidate)] = candidate;
+          var remoteCandidate = remoteById[candidate.id];
+          if (remoteCandidate && remoteCandidate.updatedAt && candidate.updatedAt && String(remoteCandidate.updatedAt) > String(candidate.updatedAt)) {
+            mergedCandidates.push(remoteCandidate);
+            conflictCount++;
+          } else {
+            mergedCandidates.push(candidate);
+          }
         });
+        remoteCandidates.forEach(function(remoteCandidate){
+          if (!localIds[remoteCandidate.id]) mergedCandidates.push(remoteCandidate);
+        });
+        if (options.deleteId) mergedCandidates = mergedCandidates.filter(function(candidate){ return candidate.id !== options.deleteId; });
+        candidates = dedupeCandidates(mergedCandidates);
+        var updates = {};
+        candidates.forEach(function(candidate){ updates[firebaseCandidateKey(candidate)] = candidate; });
 
         Object.keys(remote).forEach(function(key){
           var remoteCandidate = remote[key];
@@ -1062,6 +1165,7 @@
         saveLocal();
         renderTable();
         markSyncPending(false);
+        if (conflictCount) toast('ℹ️ تم الاحتفاظ بـ '+conflictCount+' تعديل أحدث من جهاز آخر', 'inf');
         toast(options.manual ? '✅ تمت مزامنة ' + candidates.length + ' بطاقة بالمعرفات الثابتة' : (candidates.length ? '✅ تمت مزامنة ' + candidates.length + ' بطاقة مع Firebase' : '✅ تم حذف السجلات من Firebase'), 'suc');
         updateStatus(true);
         return true;
@@ -1114,12 +1218,18 @@
   function loadLocal() {
     try {
       var data = localStorage.getItem(LOCAL_KEY);
+      if (!data) data = localStorage.getItem('koutoubia_auto_backup');
       if (data) {
         var parsed = JSON.parse(data);
         candidates = dedupeCandidates(parsed);
         localStorage.setItem(LOCAL_KEY, JSON.stringify(candidates));
       }
-    } catch(e) { candidates = []; }
+    } catch(e) {
+      try {
+        var backup = JSON.parse(localStorage.getItem('koutoubia_auto_backup') || '[]');
+        candidates = dedupeCandidates(backup);
+      } catch(backupError) { candidates = []; }
+    }
     try { setSyncQueueStatus(localStorage.getItem('koutoubia_sync_pending') === '1'); } catch(e) { setSyncQueueStatus(false); }
     renderTable();
     updateStats();
@@ -1127,7 +1237,9 @@
   }
   function saveLocal() {
     try {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(candidates));
+      var serialized = JSON.stringify(candidates);
+      localStorage.setItem(LOCAL_KEY, serialized);
+      try { localStorage.setItem('koutoubia_auto_backup', serialized); } catch(backupError) { console.warn('Automatic local backup unavailable:', backupError); }
       updateStats();
       renderExamAlerts();
       return true;
@@ -1140,8 +1252,37 @@
     }
   }
 
+  function dateAtMidnight(date) {
+    var result = new Date(date);
+    result.setHours(0,0,0,0);
+    return result;
+  }
+  function isoDateFromLocalDate(date) {
+    var year = date.getFullYear();
+    var month = String(date.getMonth()+1).padStart(2,'0');
+    var day = String(date.getDate()).padStart(2,'0');
+    return year+'-'+month+'-'+day;
+  }
+  function getUpcomingExamCount(days) {
+    var start = dateAtMidnight(new Date());
+    var end = new Date(start);
+    end.setDate(end.getDate() + days);
+    var eventDates = getExamEvents();
+    return Object.keys(eventDates).reduce(function(total, date){
+      var eventDate = dateAtMidnight(date + 'T00:00:00');
+      return total + (eventDate >= start && eventDate <= end ? eventDates[date].length : 0);
+    }, 0);
+  }
+  function getOutstandingAmount(candidate) {
+    var total = Number(candidate.totalPrice || 0);
+    var paid = Number(candidate.firstPayment || 0) + Number(candidate.secondPayment || 0);
+    var stored = Number(candidate.remainingAmount);
+    return Math.max(0, Number.isFinite(stored) && stored > 0 ? stored : total - paid);
+  }
   function updateStats() {
-    var today = new Date().toISOString().split('T')[0];
+    var today = isoDateFromLocalDate(new Date());
+    var now = new Date();
+    var monthPrefix = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
     document.getElementById('stTotal').textContent = candidates.length;
     document.getElementById('stPaid').textContent = candidates.filter(function(c){return c.paymentStatus==='paid';}).length;
     document.getElementById('stUnpaid').textContent = candidates.filter(function(c){return c.paymentStatus==='unpaid';}).length;
@@ -1149,6 +1290,9 @@
     document.getElementById('stExam').textContent = candidates.filter(function(c){
       return c.exam1D1==='pass'||c.exam2D1==='pass';
     }).length;
+    document.getElementById('stUpcoming').textContent = getUpcomingExamCount(7);
+    document.getElementById('stDue').textContent = candidates.filter(function(c){return getOutstandingAmount(c)>0;}).length;
+    document.getElementById('stMonth').textContent = candidates.filter(function(c){return String(c.registerDate||'').indexOf(monthPrefix)===0;}).length;
   }
   // ====== PHOTO ======
   function compressImageFile(file, maxWidth, maxHeight, quality) {
@@ -1199,6 +1343,10 @@
     if (digits.indexOf('0') === 0) digits = '212' + digits.slice(1);
     if (digits.indexOf('212') !== 0 && digits.length >= 9) digits = '212' + digits;
     return digits;
+  }
+  function phoneKey(phone) {
+    var raw = String(phone || '').trim();
+    return raw ? normalizePhone(raw) : '';
   }
   function phoneActionsHtml(phone) {
     if (!phone) return '—';
@@ -1336,14 +1484,63 @@
       '</div>' +
     '</article>';
   }
+  function getFilterDate(id) {
+    var field = document.getElementById(id);
+    if (!field) return '';
+    var raw = String(field.value || '').trim();
+    if (!raw) { field.classList.remove('invalid'); return ''; }
+    var iso = toISODate(raw);
+    var valid = isValidISODate(iso);
+    field.classList.toggle('invalid', !valid);
+    return valid ? iso : '';
+  }
+  var currentPage = 1;
+  var pageSize = 40;
+  function onFilterChange() {
+    currentPage = 1;
+    renderTable();
+  }
+  function changePage(delta) {
+    currentPage = Math.max(1, currentPage + delta);
+    renderTable();
+    var table = document.querySelector('.table-wrapper');
+    if (table) table.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  function updatePagination(total, pageCount) {
+    var pagination = document.getElementById('pagination');
+    var info = document.getElementById('pageInfo');
+    var previous = document.getElementById('prevPageBtn');
+    var next = document.getElementById('nextPageBtn');
+    if (!pagination || !info || !previous || !next) return;
+    if (total <= pageSize) { pagination.classList.add('hidden'); return; }
+    pagination.classList.remove('hidden');
+    info.textContent = 'صفحة '+currentPage+' من '+pageCount+' · '+total+' سجل';
+    previous.disabled = currentPage <= 1;
+    next.disabled = currentPage >= pageCount;
+  }
+  function resetFilters() {
+    currentPage = 1;
+    document.getElementById('searchInput').value = '';
+    document.getElementById('filterStatus').value = 'all';
+    document.getElementById('filterLicense').value = 'all';
+    document.getElementById('filterExam').value = 'all';
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
+    document.getElementById('filterDateFrom').classList.remove('invalid');
+    document.getElementById('filterDateTo').classList.remove('invalid');
+    renderTable();
+  }
   function renderTable() {
     var search = document.getElementById('searchInput').value.toLowerCase().trim();
     var st = document.getElementById('filterStatus').value;
     var lt = document.getElementById('filterLicense').value;
     var et = document.getElementById('filterExam').value;
+    var dateFrom = getFilterDate('filterDateFrom');
+    var dateTo = getFilterDate('filterDateTo');
 
     var filtered = candidates.filter(function(c) {
-      var ms = !search || (c.fullName+' '+c.phone+' '+c.cardNumber+' '+c.cinNumber).toLowerCase().includes(search);
+      var searchText = [c.fullName, c.phone, c.cardNumber, c.cinNumber, c.saisieNumber, c.voitureNumber, c.birthPlace].map(function(value){ return String(value || ''); }).join(' ').toLowerCase();
+      var ms = !search || searchText.includes(search);
       var mst = st==='all' || c.paymentStatus===st;
       var mlt = lt==='all' || c.licenseType===lt;
       var met = true;
@@ -1351,7 +1548,9 @@
         var exams = [c.exam1D1, c.exam2D1];
         met = exams.some(function(e){return e===et;});
       }
-      return ms && mst && mlt && met;
+      var mfrom = !dateFrom || (c.registerDate && c.registerDate >= dateFrom);
+      var mto = !dateTo || (c.registerDate && c.registerDate <= dateTo);
+      return ms && mst && mlt && met && mfrom && mto;
     });
 
     filtered.sort(function(a,b){return new Date(b.registerDate)-new Date(a.registerDate);});
@@ -1359,11 +1558,16 @@
     var tbody = document.getElementById('tableBody');
     var cardList = document.getElementById('cardList');
     var empty = document.getElementById('emptyState');
+    var pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
+    currentPage = Math.min(currentPage, pageCount);
+    updatePagination(filtered.length, pageCount);
 
-    if (filtered.length === 0) { tbody.innerHTML=''; cardList.innerHTML=''; empty.classList.remove('hidden'); return; }
+    if (filtered.length === 0) { tbody.innerHTML=''; cardList.innerHTML=''; updatePagination(0, 1); empty.classList.remove('hidden'); return; }
     empty.classList.add('hidden');
+    var start = (currentPage - 1) * pageSize;
+    var visible = filtered.slice(start, start + pageSize);
 
-    tbody.innerHTML = filtered.map(function(c){
+    tbody.innerHTML = visible.map(function(c){
       return '<tr>' +
         '<td class="td-photo">' + photoCell(c.photo) + '</td>' +
         '<td class="td-small">' + escapeHtml(c.cardNumber||'—') + '</td>' +
@@ -1378,7 +1582,7 @@
         '<td class="actions-cell">' + cardActionButtons(c.id) + '</td>' +
       '</tr>';
     }).join('');
-    cardList.innerHTML = filtered.map(renderCandidateCard).join('');
+    cardList.innerHTML = visible.map(function(c, index){ return renderCandidateCard(c, start + index); }).join('');
   }
 
   // ====== PAYMENT CALCULATION ======
@@ -1496,6 +1700,12 @@
     });
     if (duplicate) return focusValidationField('cinNumber', 'documents', 'رقم C.I.N مسجل مسبقًا لمرشح آخر');
 
+    var normalizedPhone = phoneKey(document.getElementById('phone').value);
+    var duplicatePhone = normalizedPhone && candidates.some(function(c) {
+      return c.id !== editId && phoneKey(c.phone) === normalizedPhone;
+    });
+    if (duplicatePhone) return focusValidationField('phone', 'personal', 'رقم الهاتف مسجل مسبقًا لمرشح آخر');
+
     var dateRules = [
       {id:'birthDate', tab:'personal', label:'تاريخ الميلاد'},
       {id:'cinDate', tab:'documents', label:'تاريخ C.I.N'},
@@ -1544,8 +1754,12 @@
       if (ex && !photoToSave) photoToSave = ex.photo || '';
     }
 
+    var previous = editId ? candidates.find(function(c){return c.id===editId;}) : null;
+    var nowStamp = new Date().toISOString();
     var data = {
       id: editId || Date.now().toString(36)+Math.random().toString(36).substr(2,9),
+      createdAt: previous && previous.createdAt ? previous.createdAt : nowStamp,
+      updatedAt: nowStamp,
       photo: photoToSave,
       cardNumber: editId ? ((candidates.find(function(c){return c.id===editId;}) || {}).cardNumber || '') : '',
       fullName: document.getElementById('fullName').value.trim(),
@@ -1584,6 +1798,7 @@
     saveLocal();
     markSyncPending(true);
     renderTable();
+    writeAuditLog(editId ? 'update' : 'create', data);
     resetForm();
     // رفع تلقائي بعد الحفظ حتى لا تبقى البطاقة محلية فقط.
     await syncToFirebase();
@@ -1667,11 +1882,13 @@
   }
 
   function delCand(id) {
+    var candidateBeforeDelete = candidates.find(function(c){return c.id===id;});
     showModal('🗑️ تأكيد الحذف', 'هل أنت متأكد من حذف هذه البطاقة محليًا ومن Firebase؟', [
       {text:'إلغاء', cls:'btn btn-sec', act:hideModal},
       {text:'نعم، احذف', cls:'btn btn-dng', act:async function(){
         candidates = candidates.filter(function(c){return c.id!==id;});
         saveLocal(); markSyncPending(true); renderTable(); hideModal();
+        writeAuditLog('delete', candidateBeforeDelete || {id:id});
         toast('🗑️ تم الحذف محليًا، جارٍ تحديث Firebase...', 'inf');
         await syncToFirebase({allowEmpty:true, action:'delete', deleteId:id});
       }}
@@ -1692,16 +1909,33 @@
     selectFormTab('personal', false);
   }
 
-  function exportExcel() {
+  var sheetJsPromise = null;
+  function loadSheetJS() {
+    if (window.XLSX) return Promise.resolve(window.XLSX);
+    if (sheetJsPromise) return sheetJsPromise;
+    sheetJsPromise = new Promise(function(resolve, reject){
+      var script = document.createElement('script');
+      script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+      script.async = true;
+      script.onload = function(){ resolve(window.XLSX); };
+      script.onerror = function(){ sheetJsPromise = null; reject(new Error('تعذر تحميل مكتبة Excel')); };
+      document.head.appendChild(script);
+    });
+    return sheetJsPromise;
+  }
+  async function exportExcel() {
     if (candidates.length===0) { toast('ℹ️ لا توجد بطاقات للتصدير', 'inf'); return; }
-    if (!window.XLSX) { toast('❌ مكتبة Excel غير متاحة، تحقق من اتصال الإنترنت', 'err'); return; }
+    toast('⏳ جارٍ تجهيز مكتبة Excel...', 'inf');
+    var XLSX;
+    try { XLSX = await loadSheetJS(); } catch (error) { toast('❌ مكتبة Excel غير متاحة، تحقق من اتصال الإنترنت', 'err'); return; }
+    if (!XLSX) { toast('❌ مكتبة Excel غير متاحة، تحقق من اتصال الإنترنت', 'err'); return; }
     var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
     var rows = candidates.map(function(c){ return {
       'رقم البطاقة': c.cardNumber||'', 'الاسم الكامل': c.fullName||'', 'الهاتف': c.phone||'',
       'نوع الرخصة': c.licenseType||'', 'رقم العربة': c.voitureNumber||'',
       'الثمن الإجمالي': Number(c.totalPrice||0), 'الدفعة الأولى': Number(c.firstPayment||0),
       'الدفعة الثانية': Number(c.secondPayment||0), 'الباقي': Number(c.remainingAmount||0),
-      'حالة الدفع': pyL[c.paymentStatus]||'', 'تاريخ الإضافية': formatDateDisplay(c.registerDate),
+      'حالة الدفع': pyL[c.paymentStatus]||'', 'تاريخ التسجيل': formatDateDisplay(c.registerDate),
       'امتحان السياقة 1': formatDateDisplay(c.exam1D1Date), 'امتحان السياقة 2': formatDateDisplay(c.exam2D1Date),
       
       'العنوان': c.address||'', 'ملاحظات': c.notes||''
@@ -1719,7 +1953,8 @@
     var rows = candidates.map(function(c){ return '<tr><td>'+(c.cardNumber||'—')+'</td><td>'+(c.fullName||'—')+'</td><td>'+(c.phone||'—')+'</td><td>'+(c.licenseType||'—')+'</td><td>'+Number(c.totalPrice||0).toFixed(2)+'</td><td>'+Number(c.firstPayment||0).toFixed(2)+'</td><td>'+Number(c.secondPayment||0).toFixed(2)+'</td><td>'+Number(c.remainingAmount||0).toFixed(2)+'</td><td>'+(pyL[c.paymentStatus]||'—')+'</td><td>'+formatDateDisplay(c.registerDate)+'</td></tr>'; }).join('');
     var w = window.open('', '_blank');
     if (!w) { toast('⚠️ اسمح بالنوافذ المنبثقة لتصدير PDF', 'wrn'); return; }
-    w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير التسجيل والدفع</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{text-align:center;color:#1e3a5f}p{text-align:center;color:#555}img{display:block;width:80px;height:75px;object-fit:contain;margin:0 auto 8px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:6px;text-align:center}th{background:#dbeafe} @media print{button{display:none}}</style></head><body><img src="'+location.origin+'/assets/logo-auto-ecole.jpg"><h1>سيارة التعليم الكتبية — Gestion Auto Ecole</h1><p>تقرير التسجيل والدفع — '+formatDateDisplay(new Date().toISOString().split('T')[0])+'</p><table><thead><tr><th>رقم البطاقة</th><th>الاسم</th><th>الهاتف</th><th>الرخصة</th><th>الإجمالي</th><th>الدفعة 1</th><th>الدفعة 2</th><th>الباقي</th><th>الحالة</th><th>الإضافية</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print();};<\/script></body></html>');
+    var logoUrl = new URL('assets/logo-auto-ecole.jpg', document.baseURI).href;
+    w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير التسجيل والدفع</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{text-align:center;color:#1e3a5f}p{text-align:center;color:#555}img{display:block;width:80px;height:75px;object-fit:contain;margin:0 auto 8px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:6px;text-align:center}th{background:#dbeafe} @media print{button{display:none}}</style></head><body><img src="'+logoUrl+'"><h1>سيارة التعليم الكتبية — Gestion Auto Ecole</h1><p>تقرير التسجيل والدفع — '+formatDateDisplay(new Date().toISOString().split('T')[0])+'</p><table><thead><tr><th>رقم البطاقة</th><th>الاسم</th><th>الهاتف</th><th>الرخصة</th><th>الإجمالي</th><th>الدفعة 1</th><th>الدفعة 2</th><th>الباقي</th><th>الحالة</th><th>تاريخ التسجيل</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print();};<\/script></body></html>');
     w.document.close();
     toast('✅ تم تجهيز تقرير PDF، اختر Save as PDF من نافذة الطباعة', 'suc');
   }
@@ -1776,21 +2011,45 @@
     });
     return events;
   }
+  function formatMoney(value) {
+    var amount = Number(value || 0);
+    return amount.toLocaleString('fr-MA', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' DH';
+  }
+  function renderAlertEvents(events, dateLabel) {
+    var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
+    return '<div class="exam-alerts-title">🔔 '+dateLabel+'</div>' + events.map(function(e){
+      return '<div class="exam-alert-item"><strong>'+escapeHtml(e.name)+'</strong> — C.I.N: '+escapeHtml(e.card)+'<br>'+escapeHtml(e.type)+' — '+(statusLabels[e.status]||'—')+'</div>';
+    }).join('');
+  }
   function renderExamAlerts() {
     var box = document.getElementById('examAlerts');
     if (!box) return;
-    var tomorrowDate = new Date();
-    tomorrowDate.setHours(0,0,0,0);
+    var today = dateAtMidnight(new Date());
+    var tomorrowDate = new Date(today);
     tomorrowDate.setDate(tomorrowDate.getDate()+1);
-    var tomorrow = tomorrowDate.toISOString().split('T')[0];
-    var events = getExamEvents()[tomorrow] || [];
-    if (!events.length) { box.classList.add('hidden'); box.innerHTML=''; return; }
+    var tomorrow = isoDateFromLocalDate(tomorrowDate);
+    var endDate = new Date(today);
+    endDate.setDate(endDate.getDate()+7);
+    var end = isoDateFromLocalDate(endDate);
+    var eventMap = getExamEvents();
+    var tomorrowEvents = eventMap[tomorrow] || [];
+    var todayISO = isoDateFromLocalDate(today);
+    var upcoming = Object.keys(eventMap).sort().filter(function(date){ return date >= todayISO && date <= end && date !== tomorrow; }).reduce(function(all,date){
+      return all.concat(eventMap[date].map(function(event){ return {event:event, date:date}; }));
+    }, []);
+    var due = candidates.filter(function(c){ return getOutstandingAmount(c) > 0; }).sort(function(a,b){ return getOutstandingAmount(b)-getOutstandingAmount(a); });
+    var sections = [];
+    if (tomorrowEvents.length) sections.push(renderAlertEvents(tomorrowEvents, 'تنبيه: امتحانات غدًا ('+formatDateDisplay(tomorrow)+')'));
+    if (upcoming.length) sections.push('<div class="exam-alerts-title">📆 امتحانات خلال 7 أيام ('+upcoming.length+')</div>'+upcoming.slice(0,6).map(function(item){
+      var e = item.event;
+      return '<div class="exam-alert-item"><strong>'+escapeHtml(e.name)+'</strong> — '+formatDateDisplay(item.date)+'<br>'+escapeHtml(e.type)+' — '+(e.status==='pass'?'✅ ناجح':e.status==='fail'?'❌ راسب':'⏳ لم يتم')+'</div>';
+    }).join('')+(upcoming.length>6?'<div class="exam-alert-more">و '+(upcoming.length-6)+' مواعيد أخرى في التقويم.</div>':''));
+    if (due.length) sections.push('<div class="exam-alerts-title">💳 متابعات الدفع ('+due.length+')</div>'+due.slice(0,5).map(function(c){
+      return '<div class="exam-alert-item payment-alert-item"><strong>'+escapeHtml(c.fullName||'بدون اسم')+'</strong> — '+escapeHtml(c.cinNumber||'بدون C.I.N')+'<br>الباقي: <b>'+formatMoney(getOutstandingAmount(c))+'</b></div>';
+    }).join('')+(due.length>5?'<div class="exam-alert-more">و '+(due.length-5)+' سجلات أخرى تحتاج متابعة.</div>':''));
+    if (!sections.length) { box.classList.add('hidden'); box.innerHTML=''; return; }
     box.classList.remove('hidden');
-    box.innerHTML = '<div class="exam-alerts-title">🔔 تنبيه: امتحانات غدًا ('+formatDateDisplay(tomorrow)+')</div>' +
-      events.map(function(e){
-        var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
-        return '<div class="exam-alert-item"><strong>'+e.name+'</strong> — رقم البطاقة: '+e.card+'<br>'+e.type+' — '+(statusLabels[e.status]||'—')+'</div>';
-      }).join('');
+    box.innerHTML = sections.join('');
   }
 
   function openExamCalendar() {
@@ -1871,7 +2130,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=deduplicate-buttons50').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=smart-suite51').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
