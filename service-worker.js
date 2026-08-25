@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v49-rename-saisie';
+const CACHE_NAME = 'auto-ecole-koutoubia-v50-deduplicate-buttons';
 const APP_SHELL = [
   './',
   './index.html',
