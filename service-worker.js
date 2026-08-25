@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v47-remove-docs-polish';
+const CACHE_NAME = 'auto-ecole-koutoubia-v48-rename-exam-date';
 const APP_SHELL = [
   './',
   './index.html',

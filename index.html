@@ -592,7 +592,7 @@
         <button type="button" class="form-tab active" data-tab="personal" role="tab" aria-selected="true" onclick="selectFormTab('personal')">📝 معلومات شخصية</button>
         <button type="button" class="form-tab" data-tab="documents" role="tab" aria-selected="false" onclick="selectFormTab('documents')">🪪 البطاقة الوطنية</button>
         <button type="button" class="form-tab" data-tab="extra" role="tab" aria-selected="false" onclick="selectFormTab('extra')">📋 إضافية</button>
-        <button type="button" class="form-tab" data-tab="dossier" role="tab" aria-selected="false" onclick="selectFormTab('dossier')">📁 الملف 1</button>
+        <button type="button" class="form-tab" data-tab="dossier" role="tab" aria-selected="false" onclick="selectFormTab('dossier')">📅 تاريخ الامتحان</button>
         <button type="button" class="form-tab" data-tab="license" role="tab" aria-selected="false" onclick="selectFormTab('license')">🪪 نوع الرخصة</button>
         <button type="button" class="form-tab" data-tab="payment" role="tab" aria-selected="false" onclick="selectFormTab('payment')">💰 التسجيل والدفع</button>
       </div>
@@ -643,7 +643,7 @@
         </div>
         <div class="form-tab-panel" data-tab-panel="dossier">
           <details class="collapse-section" open>
-            <summary class="collapse-summary"><span>📁 الملف 1 والامتحانات</span><small>اضغط للطي</small></summary>
+            <summary class="collapse-summary"><span>📅 تاريخ الامتحان والامتحانات</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
         <div class="form-group"><label>تاريخ 1er Examen</label><input type="text" id="exam1D1Date" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
         <div class="form-group"><label>1er Examen</label>
@@ -1396,7 +1396,7 @@
   });
 
   // ====== FORM TABS & VALIDATION ======
-  var formTabLabels = {personal:'معلومات شخصية', documents:'البطاقة الوطنية', extra:'إضافية', dossier:'الملف 1', license:'نوع الرخصة', payment:'التسجيل والدفع'};
+  var formTabLabels = {personal:'معلومات شخصية', documents:'البطاقة الوطنية', extra:'إضافية', dossier:'تاريخ الامتحان', license:'نوع الرخصة', payment:'التسجيل والدفع'};
   function selectFormTab(key, shouldScroll) {
     if (!formTabLabels[key]) key = 'personal';
     document.querySelectorAll('.form-tab').forEach(function(btn){
@@ -1768,7 +1768,7 @@
   function getExamEvents() {
     var events = {};
     candidates.forEach(function(c) {
-      [['exam1D1Date','1er Examen — ملف 1'],['exam2D1Date','2ème Examen — ملف 1']].forEach(function(pair) {
+      [['exam1D1Date','1er Examen — تاريخ الامتحان'],['exam2D1Date','2ème Examen — تاريخ الامتحان']].forEach(function(pair) {
         var date = toISODate(c[pair[0]]);
         if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
         if (!events[date]) events[date] = [];
@@ -1820,7 +1820,7 @@
     showModal('📅 تقويم الامتحانات',
       '<div class="calendar-toolbar"><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(-1)">‹ السابق</button><strong>'+calendarMonths[calendarMonth]+' '+calendarYear+'</strong><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(1)">التالي ›</button></div>'+
       '<div class="calendar-grid">'+cells+'</div>'+
-      '<div class="calendar-legend"><span><i class="legend-dot legend-drive"></i> الملف 1: امتحان السياقة</span></div>',
+      '<div class="calendar-legend"><span><i class="legend-dot legend-drive"></i> تاريخ الامتحان: امتحان السياقة</span></div>',
       [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
     );
   }
@@ -1872,7 +1872,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=remove-docs47').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=rename-exam-date48').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
