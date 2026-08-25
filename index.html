@@ -112,10 +112,6 @@
   .photo-area.has-img .photo-remove { display: flex; align-items: center; justify-content: center; }
   .phone-actions { display:flex; gap:6px; margin-top:6px; }
   .phone-actions .btn { flex:1; padding:6px 8px; font-size:.72rem; text-decoration:none; justify-content:center; }
-  .document-upload { background:#0f172a; border:1px dashed #475569; border-radius:12px; padding:10px; text-align:center; position:relative; }
-  .document-upload input[type=file] { width:100%; font-size:.75rem; color:var(--text-muted); }
-  .document-preview { width:100%; max-height:130px; object-fit:contain; border-radius:8px; margin-top:8px; display:none; background:#fff; }
-  .document-preview.show { display:block; }
 
   .filters-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
   .search-box { flex: 1; min-width: 200px; position: relative; }
@@ -313,7 +309,6 @@
   tbody tr:hover { background:rgba(242,184,75,.07); }
   .photo-area { background:linear-gradient(145deg,rgba(5,15,28,.72),rgba(19,34,56,.55)); border-color:rgba(148,163,184,.35); }
   .photo-area:hover { background:rgba(242,184,75,.06); box-shadow:0 0 0 4px rgba(242,184,75,.06); }
-  .document-upload { background:rgba(5,15,28,.45); border-color:rgba(148,163,184,.3); }
   .modal-box { background:linear-gradient(145deg,#162a44,#0f2035); border-color:rgba(242,184,75,.3); box-shadow:0 24px 70px rgba(0,0,0,.45); }
   .auth-gate { background:radial-gradient(circle at 20% 10%,rgba(37,99,235,.2),transparent 30%),radial-gradient(circle at 80% 90%,rgba(242,184,75,.12),transparent 30%),#07111f; }
   .auth-card { position:relative; overflow:hidden; background:linear-gradient(145deg,#193657 0%,#0b1a2e 72%); border:1px solid rgba(242,184,75,.55); border-top:4px solid #f2b84b; box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 45px rgba(37,99,235,.12); }
@@ -373,7 +368,7 @@
   .table-wrapper { border-color:rgba(56,189,248,.22); }
   th { background:linear-gradient(90deg,#173b5f,#31265b,#174b52); color:#ffe7a0; }
   .badge-paid { box-shadow:0 0 12px rgba(16,185,129,.15); }
-  .photo-area:hover, .document-upload:hover { border-color:#ffd166; box-shadow:0 0 0 4px rgba(255,209,102,.07),0 0 22px rgba(255,209,102,.10); }
+  .photo-area:hover { border-color:#ffd166; box-shadow:0 0 0 4px rgba(255,209,102,.07),0 0 22px rgba(255,209,102,.10); }
   .auth-gate { background:radial-gradient(circle at 15% 15%,rgba(56,189,248,.24),transparent 28%),radial-gradient(circle at 85% 85%,rgba(139,92,246,.22),transparent 30%),linear-gradient(135deg,#061223,#122d4c 52%,#181334); }
   .auth-card { border-top-color:#ffd166; box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 50px rgba(56,189,248,.14); animation:authIn .65s cubic-bezier(.2,.8,.2,1) both; }
   .auth-brand img { animation:logoFloat 4s ease-in-out infinite; }
@@ -467,6 +462,51 @@
     .candidate-card-actions .act-btn { width:32px; height:32px; }
   }
   @media print { .candidate-card-list { display:none !important; } }
+
+  /* ====== PROFESSIONAL POLISH ====== */
+  :root { --surface:#172b45; --surface-2:#10223a; --line:rgba(148,163,184,.22); --focus:rgba(56,189,248,.22); }
+  body { background:radial-gradient(circle at 8% 0%,rgba(56,189,248,.12),transparent 28%),radial-gradient(circle at 94% 8%,rgba(139,92,246,.12),transparent 25%),linear-gradient(145deg,#07111f 0%,#0f2035 54%,#0b1627 100%); }
+  .container { max-width:1420px; }
+  .header { position:relative; overflow:hidden; padding:24px clamp(16px,3vw,38px); border-color:rgba(148,163,184,.24); box-shadow:0 18px 50px rgba(0,0,0,.22); }
+  .header::after { content:""; position:absolute; width:240px; height:240px; top:-150px; left:-70px; border-radius:50%; background:rgba(56,189,248,.11); pointer-events:none; }
+  .header h1 { position:relative; z-index:1; letter-spacing:.02em; text-shadow:0 3px 18px rgba(255,209,102,.12); }
+  .header h2 { position:relative; z-index:1; }
+  .conn-bar, .form-section, .table-wrapper, .filters-bar { border-color:var(--line); box-shadow:0 12px 30px rgba(0,0,0,.12); }
+  .conn-bar { background:linear-gradient(135deg,rgba(23,43,69,.96),rgba(16,34,58,.9)); }
+  .stats-grid { gap:12px; }
+  .stat-card { position:relative; overflow:hidden; background:linear-gradient(145deg,rgba(23,43,69,.95),rgba(16,34,58,.88)); border-color:var(--line); transition:transform .18s ease, box-shadow .18s ease; }
+  .stat-card::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:linear-gradient(90deg,var(--sky),var(--violet)); opacity:.75; }
+  .stat-card:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(0,0,0,.18); }
+  .form-section { background:linear-gradient(145deg,rgba(23,43,69,.96),rgba(14,29,49,.94)); }
+  .form-title { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:1.16rem; letter-spacing:.01em; }
+  .form-tabs { padding:6px; border:1px solid rgba(148,163,184,.16); border-radius:16px; background:rgba(5,15,28,.28); }
+  .form-tab { border:1px solid transparent; border-radius:11px; font-weight:800; transition:background .18s ease, color .18s ease, transform .18s ease, border-color .18s ease; }
+  .form-tab:hover { transform:translateY(-1px); border-color:rgba(255,209,102,.28); }
+  .form-tab.active { border-color:rgba(255,209,102,.42); box-shadow:0 6px 16px rgba(0,0,0,.14); }
+  .collapse-section { overflow:hidden; border-color:rgba(148,163,184,.2); background:rgba(7,17,31,.18); }
+  .collapse-summary { min-height:48px; padding-inline:15px; }
+  .collapse-content { padding:15px; }
+  .form-group input, .form-group select, .form-group textarea, .conn-bar input { border-color:rgba(148,163,184,.32); transition:border-color .18s ease, box-shadow .18s ease, background .18s ease; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus, .conn-bar input:focus { border-color:var(--sky); background:#0c1b30; box-shadow:0 0 0 4px var(--focus); }
+  .btn { box-shadow:0 5px 12px rgba(0,0,0,.12); transition:transform .16s ease, box-shadow .16s ease, filter .16s ease; }
+  .btn:hover { filter:brightness(1.08); transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.18); }
+  .btn:active { transform:scale(.97); }
+  .filters-bar { padding:11px; background:rgba(23,43,69,.72); }
+  .table-wrapper { background:rgba(16,34,58,.72); }
+  .table-scroll { scrollbar-color:rgba(56,189,248,.55) rgba(5,15,28,.3); }
+  .candidate-card { box-shadow:0 14px 30px rgba(0,0,0,.2); }
+  @media (max-width:768px) {
+    body { padding:8px; }
+    .header { padding:20px 12px 16px; }
+    .form-section { padding:14px 10px; }
+    .form-tabs { gap:6px; }
+    .form-tab { min-height:42px; }
+    .collapse-content { padding:12px 10px; }
+    .conn-bar { padding:12px; }
+  }
+  @media (prefers-reduced-motion:reduce) {
+    *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; }
+  }
 </style>
 </head>
 <body class="auth-locked">
@@ -550,7 +590,7 @@
       <input type="hidden" id="editId">
       <div class="form-tabs" id="formTabs" role="tablist" aria-label="أقسام البطاقة">
         <button type="button" class="form-tab active" data-tab="personal" role="tab" aria-selected="true" onclick="selectFormTab('personal')">📝 معلومات شخصية</button>
-        <button type="button" class="form-tab" data-tab="documents" role="tab" aria-selected="false" onclick="selectFormTab('documents')">📄 الوثائق</button>
+        <button type="button" class="form-tab" data-tab="documents" role="tab" aria-selected="false" onclick="selectFormTab('documents')">🪪 البطاقة الوطنية</button>
         <button type="button" class="form-tab" data-tab="extra" role="tab" aria-selected="false" onclick="selectFormTab('extra')">📋 إضافية</button>
         <button type="button" class="form-tab" data-tab="dossier" role="tab" aria-selected="false" onclick="selectFormTab('dossier')">📁 الملف 1</button>
         <button type="button" class="form-tab" data-tab="license" role="tab" aria-selected="false" onclick="selectFormTab('license')">🪪 نوع الرخصة</button>
@@ -584,14 +624,10 @@
         </div>
         <div class="form-tab-panel" data-tab-panel="documents">
           <details class="collapse-section" open>
-            <summary class="collapse-summary"><span>📄 الوثائق والبطاقة الوطنية</span><small>اضغط للطي</small></summary>
+            <summary class="collapse-summary"><span>🪪 بيانات البطاقة الوطنية</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
         <div class="form-group"><label>C.I.N N° <span class="req">*</span></label><input type="text" id="cinNumber" placeholder="AB123456" required autocomplete="off"></div>
         <div class="form-group"><label>تاريخ CIN (Du)</label><input type="text" id="cinDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
-        <div class="section-divider">📄 صور الوثائق</div>
-        <div class="document-upload"><label>صورة البطاقة الوطنية</label><input type="file" id="cinDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'cinDocument')"><img id="cinDocumentPreview" class="document-preview" alt="صورة البطاقة الوطنية"><button type="button" class="btn btn-dng hidden" id="removeCinDocument" onclick="removeDocument('cinDocument')">حذف الصورة</button></div>
-        <div class="document-upload"><label>وثيقة إضافية</label><input type="file" id="extraDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'extraDocument')"><img id="extraDocumentPreview" class="document-preview" alt="وثيقة إضافية"><button type="button" class="btn btn-dng hidden" id="removeExtraDocument" onclick="removeDocument('extraDocument')">حذف الصورة</button></div>
-
             </div>
           </details>
         </div>
@@ -744,8 +780,6 @@
   var DEFAULT_FB_URL = 'https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/';
   var candidates = [];
   var currentPhoto = '';
-  var currentCinDocument = '';
-  var currentExtraDocument = '';
   var fbUrl = '';
   var firebaseConfig = {
     apiKey: 'AIzaSyD32obOSEGVfyazTRco3bK6MFE2DYI0CtI',
@@ -819,8 +853,15 @@
     var identity = cinKey(candidate && candidate.cinNumber) || [candidate && candidate.fullName, candidate && candidate.birthDate, candidate && candidate.phone].map(function(value){ return String(value || '').trim().toUpperCase(); }).filter(Boolean).join('|') || fallbackKey;
     return 'legacy_' + stableHash(identity);
   }
+  function stripDocumentImages(candidate) {
+    if (!candidate || typeof candidate !== 'object') return candidate;
+    delete candidate.cinDocument;
+    delete candidate.extraDocument;
+    return candidate;
+  }
   function ensureStableCandidateIds(list) {
     return (Array.isArray(list) ? list : []).filter(function(v){ return v && typeof v === 'object'; }).map(function(candidate, index){
+      stripDocumentImages(candidate);
       candidate.id = createStableCandidateId(candidate, 'index_' + index);
       return candidate;
     });
@@ -836,6 +877,7 @@
   function normalizeCandidateData(data) {
     if (data && data.candidates && typeof data.candidates === 'object') data = data.candidates;
     if (Array.isArray(data)) return data.filter(Boolean).map(function(candidate, index){
+      stripDocumentImages(candidate);
       candidate.id = createStableCandidateId(candidate, 'array_' + index);
       return candidate;
     });
@@ -843,6 +885,7 @@
     return Object.keys(data).map(function(k){
       var candidate = data[k];
       if (!candidate || typeof candidate !== 'object' || !(candidate.fullName || candidate.id || candidate.cardNumber || candidate.phone || candidate.cinNumber)) return null;
+      stripDocumentImages(candidate);
       candidate.id = createStableCandidateId(candidate, k);
       return candidate;
     }).filter(Boolean);
@@ -1170,33 +1213,6 @@
     document.getElementById('whatsappPhoneBtn').href = normalized ? 'https://wa.me/' + normalized : '#';
   }
   document.getElementById('phone').addEventListener('input', updatePhoneActions);
-  async function handleDocument(event, type) {
-    var file = event.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
-    try {
-      var compressed = await compressImageFile(file, 1500, 1800, 0.68);
-      if (type === 'cinDocument') currentCinDocument = compressed;
-      if (type === 'extraDocument') currentExtraDocument = compressed;
-      var preview = document.getElementById(type + 'Preview');
-      preview.src = compressed;
-      preview.classList.add('show');
-      document.getElementById('remove' + (type === 'cinDocument' ? 'Cin' : 'Extra') + 'Document').classList.remove('hidden');
-    } catch (err) {
-      console.error(err);
-      toast('❌ تعذر تجهيز الوثيقة، حاول مرة أخرى', 'err');
-    }
-  }
-  function removeDocument(type) {
-    if (type === 'cinDocument') currentCinDocument = '';
-    if (type === 'extraDocument') currentExtraDocument = '';
-    var suffix = type === 'cinDocument' ? 'Cin' : 'Extra';
-    document.getElementById(type + 'Input').value = '';
-    document.getElementById(type + 'Preview').src = '';
-    document.getElementById(type + 'Preview').classList.remove('show');
-    document.getElementById('remove' + suffix + 'Document').classList.add('hidden');
-  }
-
   function removePhoto() {
     currentPhoto = '';
     document.getElementById('photoInput').value = '';
@@ -1380,7 +1396,7 @@
   });
 
   // ====== FORM TABS & VALIDATION ======
-  var formTabLabels = {personal:'معلومات شخصية', documents:'الوثائق', extra:'إضافية', dossier:'الملف 1', license:'نوع الرخصة', payment:'التسجيل والدفع'};
+  var formTabLabels = {personal:'معلومات شخصية', documents:'البطاقة الوطنية', extra:'إضافية', dossier:'الملف 1', license:'نوع الرخصة', payment:'التسجيل والدفع'};
   function selectFormTab(key, shouldScroll) {
     if (!formTabLabels[key]) key = 'personal';
     document.querySelectorAll('.form-tab').forEach(function(btn){
@@ -1524,22 +1540,14 @@
     if (!validateCandidateForm()) return;
     var editId = document.getElementById('editId').value;
     var photoToSave = currentPhoto;
-    var cinDocumentToSave = currentCinDocument;
-    var extraDocumentToSave = currentExtraDocument;
     if (editId) {
       var ex = candidates.find(function(c){return c.id===editId;});
-      if (ex) {
-        if (!photoToSave) photoToSave = ex.photo || '';
-        if (!cinDocumentToSave) cinDocumentToSave = ex.cinDocument || '';
-        if (!extraDocumentToSave) extraDocumentToSave = ex.extraDocument || '';
-      }
+      if (ex && !photoToSave) photoToSave = ex.photo || '';
     }
 
     var data = {
       id: editId || Date.now().toString(36)+Math.random().toString(36).substr(2,9),
       photo: photoToSave,
-      cinDocument: cinDocumentToSave,
-      extraDocument: extraDocumentToSave,
       cardNumber: editId ? ((candidates.find(function(c){return c.id===editId;}) || {}).cardNumber || '') : '',
       fullName: document.getElementById('fullName').value.trim(),
       birthDate: toISODate(document.getElementById('birthDate').value),
@@ -1604,15 +1612,6 @@
     document.getElementById('cinDate').value = formatDateDisplay(c.cinDate);
     document.getElementById('phone').value = c.phone||'';
     updatePhoneActions();
-    currentCinDocument = c.cinDocument||'';
-    currentExtraDocument = c.extraDocument||'';
-    ['cinDocument','extraDocument'].forEach(function(type){
-      var value = type === 'cinDocument' ? currentCinDocument : currentExtraDocument;
-      var suffix = type === 'cinDocument' ? 'Cin' : 'Extra';
-      var preview = document.getElementById(type+'Preview');
-      if (value) { preview.src=value; preview.classList.add('show'); document.getElementById('remove'+suffix+'Document').classList.remove('hidden'); }
-      else { preview.src=''; preview.classList.remove('show'); document.getElementById('remove'+suffix+'Document').classList.add('hidden'); }
-    });
     document.getElementById('saisieNumber').value = c.saisieNumber||'';
     document.getElementById('saisieDate').value = formatDateDisplay(c.saisieDate);
     document.getElementById('exam1D1').value = c.exam1D1||'';
@@ -1642,7 +1641,6 @@
     var exL = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
     var pyL = {paid:'✅ مدفوع', unpaid:'❌ غير مدفوع', partial:'⚠️ جزئي'};
     var ph = c.photo ? '<img src="'+c.photo+'" class="modal-photo" onclick="openImgModal(&quot;'+c.photo+'&quot;)" style="cursor:pointer">' : '<div style="text-align:center;font-size:2.5rem;margin-bottom:12px">👤</div>';
-    var docs = '<div class="dr"><span class="dl">الوثائق:</span><span class="dv">' + (c.cinDocument ? '<img src="'+c.cinDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.cinDocument+'&quot;)" style="cursor:pointer" alt="البطاقة الوطنية">' : 'لا توجد صورة للبطاقة') + (c.extraDocument ? '<img src="'+c.extraDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.extraDocument+'&quot;)" style="cursor:pointer" alt="وثيقة إضافية">' : '') + '</span></div>';
     function exLine(e,d){ return (exL[e]||'—') + (d?' ('+formatDateDisplay(d)+')':''); }
 
     showModal('👁️ '+c.fullName,
@@ -1664,7 +1662,7 @@
       '<div class="dr"><span class="dl">الباقي:</span><span class="dv">'+(Number(c.remainingAmount||0).toFixed(2))+'</span></div>' +
       '<div class="dr"><span class="dl">حالة الدفع:</span><span class="dv">'+(pyL[c.paymentStatus]||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">إضافية:</span><span class="dv">'+formatDateDisplay(c.registerDate)+'</span></div>' +
-      '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>' + docs,
+      '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>',
       [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
     );
   }
@@ -1686,8 +1684,6 @@
     document.getElementById('candForm').reset();
     document.getElementById('editId').value='';
     currentPhoto=''; removePhoto();
-    currentCinDocument=''; currentExtraDocument='';
-    removeDocument('cinDocument'); removeDocument('extraDocument');
     updatePhoneActions();
     document.getElementById('registerDate').value=formatDateDisplay(new Date().toISOString().split('T')[0]);
     document.getElementById('formTitle').textContent='➕ إضافة بطاقة جديدة';
@@ -1876,7 +1872,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=remove-finance46').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=remove-docs47').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
