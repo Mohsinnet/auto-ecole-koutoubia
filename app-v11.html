@@ -80,6 +80,7 @@
     color: var(--text); font-family: 'Cairo', sans-serif; font-size: 0.85rem;
   }
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
+  input.date-display[readonly] { cursor:pointer; caret-color:transparent; }
   .form-group textarea { resize: vertical; min-height: 50px; }
   .form-group.full { grid-column: 1 / -1; }
   .section-divider { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; margin: 6px 0; color: var(--accent); font-weight: 700; font-size: 0.85rem; }
@@ -1290,15 +1291,23 @@
     document.querySelectorAll('input.date-display').forEach(function(input) {
       if (input.dataset.datePickerReady) return;
       input.dataset.datePickerReady = '1';
+      input.readOnly = true;
+      input.inputMode = 'none';
+      input.setAttribute('aria-readonly', 'true');
+      input.setAttribute('aria-haspopup', 'dialog');
+      input.title = 'اضغط لاختيار التاريخ من التقويم';
+      input.addEventListener('keydown', function(event) { event.preventDefault(); input.click(); });
+      input.addEventListener('paste', function(event) { event.preventDefault(); });
       input.addEventListener('click', function() {
         var picker = document.createElement('input');
         picker.type = 'date';
         picker.value = toISODate(input.value);
-        picker.style.position = 'fixed'; picker.style.left = '-10000px'; picker.style.top = '0'; picker.style.opacity = '0';
+        picker.setAttribute('aria-label', 'اختيار التاريخ');
+        picker.style.position = 'fixed'; picker.style.left = '1px'; picker.style.top = '1px'; picker.style.width = '1px'; picker.style.height = '1px'; picker.style.opacity = '0.01'; picker.style.pointerEvents = 'none';
         document.body.appendChild(picker);
         var closed = false;
         function closePicker() { if (closed) return; closed = true; setTimeout(function(){ picker.remove(); }, 0); }
-        picker.addEventListener('change', function() { input.value = formatDateDisplay(picker.value); input.dispatchEvent(new Event('input', {bubbles:true})); closePicker(); });
+        picker.addEventListener('change', function() { if (picker.value) { input.value = formatDateDisplay(picker.value); input.dispatchEvent(new Event('input', {bubbles:true})); } closePicker(); });
         picker.addEventListener('blur', closePicker);
         try { if (picker.showPicker) picker.showPicker(); else picker.click(); } catch (e) { picker.click(); }
       });
