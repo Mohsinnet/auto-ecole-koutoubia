@@ -1553,7 +1553,6 @@
       {id:'cinDate', tab:'documents', label:'تاريخ C.I.N'},
       {id:'saisieDate', tab:'extra', label:'Date de Saisie'},
       {id:'exam1D1Date', tab:'dossier', label:'تاريخ 1er Examen'},
-      {id:'exam2D1Date', tab:'dossier', label:'تاريخ 2ème Examen'},
       {id:'registerDate', tab:'payment', label:'تاريخ التسجيل'}
     ];
     var dates = {};
@@ -1562,6 +1561,9 @@
       dates[dateRule.id] = normalizedDateValue(dateRule.id);
       if (dates[dateRule.id] === null) return focusValidationField(dateRule.id, dateRule.tab, dateRule.label + ' غير صحيح؛ استعمل DD/MM/AAAA');
     }
+    var exam2Raw = String(document.getElementById('exam2D1Date').value || '').trim();
+    dates.exam2D1Date = exam2Raw ? normalizedDateValue('exam2D1Date') : '';
+    if (dates.exam2D1Date === null) return focusValidationField('exam2D1Date', 'dossier', 'تاريخ 2ème Examen غير صحيح؛ استعمل DD/MM/AAAA');
     if (dates.exam1D1Date && dates.exam2D1Date && dates.exam2D1Date < dates.exam1D1Date) {
       return focusValidationField('exam2D1Date', 'dossier', 'تاريخ 2ème Examen لا يمكن أن يسبق تاريخ 1er Examen');
     }
