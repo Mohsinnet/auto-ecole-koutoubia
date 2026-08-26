@@ -561,13 +561,11 @@
       </div>
       <div class="header-action-group">
         <span class="header-action-label">البطاقة</span>
-        <button type="submit" form="candForm" class="btn btn-prm" id="submitBtn">💾 حفظ البطاقة</button>
         <button type="button" class="btn btn-sec hidden" id="cancelBtn" onclick="resetForm()">❌ إلغاء التعديل</button>
       </div>
       <div class="header-action-group">
         <span class="header-action-label">Firebase</span>
-        <button type="button" class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
-        <button type="button" class="btn btn-suc" onclick="syncNow()" id="btnSync">🔄 مزامنة</button>
+        <button type="button" class="btn btn-suc" onclick="saveAndSyncCard()" id="btnLoad" title="حفظ البطاقة ورفعها إلى Firebase ومزامنتها">📥 حفظ ورفع ومزامنة</button>
       </div>
       <div class="header-action-group">
         <span class="header-action-label">التقارير</span>
@@ -1094,8 +1092,14 @@
   }
 
   var syncInFlight = null;
+  function saveAndSyncCard() {
+    var form = document.getElementById('candForm');
+    if (!form) return;
+    if (form.requestSubmit) form.requestSubmit();
+    else form.dispatchEvent(new Event('submit', {cancelable:true, bubbles:true}));
+  }
   async function syncNow() {
-    var btn = document.getElementById('btnSync');
+    var btn = document.getElementById('btnLoad');
     if (btn) btn.disabled = true;
     try {
       await syncToFirebase({manual: true});
