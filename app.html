@@ -1209,7 +1209,7 @@
       txt.textContent = '✅ متصل بـ Firebase';
     } else {
       dot.className = 'status-dot status-warn';
-      txt.textContent = 'جاهز — اضغط تحميل أو رفع';
+      txt.textContent = 'جاهز — استخدم حفظ ورفع ومزامنة';
     }
   }
 
@@ -1845,7 +1845,13 @@
     e.preventDefault();
     if (photoProcessing) {
       showSpin('🖼️ جارٍ تجهيز صورة المرشح قبل الحفظ...');
-      try { await photoProcessing; } finally { hideSpin(); }
+      try {
+        await photoProcessing;
+      } catch (photoError) {
+        console.error('Photo processing before save:', photoError);
+        toast('❌ تعذر تجهيز الصورة؛ لم يتم حفظ البطاقة', 'err');
+        return;
+      } finally { hideSpin(); }
     }
     if (!validateCandidateForm()) return;
     var editId = document.getElementById('editId').value;
@@ -1944,7 +1950,8 @@
     document.getElementById('registerDate').value = formatDateDisplay(c.registerDate);
     document.getElementById('notes').value = c.notes||'';
     document.getElementById('formTitle').textContent = '✏️ تعديل بطاقة';
-    document.getElementById('submitBtn').textContent = '💾 تحديث';
+    var unifiedSaveButton = document.getElementById('btnLoad');
+    if (unifiedSaveButton) unifiedSaveButton.textContent = '💾 تحديث ورفع ومزامنة';
     selectFormTab('personal', false);
     document.getElementById('cancelBtn').classList.remove('hidden');
     window.scrollTo({top:0, behavior:'smooth'});
@@ -2004,7 +2011,8 @@
     updatePhoneActions();
     document.getElementById('registerDate').value=formatDateDisplay(new Date().toISOString().split('T')[0]);
     document.getElementById('formTitle').textContent='➕ إضافة بطاقة جديدة';
-    document.getElementById('submitBtn').textContent='💾 حفظ محلياً';
+    var unifiedSaveButton = document.getElementById('btnLoad');
+    if (unifiedSaveButton) unifiedSaveButton.textContent='📥 حفظ ورفع ومزامنة';
     document.getElementById('cancelBtn').classList.add('hidden');
     setVehicleValue('');
     selectFormTab('personal', false);

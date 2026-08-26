@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v56-unified-save-sync';
+const CACHE_NAME = 'auto-ecole-koutoubia-v57-stable-audit';
 const APP_SHELL = [
   './',
   './index.html',
