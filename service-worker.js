@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v71-buttons-fixed';
+const CACHE_NAME = 'auto-ecole-koutoubia-v72-edit-button-fixed';
 const APP_SHELL = [
   './',
   './index.html',
