@@ -814,6 +814,7 @@
   var candidates = [];
   var currentPhoto = '';
   var photoProcessing = null;
+  var photoRequestToken = 0;
   var fbUrl = '';
   var firebaseConfig = {
     apiKey: 'AIzaSyD32obOSEGVfyazTRco3bK6MFE2DYI0CtI',
@@ -1320,13 +1321,34 @@
     });
   }
 
+  function readFileAsDataURL(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      reader.onerror = reject;
+      reader.onload = function(ev) { resolve(ev.target.result); };
+      reader.readAsDataURL(file);
+    });
+  }
   async function handlePhoto(e) {
     var file = e.target.files[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
+    var token = ++photoRequestToken;
+    var fileName = String(file.name || '').toLowerCase();
+    var isImage = String(file.type || '').startsWith('image/') || /\.(jpg|jpeg|png|webp|heic|heif)$/i.test(fileName);
+    if (!isImage) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
     try {
-      photoProcessing = compressImageFile(file, 700, 900, 0.78);
-      currentPhoto = await photoProcessing;
+      photoProcessing = (async function() {
+        try {
+          return await compressImageFile(file, 700, 900, 0.78);
+        } catch (compressionError) {
+          // بعض كاميرات الهواتف تعيد HEIC/HEIF أو صيغة لا يدعمها Image؛ نحفظ الأصل بدل إسقاط الصورة.
+          console.warn('Compression unavailable; preserving original camera file', compressionError);
+          return await readFileAsDataURL(file);
+        }
+      })();
+      var result = await photoProcessing;
+      if (token !== photoRequestToken) return;
+      currentPhoto = result;
       var img = document.getElementById('photoPreview');
       img.src = currentPhoto;
       img.classList.add('show');
@@ -1334,11 +1356,12 @@
       document.getElementById('photoTxt').textContent = '✅ تم تجهيز الصورة وحفظها';
       document.getElementById('photoArea').classList.add('has-img');
     } catch (err) {
+      if (token !== photoRequestToken) return;
       console.error(err);
       currentPhoto = '';
-      toast('❌ تعذر تجهيز الصورة، حاول مرة أخرى', 'err');
+      toast('❌ تعذر قراءة صورة الهاتف، حاول التقاطها من جديد', 'err');
     } finally {
-      photoProcessing = null;
+      if (token === photoRequestToken) photoProcessing = null;
     }
   }
 
@@ -1366,6 +1389,8 @@
   }
   document.getElementById('phone').addEventListener('input', updatePhoneActions);
   function removePhoto() {
+    photoRequestToken++;
+    photoProcessing = null;
     currentPhoto = '';
     document.getElementById('photoInput').value = '';
     document.getElementById('photoPreview').classList.remove('show');
@@ -1716,6 +1741,7 @@
       {id:'cinDate', tab:'documents', label:'تاريخ C.I.N'},
       {id:'saisieDate', tab:'extra', label:'Date de Saisie'},
       {id:'exam1D1Date', tab:'dossier', label:'تاريخ 1er Examen'},
+      // تاريخ 2ème Examen اختياري؛ تتمّ المصادقة عليه فقط إذا أدخله المستخدم.
       {id:'exam2D1Date', tab:'dossier', label:'تاريخ 2ème Examen'},
       {id:'registerDate', tab:'payment', label:'تاريخ التسجيل'}
     ];

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v52-photo-persistence';
+const CACHE_NAME = 'auto-ecole-koutoubia-v53-camera-photo-fallback';
 const APP_SHELL = [
   './',
   './index.html',
