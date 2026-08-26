@@ -7,12 +7,11 @@
 <link rel="icon" type="image/jpeg" href="assets/logo-auto-ecole.jpg">
 <link rel="apple-touch-icon" href="assets/logo-auto-ecole.jpg">
 <link rel="manifest" href="manifest.json?v=20260815-2">
-<link rel="preconnect" href="https://www.gstatic.com">
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <meta name="theme-color" content="#1a365d">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -113,6 +112,10 @@
   .photo-area.has-img .photo-remove { display: flex; align-items: center; justify-content: center; }
   .phone-actions { display:flex; gap:6px; margin-top:6px; }
   .phone-actions .btn { flex:1; padding:6px 8px; font-size:.72rem; text-decoration:none; justify-content:center; }
+  .document-upload { background:#0f172a; border:1px dashed #475569; border-radius:12px; padding:10px; text-align:center; position:relative; }
+  .document-upload input[type=file] { width:100%; font-size:.75rem; color:var(--text-muted); }
+  .document-preview { width:100%; max-height:130px; object-fit:contain; border-radius:8px; margin-top:8px; display:none; background:#fff; }
+  .document-preview.show { display:block; }
 
   .filters-bar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
   .search-box { flex: 1; min-width: 200px; position: relative; }
@@ -225,14 +228,6 @@
   .exam-alerts-title { color:#fbbf24; font-weight:800; margin-bottom:9px; }
   .exam-alert-item { background:rgba(15,23,42,.65); border:1px solid rgba(245,158,11,.25); border-radius:10px; padding:8px 10px; margin-top:7px; font-size:.8rem; }
   .exam-alert-item strong { color:#fde68a; }
-  .exam-alert-more { color:var(--text-muted); font-size:.74rem; margin-top:8px; text-align:center; }
-  .payment-alert-item { border-color:rgba(248,113,113,.3); }
-  .payment-alert-item b { color:#fca5a5; }
-  .audit-list { display:grid; gap:7px; max-height:52vh; overflow:auto; }
-  .audit-row { display:flex; justify-content:space-between; gap:12px; align-items:center; padding:9px 10px; border:1px solid var(--card-border); border-radius:10px; background:rgba(15,23,42,.55); font-size:.78rem; }
-  .audit-row strong { color:var(--accent); }
-  .audit-row small { color:var(--text-muted); white-space:nowrap; direction:ltr; }
-  @media (max-width:520px) { .audit-row { align-items:flex-start; flex-direction:column; gap:4px; } .audit-row small { white-space:normal; } }
 
   .auth-gate { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; background: linear-gradient(160deg, #0f172a 0%, #1a202c 50%, #0f172a 100%); }
   .auth-card { width: min(420px, 100%); padding: 28px; text-align: center; background: var(--card); border: 1px solid var(--card-border); border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
@@ -318,6 +313,7 @@
   tbody tr:hover { background:rgba(242,184,75,.07); }
   .photo-area { background:linear-gradient(145deg,rgba(5,15,28,.72),rgba(19,34,56,.55)); border-color:rgba(148,163,184,.35); }
   .photo-area:hover { background:rgba(242,184,75,.06); box-shadow:0 0 0 4px rgba(242,184,75,.06); }
+  .document-upload { background:rgba(5,15,28,.45); border-color:rgba(148,163,184,.3); }
   .modal-box { background:linear-gradient(145deg,#162a44,#0f2035); border-color:rgba(242,184,75,.3); box-shadow:0 24px 70px rgba(0,0,0,.45); }
   .auth-gate { background:radial-gradient(circle at 20% 10%,rgba(37,99,235,.2),transparent 30%),radial-gradient(circle at 80% 90%,rgba(242,184,75,.12),transparent 30%),#07111f; }
   .auth-card { position:relative; overflow:hidden; background:linear-gradient(145deg,#193657 0%,#0b1a2e 72%); border:1px solid rgba(242,184,75,.55); border-top:4px solid #f2b84b; box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 45px rgba(37,99,235,.12); }
@@ -377,7 +373,7 @@
   .table-wrapper { border-color:rgba(56,189,248,.22); }
   th { background:linear-gradient(90deg,#173b5f,#31265b,#174b52); color:#ffe7a0; }
   .badge-paid { box-shadow:0 0 12px rgba(16,185,129,.15); }
-  .photo-area:hover { border-color:#ffd166; box-shadow:0 0 0 4px rgba(255,209,102,.07),0 0 22px rgba(255,209,102,.10); }
+  .photo-area:hover, .document-upload:hover { border-color:#ffd166; box-shadow:0 0 0 4px rgba(255,209,102,.07),0 0 22px rgba(255,209,102,.10); }
   .auth-gate { background:radial-gradient(circle at 15% 15%,rgba(56,189,248,.24),transparent 28%),radial-gradient(circle at 85% 85%,rgba(139,92,246,.22),transparent 30%),linear-gradient(135deg,#061223,#122d4c 52%,#181334); }
   .auth-card { border-top-color:#ffd166; box-shadow:0 28px 90px rgba(0,0,0,.58),0 0 50px rgba(56,189,248,.14); animation:authIn .65s cubic-bezier(.2,.8,.2,1) both; }
   .auth-brand img { animation:logoFloat 4s ease-in-out infinite; }
@@ -471,93 +467,6 @@
     .candidate-card-actions .act-btn { width:32px; height:32px; }
   }
   @media print { .candidate-card-list { display:none !important; } }
-
-  /* ====== PROFESSIONAL POLISH ====== */
-  :root { --surface:#172b45; --surface-2:#10223a; --line:rgba(148,163,184,.22); --focus:rgba(56,189,248,.22); }
-  body { background:radial-gradient(circle at 8% 0%,rgba(56,189,248,.12),transparent 28%),radial-gradient(circle at 94% 8%,rgba(139,92,246,.12),transparent 25%),linear-gradient(145deg,#07111f 0%,#0f2035 54%,#0b1627 100%); }
-  .container { max-width:1420px; }
-  .header { position:relative; overflow:hidden; padding:24px clamp(16px,3vw,38px); border-color:rgba(148,163,184,.24); box-shadow:0 18px 50px rgba(0,0,0,.22); }
-  .header::after { content:""; position:absolute; width:240px; height:240px; top:-150px; left:-70px; border-radius:50%; background:rgba(56,189,248,.11); pointer-events:none; }
-  .header h1 { position:relative; z-index:1; letter-spacing:.02em; text-shadow:0 3px 18px rgba(255,209,102,.12); }
-  .header h2 { position:relative; z-index:1; }
-  .conn-bar, .form-section, .table-wrapper, .filters-bar { border-color:var(--line); box-shadow:0 12px 30px rgba(0,0,0,.12); }
-  .conn-bar { background:linear-gradient(135deg,rgba(23,43,69,.96),rgba(16,34,58,.9)); }
-  .stats-grid { gap:12px; }
-  .stat-card { position:relative; overflow:hidden; background:linear-gradient(145deg,rgba(23,43,69,.95),rgba(16,34,58,.88)); border-color:var(--line); transition:transform .18s ease, box-shadow .18s ease; }
-  .stat-card::before { content:""; position:absolute; inset:0 0 auto; height:3px; background:linear-gradient(90deg,var(--sky),var(--violet)); opacity:.75; }
-  .stat-card:hover { transform:translateY(-2px); box-shadow:0 12px 26px rgba(0,0,0,.18); }
-  .form-section { background:linear-gradient(145deg,rgba(23,43,69,.96),rgba(14,29,49,.94)); }
-  .form-title { display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:1.16rem; letter-spacing:.01em; }
-  .form-tabs { padding:6px; border:1px solid rgba(148,163,184,.16); border-radius:16px; background:rgba(5,15,28,.28); }
-  .form-tab { border:1px solid transparent; border-radius:11px; font-weight:800; transition:background .18s ease, color .18s ease, transform .18s ease, border-color .18s ease; }
-  .form-tab:hover { transform:translateY(-1px); border-color:rgba(255,209,102,.28); }
-  .form-tab.active { border-color:rgba(255,209,102,.42); box-shadow:0 6px 16px rgba(0,0,0,.14); }
-  .collapse-section { overflow:hidden; border-color:rgba(148,163,184,.2); background:rgba(7,17,31,.18); }
-  .collapse-summary { min-height:48px; padding-inline:15px; }
-  .collapse-content { padding:15px; }
-  .form-group input, .form-group select, .form-group textarea, .conn-bar input { border-color:rgba(148,163,184,.32); transition:border-color .18s ease, box-shadow .18s ease, background .18s ease; }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus, .conn-bar input:focus { border-color:var(--sky); background:#0c1b30; box-shadow:0 0 0 4px var(--focus); }
-  .btn { box-shadow:0 5px 12px rgba(0,0,0,.12); transition:transform .16s ease, box-shadow .16s ease, filter .16s ease; }
-  .btn:hover { filter:brightness(1.08); transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,0,0,.18); }
-  .btn:active { transform:scale(.97); }
-  .filters-bar { padding:11px; background:rgba(23,43,69,.72); }
-  .filter-date-range { display:flex; align-items:center; gap:7px; flex-wrap:wrap; }
-  .filter-date-range label { display:flex; align-items:center; gap:5px; color:var(--text-muted); font-size:.72rem; font-weight:800; white-space:nowrap; }
-  .filter-date-range input { width:120px; padding:8px 9px; font-size:.72rem; }
-  .clear-filters-btn { white-space:nowrap; min-height:38px; }
-  .table-wrapper { background:rgba(16,34,58,.72); }
-  .pagination { display:flex; justify-content:center; align-items:center; gap:12px; padding:14px 10px 4px; color:var(--text-muted); font-size:.78rem; font-weight:800; }
-  .pagination .btn { min-width:92px; }
-  .pagination .btn:disabled { opacity:.42; cursor:not-allowed; transform:none; filter:none; }
-  @media (max-width:520px) { .pagination { gap:7px; } .pagination .btn { min-width:80px; padding:9px 8px; font-size:.72rem; } }
-  .table-scroll { scrollbar-color:rgba(56,189,248,.55) rgba(5,15,28,.3); }
-  .candidate-card { box-shadow:0 14px 30px rgba(0,0,0,.2); }
-  @media (max-width:768px) {
-    body { padding:8px; }
-    .header { padding:20px 12px 16px; }
-    .form-section { padding:14px 10px; }
-    .form-tabs { gap:6px; }
-    .form-tab { min-height:42px; }
-    .collapse-content { padding:12px 10px; }
-    .conn-bar { padding:12px; }
-    .filter-date-range { width:100%; display:grid; grid-template-columns:1fr 1fr; }
-    .filter-date-range label { min-width:0; }
-    .filter-date-range input { width:100%; min-width:0; }
-    .clear-filters-btn { width:100%; }
-  }
-  @media (prefers-reduced-motion:reduce) {
-    *, *::before, *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; scroll-behavior:auto !important; transition-duration:.01ms !important; }
-  }
-  /* ====== FINAL HEADER ACTIONS LAYOUT ====== */
-  .header-actions {
-    display:grid;
-    grid-template-columns:minmax(250px,1.15fr) minmax(220px,.85fr) minmax(420px,2fr);
-    gap:12px; align-items:stretch; padding:12px; margin-top:18px;
-    border:1px solid rgba(255,209,102,.28); border-radius:18px;
-    background:linear-gradient(135deg,rgba(3,12,25,.58),rgba(18,36,59,.72));
-    box-shadow:0 14px 30px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04);
-  }
-  .header-action-group {
-    display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); align-content:start; gap:8px;
-    min-width:0; padding:9px; border:1px solid rgba(148,163,184,.2); border-radius:14px;
-    background:rgba(8,20,38,.62);
-  }
-  .header-action-group:first-child { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .header-action-group:last-child { grid-template-columns:repeat(3,minmax(0,1fr)); }
-  .header-action-label { grid-column:1 / -1; padding:2px 4px 5px; color:#ffe7a0; font-size:.68rem; font-weight:900; letter-spacing:.4px; text-align:right; border-bottom:1px solid rgba(148,163,184,.15); }
-  .header-actions .btn { justify-content:center; min-width:0; min-height:42px; padding:9px 10px; border:1px solid rgba(255,255,255,.08); border-radius:11px; font-size:.74rem; white-space:nowrap; box-shadow:0 5px 12px rgba(0,0,0,.16); }
-  .header-actions .btn:hover { filter:brightness(1.1); transform:translateY(-2px); }
-  .header-actions .btn:focus-visible { outline:3px solid rgba(56,189,248,.5); outline-offset:2px; }
-  #btnLoad { grid-column:1 / -1; min-height:48px; font-size:.82rem; font-weight:900; }
-  @media (max-width:1100px) and (min-width:769px) { .header-actions { grid-template-columns:1fr 1fr; } .header-action-group:last-child { grid-column:1 / -1; } }
-  @media (max-width:768px) {
-    .header-actions { grid-template-columns:1fr; gap:9px; padding:9px; }
-    .header-action-group, .header-action-group:first-child, .header-action-group:last-child { grid-column:auto; grid-template-columns:repeat(2,minmax(0,1fr)); padding:8px; }
-    .header-action-label { font-size:.64rem; text-align:center; }
-    .header-actions .btn { min-height:44px; padding:9px 6px; font-size:.72rem; }
-    #btnLoad { min-height:50px; }
-  }
-  @media (max-width:420px) { .header-action-group, .header-action-group:first-child, .header-action-group:last-child { grid-template-columns:1fr 1fr; } .header-actions .btn { font-size:.68rem; } }
 </style>
 </head>
 <body class="auth-locked">
@@ -585,13 +494,19 @@
       <div class="header-action-group">
         <span class="header-action-label">الحساب</span>
         <button type="button" class="btn btn-prm" onclick="openPasswordChange()" title="تغيير كلمة المرور">🔑 تغيير كلمة المرور</button>
-        <button type="button" class="btn btn-inf" onclick="openAuditLog()" title="سجل العمليات">🧾 سجل العمليات</button>
         <button type="button" class="btn btn-sec" onclick="logoutUser()">🚪 تسجيل الخروج</button>
         <button type="button" class="btn install-btn hidden" id="installButton" onclick="installApp()">📱 تثبيت التطبيق</button>
       </div>
       <div class="header-action-group">
+        <span class="header-action-label">البطاقة</span>
+        <button type="submit" form="candForm" class="btn btn-prm" id="submitBtn">💾 حفظ البطاقة</button>
+        <button type="button" class="btn btn-sec hidden" id="cancelBtn" onclick="resetForm()">❌ إلغاء التعديل</button>
+      </div>
+      <div class="header-action-group">
         <span class="header-action-label">Firebase</span>
-        <button type="button" class="btn btn-suc" onclick="saveAndSyncCard()" id="btnLoad" title="حفظ البطاقة ورفعها إلى Firebase ومزامنتها">📥 حفظ ورفع ومزامنة</button>
+        <button type="button" class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
+        <button type="button" class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
+        <button type="button" class="btn btn-suc" onclick="syncNow()" id="btnSync">🔄 مزامنة</button>
       </div>
       <div class="header-action-group">
         <span class="header-action-label">التقارير</span>
@@ -624,9 +539,6 @@
     <div class="stat-card st-red"><div class="stat-value" id="stUnpaid">0</div><div class="stat-label">⏳ غير مدفوع</div></div>
     <div class="stat-card st-blu"><div class="stat-value" id="stToday">0</div><div class="stat-label">📅 اليوم</div></div>
     <div class="stat-card st-prp"><div class="stat-value" id="stExam">0</div><div class="stat-label">🎓 ناجحين</div></div>
-    <div class="stat-card st-blu"><div class="stat-value" id="stUpcoming">0</div><div class="stat-label">📆 خلال 7 أيام</div></div>
-    <div class="stat-card st-red"><div class="stat-value" id="stDue">0</div><div class="stat-label">💳 متأخرات</div></div>
-    <div class="stat-card st-acc"><div class="stat-value" id="stMonth">0</div><div class="stat-label">🆕 هذا الشهر</div></div>
   </div>
 
   <div class="exam-alerts hidden" id="examAlerts" role="alert" aria-live="polite"></div>
@@ -638,9 +550,9 @@
       <input type="hidden" id="editId">
       <div class="form-tabs" id="formTabs" role="tablist" aria-label="أقسام البطاقة">
         <button type="button" class="form-tab active" data-tab="personal" role="tab" aria-selected="true" onclick="selectFormTab('personal')">📝 معلومات شخصية</button>
-        <button type="button" class="form-tab" data-tab="documents" role="tab" aria-selected="false" onclick="selectFormTab('documents')">🪪 البطاقة الوطنية</button>
-        <button type="button" class="form-tab" data-tab="extra" role="tab" aria-selected="false" onclick="selectFormTab('extra')">🔢 N° Saisie</button>
-        <button type="button" class="form-tab" data-tab="dossier" role="tab" aria-selected="false" onclick="selectFormTab('dossier')">📅 تاريخ الامتحان</button>
+        <button type="button" class="form-tab" data-tab="documents" role="tab" aria-selected="false" onclick="selectFormTab('documents')">📄 الوثائق</button>
+        <button type="button" class="form-tab" data-tab="extra" role="tab" aria-selected="false" onclick="selectFormTab('extra')">📋 إضافية</button>
+        <button type="button" class="form-tab" data-tab="dossier" role="tab" aria-selected="false" onclick="selectFormTab('dossier')">📁 الملف 1</button>
         <button type="button" class="form-tab" data-tab="license" role="tab" aria-selected="false" onclick="selectFormTab('license')">🪪 نوع الرخصة</button>
         <button type="button" class="form-tab" data-tab="payment" role="tab" aria-selected="false" onclick="selectFormTab('payment')">💰 التسجيل والدفع</button>
       </div>
@@ -650,8 +562,8 @@
           <details class="collapse-section" open>
             <summary class="collapse-summary"><span>📝 معلومات شخصية</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
-        <div class="photo-area" id="photoArea" role="button" tabindex="0" aria-label="فتح كاميرا الهاتف لتصوير المرشح" onclick="openCamera()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCamera();}">
-          <input type="file" id="photoInput" accept="image/*" capture="environment" onclick="event.stopPropagation()" onchange="handlePhoto(event)">
+        <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
+          <input type="file" id="photoInput" accept="image/*" capture="user" onclick="event.stopPropagation()" onchange="handlePhoto(event)">
           <button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto()">✕</button>
           <img class="photo-preview" id="photoPreview">
           <div class="photo-placeholder" id="photoPlc">📷</div>
@@ -663,7 +575,7 @@
 
         <div class="form-group"><label>الاسم الكامل <span class="req">*</span></label><input type="text" id="fullName" required placeholder="Prénom & Nom"></div>
         <div class="form-group"><label>تاريخ الميلاد <span class="td-small">(اختياري)</span></label><input type="text" id="birthDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
-        <div class="form-group"><label for="birthPlace">مكان الازدياد <span class="field-hint">(اكتب أو اختر من الاقتراحات)</span></label><input id="birthPlace" name="birthPlace" type="text" list="moroccanCities" placeholder="اكتب مدينة الازدياد" autocomplete="off"><datalist id="moroccanCities"><option value="أكادير"><option value="الحسيمة"><option value="الدار البيضاء"><option value="الجديدة"><option value="الداخلة"><option value="الرباط"><option value="الرشيدية"><option value="العرائش"><option value="الفقيه بن صالح"><option value="القنيطرة"><option value="السمارة"><option value="الصويرة"><option value="العيون"><option value="بني ملال"><option value="برشيد"><option value="تارودانت"><option value="تازة"><option value="تاونات"><option value="تطوان"><option value="تمارة"><option value="تنغير"><option value="جرادة"><option value="خريبكة"><option value="خنيفرة"><option value="سلا"><option value="سوق الأربعاء الغرب"><option value="سطات"><option value="سيدي إفني"><option value="سيدي قاسم"><option value="سيدي سليمان"><option value="شفشاون"><option value="صفرو"><option value="طنجة"><option value="طاطا"><option value="طانطان"><option value="فاس"><option value="قلعة السراغنة"><option value="كلميم"><option value="مراكش"><option value="مكناس"><option value="ميدلت"><option value="الناظور"><option value="ورزازات"><option value="وزان"><option value="وجدة"><option value="اليوسفية"><option value="إفران"><option value="آسفي"><option value="أزيلال"><option value="المحمدية"></datalist></div>
+        <div class="form-group"><label>مكان الازدياد</label><select id="birthPlace"><option value="">اختر مدينة الازدياد</option><option>أكادير</option><option>الحسيمة</option><option>الدار البيضاء</option><option>الجديدة</option><option>الداخلة</option><option>الرباط</option><option>الرشيدية</option><option>العرائش</option><option>الفقيه بن صالح</option><option>القنيطرة</option><option>السمارة</option><option>الصويرة</option><option>العيون</option><option>العرائش</option><option>بني ملال</option><option>برشيد</option><option>تارودانت</option><option>تازة</option><option>تاونات</option><option>تطوان</option><option>تمارة</option><option>تنغير</option><option>جرادة</option><option>خريبكة</option><option>خنيفرة</option><option>سلا</option><option>سوق الأربعاء الغرب</option><option>سطات</option><option>سيدي إفني</option><option>سيدي قاسم</option><option>سيدي سليمان</option><option>شفشاون</option><option>صفرو</option><option>طنجة</option><option>طاطا</option><option>طانطان</option><option>فاس</option><option>قلعة السراغنة</option><option>كلميم</option><option>مراكش</option><option>مكناس</option><option>ميدلت</option><option>الناظور</option><option>ورزازات</option><option>وزان</option><option>وجدة</option><option>اليوسفية</option><option>إفران</option><option>آسفي</option><option>أزيلال</option><option>المحمدية</option></select></div>
         <div class="form-group full"><label>العنوان</label><input type="text" id="address" placeholder="Adresse"></div>
         <div class="form-group"><label>الهاتف <span class="td-small">(اختياري)</span></label><input type="tel" id="phone" placeholder="05XX XX XX XX" autocomplete="tel"><div class="phone-actions"><a class="btn btn-suc" id="callPhoneBtn" href="#">📞 اتصال</a><a class="btn btn-inf" id="whatsappPhoneBtn" href="#" target="_blank" rel="noopener">💬 واتساب</a></div></div>
 
@@ -672,16 +584,20 @@
         </div>
         <div class="form-tab-panel" data-tab-panel="documents">
           <details class="collapse-section" open>
-            <summary class="collapse-summary"><span>🪪 بيانات البطاقة الوطنية</span><small>اضغط للطي</small></summary>
+            <summary class="collapse-summary"><span>📄 الوثائق والبطاقة الوطنية</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
         <div class="form-group"><label>C.I.N N° <span class="req">*</span></label><input type="text" id="cinNumber" placeholder="AB123456" required autocomplete="off"></div>
         <div class="form-group"><label>تاريخ CIN (Du)</label><input type="text" id="cinDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
+        <div class="section-divider">📄 صور الوثائق</div>
+        <div class="document-upload"><label>صورة البطاقة الوطنية</label><input type="file" id="cinDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'cinDocument')"><img id="cinDocumentPreview" class="document-preview" alt="صورة البطاقة الوطنية"><button type="button" class="btn btn-dng hidden" id="removeCinDocument" onclick="removeDocument('cinDocument')">حذف الصورة</button></div>
+        <div class="document-upload"><label>وثيقة إضافية</label><input type="file" id="extraDocumentInput" accept="image/*" capture="environment" onchange="handleDocument(event,'extraDocument')"><img id="extraDocumentPreview" class="document-preview" alt="وثيقة إضافية"><button type="button" class="btn btn-dng hidden" id="removeExtraDocument" onclick="removeDocument('extraDocument')">حذف الصورة</button></div>
+
             </div>
           </details>
         </div>
         <div class="form-tab-panel" data-tab-panel="extra">
           <details class="collapse-section" open>
-            <summary class="collapse-summary"><span>🔢 N° Saisie</span><small>اضغط للطي</small></summary>
+            <summary class="collapse-summary"><span>📋 إضافية</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
         <div class="form-group"><label>N° Saisie</label><input type="text" id="saisieNumber" placeholder="رقم السيزي"></div>
         <div class="form-group"><label>Date de Saisie</label><input type="text" id="saisieDate" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
@@ -691,7 +607,7 @@
         </div>
         <div class="form-tab-panel" data-tab-panel="dossier">
           <details class="collapse-section" open>
-            <summary class="collapse-summary"><span>📅 تاريخ الامتحان والامتحانات</span><small>اضغط للطي</small></summary>
+            <summary class="collapse-summary"><span>📁 الملف 1 والامتحانات</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
         <div class="form-group"><label>تاريخ 1er Examen</label><input type="text" id="exam1D1Date" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off"></div>
         <div class="form-group"><label>1er Examen</label>
@@ -754,29 +670,25 @@
   <div class="filters-bar">
     <div class="search-box">
       <span class="icon">🔍</span>
-      <input type="text" id="searchInput" oninput="onFilterChange()" placeholder="بحث بالاسم أو الهاتف أو C.I.N..." aria-label="البحث في السجلات">
+      <input type="text" id="searchInput" oninput="renderTable()" placeholder="بحث بالاسم أو الهاتف أو رقم البطاقة...">
     </div>
-    <select class="filter-select" id="filterStatus" onchange="onFilterChange()">
+    <select class="filter-select" id="filterStatus" onchange="renderTable()">
       <option value="all">📋 كل الحالات</option>
       <option value="paid">✅ مدفوع</option>
       <option value="unpaid">❌ غير مدفوع</option>
       <option value="partial">⚠️ جزئي</option>
     </select>
-    <select class="filter-select" id="filterLicense" onchange="onFilterChange()">
+    <select class="filter-select" id="filterLicense" onchange="renderTable()">
       <option value="all">🪪 كل الرخص</option>
       <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option>
     </select>
-    <select class="filter-select" id="filterExam" onchange="onFilterChange()">
+    <select class="filter-select" id="filterExam" onchange="renderTable()">
       <option value="all">🎓 كل الامتحانات</option>
       <option value="pass">✅ ناجح</option>
       <option value="fail">❌ راسب</option>
       <option value="pending">⏳ لم يتم</option>
     </select>
-    <div class="filter-date-range" aria-label="التصفية حسب تاريخ التسجيل">
-      <label>من <input type="text" id="filterDateFrom" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off" onchange="onFilterChange()"></label>
-      <label>إلى <input type="text" id="filterDateTo" class="date-display" placeholder="DD/MM/AAAA" inputmode="numeric" autocomplete="off" onchange="onFilterChange()"></label>
-    </div>
-    <button type="button" class="btn btn-sec clear-filters-btn" onclick="resetFilters()">↺ مسح التصفية</button>
+    
   </div>
 
   <!-- Table -->
@@ -794,11 +706,6 @@
       </table>
     </div>
     <div class="candidate-card-list" id="cardList" aria-label="بطاقات المرشحين"></div>
-    <div class="pagination hidden" id="pagination" aria-label="صفحات السجلات">
-      <button type="button" class="btn btn-sec" id="prevPageBtn" onclick="changePage(-1)">‹ السابق</button>
-      <span id="pageInfo">صفحة 1 من 1</span>
-      <button type="button" class="btn btn-sec" id="nextPageBtn" onclick="changePage(1)">التالي ›</button>
-    </div>
     <div class="empty-state hidden" id="emptyState">
       <div class="icon">📭</div><h3>لا يوجد بطاقات مسجلة</h3>
     </div>
@@ -837,8 +744,8 @@
   var DEFAULT_FB_URL = 'https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/';
   var candidates = [];
   var currentPhoto = '';
-  var photoProcessing = null;
-  var photoRequestToken = 0;
+  var currentCinDocument = '';
+  var currentExtraDocument = '';
   var fbUrl = '';
   var firebaseConfig = {
     apiKey: 'AIzaSyD32obOSEGVfyazTRco3bK6MFE2DYI0CtI',
@@ -912,15 +819,8 @@
     var identity = cinKey(candidate && candidate.cinNumber) || [candidate && candidate.fullName, candidate && candidate.birthDate, candidate && candidate.phone].map(function(value){ return String(value || '').trim().toUpperCase(); }).filter(Boolean).join('|') || fallbackKey;
     return 'legacy_' + stableHash(identity);
   }
-  function stripDocumentImages(candidate) {
-    if (!candidate || typeof candidate !== 'object') return candidate;
-    delete candidate.cinDocument;
-    delete candidate.extraDocument;
-    return candidate;
-  }
   function ensureStableCandidateIds(list) {
     return (Array.isArray(list) ? list : []).filter(function(v){ return v && typeof v === 'object'; }).map(function(candidate, index){
-      stripDocumentImages(candidate);
       candidate.id = createStableCandidateId(candidate, 'index_' + index);
       return candidate;
     });
@@ -936,7 +836,6 @@
   function normalizeCandidateData(data) {
     if (data && data.candidates && typeof data.candidates === 'object') data = data.candidates;
     if (Array.isArray(data)) return data.filter(Boolean).map(function(candidate, index){
-      stripDocumentImages(candidate);
       candidate.id = createStableCandidateId(candidate, 'array_' + index);
       return candidate;
     });
@@ -944,7 +843,6 @@
     return Object.keys(data).map(function(k){
       var candidate = data[k];
       if (!candidate || typeof candidate !== 'object' || !(candidate.fullName || candidate.id || candidate.cardNumber || candidate.phone || candidate.cinNumber)) return null;
-      stripDocumentImages(candidate);
       candidate.id = createStableCandidateId(candidate, k);
       return candidate;
     }).filter(Boolean);
@@ -959,65 +857,13 @@
   function setSyncQueueStatus(pending) {
     var el = document.getElementById('syncQueueStatus');
     if (!el) return;
-    var last = '';
-    try { last = localStorage.getItem('koutoubia_last_sync') || ''; } catch(e) {}
-    el.textContent = pending ? '🟠 تغييرات محلية غير متزامنة' : (last ? '🟢 تمت المزامنة '+formatDateDisplay(last.slice(0,10))+' '+last.slice(11,16) : '🟢 لا توجد تغييرات معلقة');
-    el.title = pending ? 'توجد تغييرات محلية لم تصل إلى Firebase' : (last ? 'آخر مزامنة: '+last : 'لا توجد تغييرات معلقة');
+    el.textContent = pending ? '🟠 تغييرات محلية غير متزامنة' : '🟢 لا توجد تغييرات معلقة';
     el.style.color = pending ? 'var(--warning)' : 'var(--success)';
   }
   function markSyncPending(pending) {
     syncPending = !!pending;
-    try {
-      localStorage.setItem('koutoubia_sync_pending', pending ? '1' : '0');
-      if (!pending) localStorage.setItem('koutoubia_last_sync', new Date().toISOString());
-    } catch(e) {}
+    try { localStorage.setItem('koutoubia_sync_pending', pending ? '1' : '0'); } catch(e) {}
     setSyncQueueStatus(pending);
-  }
-  function auditActionLabel(action) {
-    return {create:'إضافة', update:'تعديل', delete:'حذف'}[action] || action;
-  }
-  function getLocalAuditLog() {
-    try {
-      var raw = JSON.parse(localStorage.getItem('koutoubia_audit_log') || '[]');
-      return Array.isArray(raw) ? raw : [];
-    } catch(e) { return []; }
-  }
-  function writeAuditLog(action, candidate) {
-    var user = firebaseAuth && firebaseAuth.currentUser;
-    var entry = {
-      action: action,
-      actionLabel: auditActionLabel(action),
-      candidateId: String(candidate && candidate.id || ''),
-      candidateName: String(candidate && candidate.fullName || 'بدون اسم'),
-      cinNumber: String(candidate && candidate.cinNumber || ''),
-      at: new Date().toISOString(),
-      actor: user && user.email ? user.email : 'محلي'
-    };
-    try {
-      var logs = getLocalAuditLog();
-      logs.unshift(entry);
-      localStorage.setItem('koutoubia_audit_log', JSON.stringify(logs.slice(0,50)));
-    } catch(e) {}
-    if (window.firebase && firebase.database && user) {
-      firebase.database(firebaseApp).ref('audit').push(entry).catch(function(error){ console.warn('Audit log unavailable:', error); });
-    }
-  }
-  function auditRowsHtml(logs) {
-    if (!logs.length) return '<p style="color:var(--text-muted);text-align:center">لا توجد عمليات مسجلة بعد.</p>';
-    return '<div class="audit-list">' + logs.map(function(log){
-      return '<div class="audit-row"><div><strong>'+escapeHtml(log.actionLabel || auditActionLabel(log.action))+'</strong> — '+escapeHtml(log.candidateName || 'بدون اسم')+'</div><small>'+escapeHtml(log.actor || 'محلي')+' · '+escapeHtml(formatDateDisplay(String(log.at || '').slice(0,10)))+' '+escapeHtml(String(log.at || '').slice(11,16))+'</small></div>';
-    }).join('') + '</div>';
-  }
-  async function openAuditLog() {
-    var logs = getLocalAuditLog();
-    if (window.firebase && firebase.database && firebaseAuth && firebaseAuth.currentUser) {
-      try {
-        var snapshot = await firebase.database(firebaseApp).ref('audit').limitToLast(50).once('value');
-        var cloud = snapshot.val() || {};
-        logs = Object.keys(cloud).map(function(key){ return cloud[key]; }).sort(function(a,b){ return String(b.at||'').localeCompare(String(a.at||'')); });
-      } catch(e) { /* عرض السجل المحلي عند رفض مسار audit */ }
-    }
-    showModal('🧾 سجل العمليات', auditRowsHtml(logs), [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]);
   }
   async function readCloudCandidates() {
     var primary = await getCandidatesRef().once('value');
@@ -1118,14 +964,8 @@
   }
 
   var syncInFlight = null;
-  function saveAndSyncCard() {
-    var form = document.getElementById('candForm');
-    if (!form) return;
-    if (form.requestSubmit) form.requestSubmit();
-    else form.dispatchEvent(new Event('submit', {cancelable:true, bubbles:true}));
-  }
   async function syncNow() {
-    var btn = document.getElementById('btnLoad');
+    var btn = document.getElementById('btnSync');
     if (btn) btn.disabled = true;
     try {
       await syncToFirebase({manual: true});
@@ -1150,29 +990,12 @@
         var remote = remoteSnapshot.val();
         if (Array.isArray(remote)) remote = remote.reduce(function(obj, candidate, index){ if (candidate) obj['cand_' + index] = candidate; return obj; }, {});
         remote = remote && typeof remote === 'object' ? remote : {};
-        var remoteCandidates = normalizeCandidateData(remote);
-        var remoteById = {};
-        remoteCandidates.forEach(function(candidate){ remoteById[candidate.id] = candidate; });
         var localIds = {};
-        var mergedCandidates = [];
-        var conflictCount = 0;
+        var updates = {};
         candidates.forEach(function(candidate){
           localIds[candidate.id] = true;
-          var remoteCandidate = remoteById[candidate.id];
-          if (remoteCandidate && remoteCandidate.updatedAt && candidate.updatedAt && String(remoteCandidate.updatedAt) > String(candidate.updatedAt)) {
-            mergedCandidates.push(remoteCandidate);
-            conflictCount++;
-          } else {
-            mergedCandidates.push(candidate);
-          }
+          updates[firebaseCandidateKey(candidate)] = candidate;
         });
-        remoteCandidates.forEach(function(remoteCandidate){
-          if (!localIds[remoteCandidate.id]) mergedCandidates.push(remoteCandidate);
-        });
-        if (options.deleteId) mergedCandidates = mergedCandidates.filter(function(candidate){ return candidate.id !== options.deleteId; });
-        candidates = dedupeCandidates(mergedCandidates);
-        var updates = {};
-        candidates.forEach(function(candidate){ updates[firebaseCandidateKey(candidate)] = candidate; });
 
         Object.keys(remote).forEach(function(key){
           var remoteCandidate = remote[key];
@@ -1197,7 +1020,6 @@
         saveLocal();
         renderTable();
         markSyncPending(false);
-        if (conflictCount) toast('ℹ️ تم الاحتفاظ بـ '+conflictCount+' تعديل أحدث من جهاز آخر', 'inf');
         toast(options.manual ? '✅ تمت مزامنة ' + candidates.length + ' بطاقة بالمعرفات الثابتة' : (candidates.length ? '✅ تمت مزامنة ' + candidates.length + ' بطاقة مع Firebase' : '✅ تم حذف السجلات من Firebase'), 'suc');
         updateStatus(true);
         return true;
@@ -1235,7 +1057,7 @@
       txt.textContent = '✅ متصل بـ Firebase';
     } else {
       dot.className = 'status-dot status-warn';
-      txt.textContent = 'جاهز — استخدم حفظ ورفع ومزامنة';
+      txt.textContent = 'جاهز — اضغط تحميل أو رفع';
     }
   }
 
@@ -1250,18 +1072,12 @@
   function loadLocal() {
     try {
       var data = localStorage.getItem(LOCAL_KEY);
-      if (!data) data = localStorage.getItem('koutoubia_auto_backup');
       if (data) {
         var parsed = JSON.parse(data);
         candidates = dedupeCandidates(parsed);
         localStorage.setItem(LOCAL_KEY, JSON.stringify(candidates));
       }
-    } catch(e) {
-      try {
-        var backup = JSON.parse(localStorage.getItem('koutoubia_auto_backup') || '[]');
-        candidates = dedupeCandidates(backup);
-      } catch(backupError) { candidates = []; }
-    }
+    } catch(e) { candidates = []; }
     try { setSyncQueueStatus(localStorage.getItem('koutoubia_sync_pending') === '1'); } catch(e) { setSyncQueueStatus(false); }
     renderTable();
     updateStats();
@@ -1269,9 +1085,7 @@
   }
   function saveLocal() {
     try {
-      var serialized = JSON.stringify(candidates);
-      localStorage.setItem(LOCAL_KEY, serialized);
-      try { localStorage.setItem('koutoubia_auto_backup', serialized); } catch(backupError) { console.warn('Automatic local backup unavailable:', backupError); }
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(candidates));
       updateStats();
       renderExamAlerts();
       return true;
@@ -1284,37 +1098,8 @@
     }
   }
 
-  function dateAtMidnight(date) {
-    var result = new Date(date);
-    result.setHours(0,0,0,0);
-    return result;
-  }
-  function isoDateFromLocalDate(date) {
-    var year = date.getFullYear();
-    var month = String(date.getMonth()+1).padStart(2,'0');
-    var day = String(date.getDate()).padStart(2,'0');
-    return year+'-'+month+'-'+day;
-  }
-  function getUpcomingExamCount(days) {
-    var start = dateAtMidnight(new Date());
-    var end = new Date(start);
-    end.setDate(end.getDate() + days);
-    var eventDates = getExamEvents();
-    return Object.keys(eventDates).reduce(function(total, date){
-      var eventDate = dateAtMidnight(date + 'T00:00:00');
-      return total + (eventDate >= start && eventDate <= end ? eventDates[date].length : 0);
-    }, 0);
-  }
-  function getOutstandingAmount(candidate) {
-    var total = Number(candidate.totalPrice || 0);
-    var paid = Number(candidate.firstPayment || 0) + Number(candidate.secondPayment || 0);
-    var stored = Number(candidate.remainingAmount);
-    return Math.max(0, Number.isFinite(stored) && stored > 0 ? stored : total - paid);
-  }
   function updateStats() {
-    var today = isoDateFromLocalDate(new Date());
-    var now = new Date();
-    var monthPrefix = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    var today = new Date().toISOString().split('T')[0];
     document.getElementById('stTotal').textContent = candidates.length;
     document.getElementById('stPaid').textContent = candidates.filter(function(c){return c.paymentStatus==='paid';}).length;
     document.getElementById('stUnpaid').textContent = candidates.filter(function(c){return c.paymentStatus==='unpaid';}).length;
@@ -1322,9 +1107,6 @@
     document.getElementById('stExam').textContent = candidates.filter(function(c){
       return c.exam1D1==='pass'||c.exam2D1==='pass';
     }).length;
-    document.getElementById('stUpcoming').textContent = getUpcomingExamCount(7);
-    document.getElementById('stDue').textContent = candidates.filter(function(c){return getOutstandingAmount(c)>0;}).length;
-    document.getElementById('stMonth').textContent = candidates.filter(function(c){return String(c.registerDate||'').indexOf(monthPrefix)===0;}).length;
   }
   // ====== PHOTO ======
   function compressImageFile(file, maxWidth, maxHeight, quality) {
@@ -1351,98 +1133,12 @@
     });
   }
 
-  var cameraStream = null;
-  function stopCameraStream() {
-    if (cameraStream) {
-      cameraStream.getTracks().forEach(function(track){ track.stop(); });
-      cameraStream = null;
-    }
-  }
-  function applyPhotoResult(dataUrl) {
-    currentPhoto = dataUrl || '';
-    var img = document.getElementById('photoPreview');
-    if (!currentPhoto) return;
-    img.src = currentPhoto;
-    img.classList.add('show');
-    document.getElementById('photoPlc').style.display = 'none';
-    document.getElementById('photoTxt').textContent = '✅ تم تجهيز الصورة وحفظها';
-    document.getElementById('photoArea').classList.add('has-img');
-  }
-  async function openCamera() {
-    var videoMarkup = '<video id="cameraVideo" autoplay playsinline muted style="display:block;width:100%;max-height:60vh;object-fit:contain;background:#000;border-radius:12px"></video><p style="margin-top:10px;color:#94a3b8;text-align:center">اسمح للمتصفح باستعمال الكاميرا ثم اضغط «التقاط الصورة»</p>';
-    showModal('📷 تصوير صورة المرشح', videoMarkup, [
-      {text:'التقاط الصورة', cls:'btn btn-prm', act:captureCameraPhoto},
-      {text:'إلغاء', cls:'btn btn-sec', act:closeCameraCapture}
-    ]);
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      toast('⚠️ الكاميرا المباشرة غير مدعومة؛ سيتم فتح اختيار الصور', 'wrn');
-      closeCameraCapture();
-      var fallbackInput = document.getElementById('photoInput');
-      fallbackInput.setAttribute('capture', 'environment');
-      fallbackInput.click();
-      return;
-    }
-    try {
-      cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
-      var video = document.getElementById('cameraVideo');
-      if (video) video.srcObject = cameraStream;
-    } catch (err) {
-      console.error('Camera permission/error:', err);
-      toast('⚠️ لم يتم السماح بالكاميرا؛ سيتم فتح اختيار الصور', 'wrn');
-      closeCameraCapture();
-      var input = document.getElementById('photoInput');
-      input.setAttribute('capture', 'environment');
-      input.click();
-    }
-  }
-  function captureCameraPhoto() {
-    var video = document.getElementById('cameraVideo');
-    if (!video || !video.videoWidth || !video.videoHeight) {
-      toast('⚠️ انتظر ظهور صورة الكاميرا ثم حاول مجددًا', 'wrn');
-      return;
-    }
-    var canvas = document.createElement('canvas');
-    var scale = Math.min(1, 700 / video.videoWidth, 900 / video.videoHeight);
-    canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
-    canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
-    var ctx = canvas.getContext('2d', {alpha:false});
-    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    applyPhotoResult(canvas.toDataURL('image/jpeg', 0.82));
-    closeCameraCapture();
-  }
-  function closeCameraCapture() {
-    stopCameraStream();
-    hideModal();
-  }
-  function readFileAsDataURL(file) {
-    return new Promise(function(resolve, reject) {
-      var reader = new FileReader();
-      reader.onerror = reject;
-      reader.onload = function(ev) { resolve(ev.target.result); };
-      reader.readAsDataURL(file);
-    });
-  }
   async function handlePhoto(e) {
     var file = e.target.files[0];
     if (!file) return;
-    var token = ++photoRequestToken;
-    var fileName = String(file.name || '').toLowerCase();
-    var isImage = String(file.type || '').startsWith('image/') || /\.(jpg|jpeg|png|webp|heic|heif)$/i.test(fileName);
-    if (!isImage) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
+    if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
     try {
-      photoProcessing = (async function() {
-        try {
-          return await compressImageFile(file, 700, 900, 0.78);
-        } catch (compressionError) {
-          // بعض كاميرات الهواتف تعيد HEIC/HEIF أو صيغة لا يدعمها Image؛ نحفظ الأصل بدل إسقاط الصورة.
-          console.warn('Compression unavailable; preserving original camera file', compressionError);
-          return await readFileAsDataURL(file);
-        }
-      })();
-      var result = await photoProcessing;
-      if (token !== photoRequestToken) return;
-      currentPhoto = result;
+      currentPhoto = await compressImageFile(file, 700, 900, 0.78);
       var img = document.getElementById('photoPreview');
       img.src = currentPhoto;
       img.classList.add('show');
@@ -1450,12 +1146,8 @@
       document.getElementById('photoTxt').textContent = '✅ تم تجهيز الصورة وحفظها';
       document.getElementById('photoArea').classList.add('has-img');
     } catch (err) {
-      if (token !== photoRequestToken) return;
       console.error(err);
-      currentPhoto = '';
-      toast('❌ تعذر قراءة صورة الهاتف، حاول التقاطها من جديد', 'err');
-    } finally {
-      if (token === photoRequestToken) photoProcessing = null;
+      toast('❌ تعذر تجهيز الصورة، حاول مرة أخرى', 'err');
     }
   }
 
@@ -1465,10 +1157,6 @@
     if (digits.indexOf('0') === 0) digits = '212' + digits.slice(1);
     if (digits.indexOf('212') !== 0 && digits.length >= 9) digits = '212' + digits;
     return digits;
-  }
-  function phoneKey(phone) {
-    var raw = String(phone || '').trim();
-    return raw ? normalizePhone(raw) : '';
   }
   function phoneActionsHtml(phone) {
     if (!phone) return '—';
@@ -1482,9 +1170,34 @@
     document.getElementById('whatsappPhoneBtn').href = normalized ? 'https://wa.me/' + normalized : '#';
   }
   document.getElementById('phone').addEventListener('input', updatePhoneActions);
+  async function handleDocument(event, type) {
+    var file = event.target.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
+    try {
+      var compressed = await compressImageFile(file, 1500, 1800, 0.68);
+      if (type === 'cinDocument') currentCinDocument = compressed;
+      if (type === 'extraDocument') currentExtraDocument = compressed;
+      var preview = document.getElementById(type + 'Preview');
+      preview.src = compressed;
+      preview.classList.add('show');
+      document.getElementById('remove' + (type === 'cinDocument' ? 'Cin' : 'Extra') + 'Document').classList.remove('hidden');
+    } catch (err) {
+      console.error(err);
+      toast('❌ تعذر تجهيز الوثيقة، حاول مرة أخرى', 'err');
+    }
+  }
+  function removeDocument(type) {
+    if (type === 'cinDocument') currentCinDocument = '';
+    if (type === 'extraDocument') currentExtraDocument = '';
+    var suffix = type === 'cinDocument' ? 'Cin' : 'Extra';
+    document.getElementById(type + 'Input').value = '';
+    document.getElementById(type + 'Preview').src = '';
+    document.getElementById(type + 'Preview').classList.remove('show');
+    document.getElementById('remove' + suffix + 'Document').classList.add('hidden');
+  }
+
   function removePhoto() {
-    photoRequestToken++;
-    photoProcessing = null;
     currentPhoto = '';
     document.getElementById('photoInput').value = '';
     document.getElementById('photoPreview').classList.remove('show');
@@ -1608,63 +1321,14 @@
       '</div>' +
     '</article>';
   }
-  function getFilterDate(id) {
-    var field = document.getElementById(id);
-    if (!field) return '';
-    var raw = String(field.value || '').trim();
-    if (!raw) { field.classList.remove('invalid'); return ''; }
-    var iso = toISODate(raw);
-    var valid = isValidISODate(iso);
-    field.classList.toggle('invalid', !valid);
-    return valid ? iso : '';
-  }
-  var currentPage = 1;
-  var pageSize = 40;
-  function onFilterChange() {
-    currentPage = 1;
-    renderTable();
-  }
-  function changePage(delta) {
-    currentPage = Math.max(1, currentPage + delta);
-    renderTable();
-    var table = document.querySelector('.table-wrapper');
-    if (table) table.scrollIntoView({behavior:'smooth', block:'start'});
-  }
-  function updatePagination(total, pageCount) {
-    var pagination = document.getElementById('pagination');
-    var info = document.getElementById('pageInfo');
-    var previous = document.getElementById('prevPageBtn');
-    var next = document.getElementById('nextPageBtn');
-    if (!pagination || !info || !previous || !next) return;
-    if (total <= pageSize) { pagination.classList.add('hidden'); return; }
-    pagination.classList.remove('hidden');
-    info.textContent = 'صفحة '+currentPage+' من '+pageCount+' · '+total+' سجل';
-    previous.disabled = currentPage <= 1;
-    next.disabled = currentPage >= pageCount;
-  }
-  function resetFilters() {
-    currentPage = 1;
-    document.getElementById('searchInput').value = '';
-    document.getElementById('filterStatus').value = 'all';
-    document.getElementById('filterLicense').value = 'all';
-    document.getElementById('filterExam').value = 'all';
-    document.getElementById('filterDateFrom').value = '';
-    document.getElementById('filterDateTo').value = '';
-    document.getElementById('filterDateFrom').classList.remove('invalid');
-    document.getElementById('filterDateTo').classList.remove('invalid');
-    renderTable();
-  }
   function renderTable() {
     var search = document.getElementById('searchInput').value.toLowerCase().trim();
     var st = document.getElementById('filterStatus').value;
     var lt = document.getElementById('filterLicense').value;
     var et = document.getElementById('filterExam').value;
-    var dateFrom = getFilterDate('filterDateFrom');
-    var dateTo = getFilterDate('filterDateTo');
 
     var filtered = candidates.filter(function(c) {
-      var searchText = [c.fullName, c.phone, c.cardNumber, c.cinNumber, c.saisieNumber, c.voitureNumber, c.birthPlace].map(function(value){ return String(value || ''); }).join(' ').toLowerCase();
-      var ms = !search || searchText.includes(search);
+      var ms = !search || (c.fullName+' '+c.phone+' '+c.cardNumber+' '+c.cinNumber).toLowerCase().includes(search);
       var mst = st==='all' || c.paymentStatus===st;
       var mlt = lt==='all' || c.licenseType===lt;
       var met = true;
@@ -1672,9 +1336,7 @@
         var exams = [c.exam1D1, c.exam2D1];
         met = exams.some(function(e){return e===et;});
       }
-      var mfrom = !dateFrom || (c.registerDate && c.registerDate >= dateFrom);
-      var mto = !dateTo || (c.registerDate && c.registerDate <= dateTo);
-      return ms && mst && mlt && met && mfrom && mto;
+      return ms && mst && mlt && met;
     });
 
     filtered.sort(function(a,b){return new Date(b.registerDate)-new Date(a.registerDate);});
@@ -1682,16 +1344,11 @@
     var tbody = document.getElementById('tableBody');
     var cardList = document.getElementById('cardList');
     var empty = document.getElementById('emptyState');
-    var pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
-    currentPage = Math.min(currentPage, pageCount);
-    updatePagination(filtered.length, pageCount);
 
-    if (filtered.length === 0) { tbody.innerHTML=''; cardList.innerHTML=''; updatePagination(0, 1); empty.classList.remove('hidden'); return; }
+    if (filtered.length === 0) { tbody.innerHTML=''; cardList.innerHTML=''; empty.classList.remove('hidden'); return; }
     empty.classList.add('hidden');
-    var start = (currentPage - 1) * pageSize;
-    var visible = filtered.slice(start, start + pageSize);
 
-    tbody.innerHTML = visible.map(function(c){
+    tbody.innerHTML = filtered.map(function(c){
       return '<tr>' +
         '<td class="td-photo">' + photoCell(c.photo) + '</td>' +
         '<td class="td-small">' + escapeHtml(c.cardNumber||'—') + '</td>' +
@@ -1706,7 +1363,7 @@
         '<td class="actions-cell">' + cardActionButtons(c.id) + '</td>' +
       '</tr>';
     }).join('');
-    cardList.innerHTML = visible.map(function(c, index){ return renderCandidateCard(c, start + index); }).join('');
+    cardList.innerHTML = filtered.map(renderCandidateCard).join('');
   }
 
   // ====== PAYMENT CALCULATION ======
@@ -1723,7 +1380,7 @@
   });
 
   // ====== FORM TABS & VALIDATION ======
-  var formTabLabels = {personal:'معلومات شخصية', documents:'البطاقة الوطنية', extra:'N° Saisie', dossier:'تاريخ الامتحان', license:'نوع الرخصة', payment:'التسجيل والدفع'};
+  var formTabLabels = {personal:'معلومات شخصية', documents:'الوثائق', extra:'إضافية', dossier:'الملف 1', license:'نوع الرخصة', payment:'التسجيل والدفع'};
   function selectFormTab(key, shouldScroll) {
     if (!formTabLabels[key]) key = 'personal';
     document.querySelectorAll('.form-tab').forEach(function(btn){
@@ -1824,17 +1481,12 @@
     });
     if (duplicate) return focusValidationField('cinNumber', 'documents', 'رقم C.I.N مسجل مسبقًا لمرشح آخر');
 
-    var normalizedPhone = phoneKey(document.getElementById('phone').value);
-    var duplicatePhone = normalizedPhone && candidates.some(function(c) {
-      return c.id !== editId && phoneKey(c.phone) === normalizedPhone;
-    });
-    if (duplicatePhone) return focusValidationField('phone', 'personal', 'رقم الهاتف مسجل مسبقًا لمرشح آخر');
-
     var dateRules = [
       {id:'birthDate', tab:'personal', label:'تاريخ الميلاد'},
       {id:'cinDate', tab:'documents', label:'تاريخ C.I.N'},
       {id:'saisieDate', tab:'extra', label:'Date de Saisie'},
       {id:'exam1D1Date', tab:'dossier', label:'تاريخ 1er Examen'},
+      {id:'exam2D1Date', tab:'dossier', label:'تاريخ 2ème Examen'},
       {id:'registerDate', tab:'payment', label:'تاريخ التسجيل'}
     ];
     var dates = {};
@@ -1869,31 +1521,25 @@
   // ====== FORM SUBMIT ======
   document.getElementById('candForm').addEventListener('submit', async function(e){
     e.preventDefault();
-    if (photoProcessing) {
-      showSpin('🖼️ جارٍ تجهيز صورة المرشح قبل الحفظ...');
-      try {
-        await photoProcessing;
-      } catch (photoError) {
-        console.error('Photo processing before save:', photoError);
-        toast('❌ تعذر تجهيز الصورة؛ لم يتم حفظ البطاقة', 'err');
-        return;
-      } finally { hideSpin(); }
-    }
     if (!validateCandidateForm()) return;
     var editId = document.getElementById('editId').value;
     var photoToSave = currentPhoto;
+    var cinDocumentToSave = currentCinDocument;
+    var extraDocumentToSave = currentExtraDocument;
     if (editId) {
       var ex = candidates.find(function(c){return c.id===editId;});
-      if (ex && !photoToSave) photoToSave = ex.photo || '';
+      if (ex) {
+        if (!photoToSave) photoToSave = ex.photo || '';
+        if (!cinDocumentToSave) cinDocumentToSave = ex.cinDocument || '';
+        if (!extraDocumentToSave) extraDocumentToSave = ex.extraDocument || '';
+      }
     }
 
-    var previous = editId ? candidates.find(function(c){return c.id===editId;}) : null;
-    var nowStamp = new Date().toISOString();
     var data = {
       id: editId || Date.now().toString(36)+Math.random().toString(36).substr(2,9),
-      createdAt: previous && previous.createdAt ? previous.createdAt : nowStamp,
-      updatedAt: nowStamp,
       photo: photoToSave,
+      cinDocument: cinDocumentToSave,
+      extraDocument: extraDocumentToSave,
       cardNumber: editId ? ((candidates.find(function(c){return c.id===editId;}) || {}).cardNumber || '') : '',
       fullName: document.getElementById('fullName').value.trim(),
       birthDate: toISODate(document.getElementById('birthDate').value),
@@ -1907,7 +1553,7 @@
       exam1D1: document.getElementById('exam1D1').value,
       exam1D1Date: toISODate(document.getElementById('exam1D1Date').value),
       exam2D1: document.getElementById('exam2D1').value,
-      exam2D1Date: normalizedDateValue('exam2D1Date') || '',
+      exam2D1Date: toISODate(document.getElementById('exam2D1Date').value),
       voitureNumber: document.getElementById('voitureNumber').value.trim(),
       licenseType: document.getElementById('licenseType').value,
       totalPrice: paymentNumber('totalPrice'),
@@ -1931,7 +1577,6 @@
     saveLocal();
     markSyncPending(true);
     renderTable();
-    writeAuditLog(editId ? 'update' : 'create', data);
     resetForm();
     // رفع تلقائي بعد الحفظ حتى لا تبقى البطاقة محلية فقط.
     await syncToFirebase();
@@ -1959,6 +1604,15 @@
     document.getElementById('cinDate').value = formatDateDisplay(c.cinDate);
     document.getElementById('phone').value = c.phone||'';
     updatePhoneActions();
+    currentCinDocument = c.cinDocument||'';
+    currentExtraDocument = c.extraDocument||'';
+    ['cinDocument','extraDocument'].forEach(function(type){
+      var value = type === 'cinDocument' ? currentCinDocument : currentExtraDocument;
+      var suffix = type === 'cinDocument' ? 'Cin' : 'Extra';
+      var preview = document.getElementById(type+'Preview');
+      if (value) { preview.src=value; preview.classList.add('show'); document.getElementById('remove'+suffix+'Document').classList.remove('hidden'); }
+      else { preview.src=''; preview.classList.remove('show'); document.getElementById('remove'+suffix+'Document').classList.add('hidden'); }
+    });
     document.getElementById('saisieNumber').value = c.saisieNumber||'';
     document.getElementById('saisieDate').value = formatDateDisplay(c.saisieDate);
     document.getElementById('exam1D1').value = c.exam1D1||'';
@@ -1976,8 +1630,7 @@
     document.getElementById('registerDate').value = formatDateDisplay(c.registerDate);
     document.getElementById('notes').value = c.notes||'';
     document.getElementById('formTitle').textContent = '✏️ تعديل بطاقة';
-    var unifiedSaveButton = document.getElementById('btnLoad');
-    if (unifiedSaveButton) unifiedSaveButton.textContent = '💾 تحديث ورفع ومزامنة';
+    document.getElementById('submitBtn').textContent = '💾 تحديث';
     selectFormTab('personal', false);
     document.getElementById('cancelBtn').classList.remove('hidden');
     window.scrollTo({top:0, behavior:'smooth'});
@@ -1989,6 +1642,7 @@
     var exL = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
     var pyL = {paid:'✅ مدفوع', unpaid:'❌ غير مدفوع', partial:'⚠️ جزئي'};
     var ph = c.photo ? '<img src="'+c.photo+'" class="modal-photo" onclick="openImgModal(&quot;'+c.photo+'&quot;)" style="cursor:pointer">' : '<div style="text-align:center;font-size:2.5rem;margin-bottom:12px">👤</div>';
+    var docs = '<div class="dr"><span class="dl">الوثائق:</span><span class="dv">' + (c.cinDocument ? '<img src="'+c.cinDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.cinDocument+'&quot;)" style="cursor:pointer" alt="البطاقة الوطنية">' : 'لا توجد صورة للبطاقة') + (c.extraDocument ? '<img src="'+c.extraDocument+'" class="modal-photo" onclick="openImgModal(&quot;'+c.extraDocument+'&quot;)" style="cursor:pointer" alt="وثيقة إضافية">' : '') + '</span></div>';
     function exLine(e,d){ return (exL[e]||'—') + (d?' ('+formatDateDisplay(d)+')':''); }
 
     showModal('👁️ '+c.fullName,
@@ -2010,19 +1664,17 @@
       '<div class="dr"><span class="dl">الباقي:</span><span class="dv">'+(Number(c.remainingAmount||0).toFixed(2))+'</span></div>' +
       '<div class="dr"><span class="dl">حالة الدفع:</span><span class="dv">'+(pyL[c.paymentStatus]||'—')+'</span></div>' +
       '<div class="dr"><span class="dl">إضافية:</span><span class="dv">'+formatDateDisplay(c.registerDate)+'</span></div>' +
-      '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>',
+      '<div class="dr"><span class="dl">ملاحظات:</span><span class="dv">'+(c.notes||'—')+'</span></div>' + docs,
       [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
     );
   }
 
   function delCand(id) {
-    var candidateBeforeDelete = candidates.find(function(c){return c.id===id;});
     showModal('🗑️ تأكيد الحذف', 'هل أنت متأكد من حذف هذه البطاقة محليًا ومن Firebase؟', [
       {text:'إلغاء', cls:'btn btn-sec', act:hideModal},
       {text:'نعم، احذف', cls:'btn btn-dng', act:async function(){
         candidates = candidates.filter(function(c){return c.id!==id;});
         saveLocal(); markSyncPending(true); renderTable(); hideModal();
-        writeAuditLog('delete', candidateBeforeDelete || {id:id});
         toast('🗑️ تم الحذف محليًا، جارٍ تحديث Firebase...', 'inf');
         await syncToFirebase({allowEmpty:true, action:'delete', deleteId:id});
       }}
@@ -2034,43 +1686,27 @@
     document.getElementById('candForm').reset();
     document.getElementById('editId').value='';
     currentPhoto=''; removePhoto();
+    currentCinDocument=''; currentExtraDocument='';
+    removeDocument('cinDocument'); removeDocument('extraDocument');
     updatePhoneActions();
     document.getElementById('registerDate').value=formatDateDisplay(new Date().toISOString().split('T')[0]);
     document.getElementById('formTitle').textContent='➕ إضافة بطاقة جديدة';
-    var unifiedSaveButton = document.getElementById('btnLoad');
-    if (unifiedSaveButton) unifiedSaveButton.textContent='📥 حفظ ورفع ومزامنة';
+    document.getElementById('submitBtn').textContent='💾 حفظ محلياً';
     document.getElementById('cancelBtn').classList.add('hidden');
     setVehicleValue('');
     selectFormTab('personal', false);
   }
 
-  var sheetJsPromise = null;
-  function loadSheetJS() {
-    if (window.XLSX) return Promise.resolve(window.XLSX);
-    if (sheetJsPromise) return sheetJsPromise;
-    sheetJsPromise = new Promise(function(resolve, reject){
-      var script = document.createElement('script');
-      script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
-      script.async = true;
-      script.onload = function(){ resolve(window.XLSX); };
-      script.onerror = function(){ sheetJsPromise = null; reject(new Error('تعذر تحميل مكتبة Excel')); };
-      document.head.appendChild(script);
-    });
-    return sheetJsPromise;
-  }
-  async function exportExcel() {
+  function exportExcel() {
     if (candidates.length===0) { toast('ℹ️ لا توجد بطاقات للتصدير', 'inf'); return; }
-    toast('⏳ جارٍ تجهيز مكتبة Excel...', 'inf');
-    var XLSX;
-    try { XLSX = await loadSheetJS(); } catch (error) { toast('❌ مكتبة Excel غير متاحة، تحقق من اتصال الإنترنت', 'err'); return; }
-    if (!XLSX) { toast('❌ مكتبة Excel غير متاحة، تحقق من اتصال الإنترنت', 'err'); return; }
+    if (!window.XLSX) { toast('❌ مكتبة Excel غير متاحة، تحقق من اتصال الإنترنت', 'err'); return; }
     var pyL = {paid:'مدفوع كامل', unpaid:'غير مدفوع', partial:'دفع جزئي'};
     var rows = candidates.map(function(c){ return {
       'رقم البطاقة': c.cardNumber||'', 'الاسم الكامل': c.fullName||'', 'الهاتف': c.phone||'',
       'نوع الرخصة': c.licenseType||'', 'رقم العربة': c.voitureNumber||'',
       'الثمن الإجمالي': Number(c.totalPrice||0), 'الدفعة الأولى': Number(c.firstPayment||0),
       'الدفعة الثانية': Number(c.secondPayment||0), 'الباقي': Number(c.remainingAmount||0),
-      'حالة الدفع': pyL[c.paymentStatus]||'', 'تاريخ التسجيل': formatDateDisplay(c.registerDate),
+      'حالة الدفع': pyL[c.paymentStatus]||'', 'تاريخ الإضافية': formatDateDisplay(c.registerDate),
       'امتحان السياقة 1': formatDateDisplay(c.exam1D1Date), 'امتحان السياقة 2': formatDateDisplay(c.exam2D1Date),
       
       'العنوان': c.address||'', 'ملاحظات': c.notes||''
@@ -2088,8 +1724,7 @@
     var rows = candidates.map(function(c){ return '<tr><td>'+(c.cardNumber||'—')+'</td><td>'+(c.fullName||'—')+'</td><td>'+(c.phone||'—')+'</td><td>'+(c.licenseType||'—')+'</td><td>'+Number(c.totalPrice||0).toFixed(2)+'</td><td>'+Number(c.firstPayment||0).toFixed(2)+'</td><td>'+Number(c.secondPayment||0).toFixed(2)+'</td><td>'+Number(c.remainingAmount||0).toFixed(2)+'</td><td>'+(pyL[c.paymentStatus]||'—')+'</td><td>'+formatDateDisplay(c.registerDate)+'</td></tr>'; }).join('');
     var w = window.open('', '_blank');
     if (!w) { toast('⚠️ اسمح بالنوافذ المنبثقة لتصدير PDF', 'wrn'); return; }
-    var logoUrl = new URL('assets/logo-auto-ecole.jpg', document.baseURI).href;
-    w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير التسجيل والدفع</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{text-align:center;color:#1e3a5f}p{text-align:center;color:#555}img{display:block;width:80px;height:75px;object-fit:contain;margin:0 auto 8px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:6px;text-align:center}th{background:#dbeafe} @media print{button{display:none}}</style></head><body><img src="'+logoUrl+'"><h1>سيارة التعليم الكتبية — Gestion Auto Ecole</h1><p>تقرير التسجيل والدفع — '+formatDateDisplay(new Date().toISOString().split('T')[0])+'</p><table><thead><tr><th>رقم البطاقة</th><th>الاسم</th><th>الهاتف</th><th>الرخصة</th><th>الإجمالي</th><th>الدفعة 1</th><th>الدفعة 2</th><th>الباقي</th><th>الحالة</th><th>تاريخ التسجيل</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print();};<\/script></body></html>');
+    w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير التسجيل والدفع</title><style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h1{text-align:center;color:#1e3a5f}p{text-align:center;color:#555}img{display:block;width:80px;height:75px;object-fit:contain;margin:0 auto 8px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:6px;text-align:center}th{background:#dbeafe} @media print{button{display:none}}</style></head><body><img src="'+location.origin+'/assets/logo-auto-ecole.jpg"><h1>سيارة التعليم الكتبية — Gestion Auto Ecole</h1><p>تقرير التسجيل والدفع — '+formatDateDisplay(new Date().toISOString().split('T')[0])+'</p><table><thead><tr><th>رقم البطاقة</th><th>الاسم</th><th>الهاتف</th><th>الرخصة</th><th>الإجمالي</th><th>الدفعة 1</th><th>الدفعة 2</th><th>الباقي</th><th>الحالة</th><th>الإضافية</th></tr></thead><tbody>'+rows+'</tbody></table><script>window.onload=function(){window.print();};<\/script></body></html>');
     w.document.close();
     toast('✅ تم تجهيز تقرير PDF، اختر Save as PDF من نافذة الطباعة', 'suc');
   }
@@ -2118,7 +1753,7 @@
     });
     document.getElementById('modalOverlay').classList.add('active');
   }
-  function hideModal() { stopCameraStream(); document.getElementById('modalOverlay').classList.remove('active'); }
+  function hideModal() { document.getElementById('modalOverlay').classList.remove('active'); }
   document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target===e.currentTarget) hideModal(); });
 
   // ====== TOAST ======
@@ -2137,7 +1772,7 @@
   function getExamEvents() {
     var events = {};
     candidates.forEach(function(c) {
-      [['exam1D1Date','1er Examen — تاريخ الامتحان'],['exam2D1Date','2ème Examen — تاريخ الامتحان']].forEach(function(pair) {
+      [['exam1D1Date','1er Examen — ملف 1'],['exam2D1Date','2ème Examen — ملف 1']].forEach(function(pair) {
         var date = toISODate(c[pair[0]]);
         if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
         if (!events[date]) events[date] = [];
@@ -2146,45 +1781,21 @@
     });
     return events;
   }
-  function formatMoney(value) {
-    var amount = Number(value || 0);
-    return amount.toLocaleString('fr-MA', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' DH';
-  }
-  function renderAlertEvents(events, dateLabel) {
-    var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
-    return '<div class="exam-alerts-title">🔔 '+dateLabel+'</div>' + events.map(function(e){
-      return '<div class="exam-alert-item"><strong>'+escapeHtml(e.name)+'</strong> — C.I.N: '+escapeHtml(e.card)+'<br>'+escapeHtml(e.type)+' — '+(statusLabels[e.status]||'—')+'</div>';
-    }).join('');
-  }
   function renderExamAlerts() {
     var box = document.getElementById('examAlerts');
     if (!box) return;
-    var today = dateAtMidnight(new Date());
-    var tomorrowDate = new Date(today);
+    var tomorrowDate = new Date();
+    tomorrowDate.setHours(0,0,0,0);
     tomorrowDate.setDate(tomorrowDate.getDate()+1);
-    var tomorrow = isoDateFromLocalDate(tomorrowDate);
-    var endDate = new Date(today);
-    endDate.setDate(endDate.getDate()+7);
-    var end = isoDateFromLocalDate(endDate);
-    var eventMap = getExamEvents();
-    var tomorrowEvents = eventMap[tomorrow] || [];
-    var todayISO = isoDateFromLocalDate(today);
-    var upcoming = Object.keys(eventMap).sort().filter(function(date){ return date >= todayISO && date <= end && date !== tomorrow; }).reduce(function(all,date){
-      return all.concat(eventMap[date].map(function(event){ return {event:event, date:date}; }));
-    }, []);
-    var due = candidates.filter(function(c){ return getOutstandingAmount(c) > 0; }).sort(function(a,b){ return getOutstandingAmount(b)-getOutstandingAmount(a); });
-    var sections = [];
-    if (tomorrowEvents.length) sections.push(renderAlertEvents(tomorrowEvents, 'تنبيه: امتحانات غدًا ('+formatDateDisplay(tomorrow)+')'));
-    if (upcoming.length) sections.push('<div class="exam-alerts-title">📆 امتحانات خلال 7 أيام ('+upcoming.length+')</div>'+upcoming.slice(0,6).map(function(item){
-      var e = item.event;
-      return '<div class="exam-alert-item"><strong>'+escapeHtml(e.name)+'</strong> — '+formatDateDisplay(item.date)+'<br>'+escapeHtml(e.type)+' — '+(e.status==='pass'?'✅ ناجح':e.status==='fail'?'❌ راسب':'⏳ لم يتم')+'</div>';
-    }).join('')+(upcoming.length>6?'<div class="exam-alert-more">و '+(upcoming.length-6)+' مواعيد أخرى في التقويم.</div>':''));
-    if (due.length) sections.push('<div class="exam-alerts-title">💳 متابعات الدفع ('+due.length+')</div>'+due.slice(0,5).map(function(c){
-      return '<div class="exam-alert-item payment-alert-item"><strong>'+escapeHtml(c.fullName||'بدون اسم')+'</strong> — '+escapeHtml(c.cinNumber||'بدون C.I.N')+'<br>الباقي: <b>'+formatMoney(getOutstandingAmount(c))+'</b></div>';
-    }).join('')+(due.length>5?'<div class="exam-alert-more">و '+(due.length-5)+' سجلات أخرى تحتاج متابعة.</div>':''));
-    if (!sections.length) { box.classList.add('hidden'); box.innerHTML=''; return; }
+    var tomorrow = tomorrowDate.toISOString().split('T')[0];
+    var events = getExamEvents()[tomorrow] || [];
+    if (!events.length) { box.classList.add('hidden'); box.innerHTML=''; return; }
     box.classList.remove('hidden');
-    box.innerHTML = sections.join('');
+    box.innerHTML = '<div class="exam-alerts-title">🔔 تنبيه: امتحانات غدًا ('+formatDateDisplay(tomorrow)+')</div>' +
+      events.map(function(e){
+        var statusLabels = {pass:'✅ ناجح', fail:'❌ راسب', pending:'⏳ لم يتم', '':'—'};
+        return '<div class="exam-alert-item"><strong>'+e.name+'</strong> — رقم البطاقة: '+e.card+'<br>'+e.type+' — '+(statusLabels[e.status]||'—')+'</div>';
+      }).join('');
   }
 
   function openExamCalendar() {
@@ -2213,7 +1824,7 @@
     showModal('📅 تقويم الامتحانات',
       '<div class="calendar-toolbar"><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(-1)">‹ السابق</button><strong>'+calendarMonths[calendarMonth]+' '+calendarYear+'</strong><button type="button" class="btn btn-sec" onclick="changeCalendarMonth(1)">التالي ›</button></div>'+
       '<div class="calendar-grid">'+cells+'</div>'+
-      '<div class="calendar-legend"><span><i class="legend-dot legend-drive"></i> تاريخ الامتحان: امتحان السياقة</span></div>',
+      '<div class="calendar-legend"><span><i class="legend-dot legend-drive"></i> الملف 1: امتحان السياقة</span></div>',
       [{text:'إغلاق', cls:'btn btn-sec', act:hideModal}]
     );
   }
@@ -2265,7 +1876,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=smart-suite51').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=remove-finance46').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
