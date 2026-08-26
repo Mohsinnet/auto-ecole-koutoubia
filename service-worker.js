@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v46-remove-finance';
+const CACHE_NAME = 'auto-ecole-koutoubia-v60-camera-sync';
 const APP_SHELL = [
   './',
   './index.html',

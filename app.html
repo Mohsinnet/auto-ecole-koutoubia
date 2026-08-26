@@ -188,6 +188,14 @@
   .spinner-text { color: var(--accent); margin-top: 12px; font-weight: 700; font-size: 0.9rem; }
 
   .toast-container { position: fixed; top: 14px; left: 14px; z-index: 2000; display: flex; flex-direction: column; gap: 6px; }
+  .camera-modal { position:fixed; inset:0; z-index:3500; display:flex; align-items:center; justify-content:center; padding:14px; background:rgba(0,0,0,.86); opacity:0; pointer-events:none; transition:opacity .2s; }
+  .camera-modal.active { opacity:1; pointer-events:auto; }
+  .camera-box { width:min(520px,100%); background:var(--card); border:1px solid var(--accent); border-radius:18px; padding:14px; box-shadow:0 22px 70px rgba(0,0,0,.5); }
+  .camera-title { color:var(--accent); font-weight:800; margin-bottom:10px; }
+  #cameraVideo { display:block; width:100%; max-height:65vh; object-fit:cover; background:#000; border-radius:12px; transform:scaleX(-1); }
+  .camera-actions { display:flex; gap:8px; justify-content:center; margin-top:12px; }
+  .camera-actions .btn { flex:1; justify-content:center; }
+  @media (max-width:480px) { .camera-modal { padding:8px; } .camera-box { padding:10px; } .camera-actions { display:grid; grid-template-columns:1fr 1fr; } }
   .toast { padding: 10px 16px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s; box-shadow: 0 6px 20px rgba(0,0,0,0.4); max-width: 320px; }
   .toast-suc { background: var(--success); color: #fff; }
   .toast-err { background: var(--danger); color: #fff; }
@@ -498,15 +506,9 @@
         <button type="button" class="btn install-btn hidden" id="installButton" onclick="installApp()">📱 تثبيت التطبيق</button>
       </div>
       <div class="header-action-group">
-        <span class="header-action-label">البطاقة</span>
-        <button type="submit" form="candForm" class="btn btn-prm" id="submitBtn">💾 حفظ البطاقة</button>
-        <button type="button" class="btn btn-sec hidden" id="cancelBtn" onclick="resetForm()">❌ إلغاء التعديل</button>
-      </div>
-      <div class="header-action-group">
         <span class="header-action-label">Firebase</span>
-        <button type="button" class="btn btn-inf" onclick="syncFromFirebase()" id="btnLoad">📥 تحميل</button>
-        <button type="button" class="btn btn-wrn" onclick="syncToFirebase()" id="btnPush">📤 رفع</button>
-        <button type="button" class="btn btn-suc" onclick="syncNow()" id="btnSync">🔄 مزامنة</button>
+        <button type="submit" form="candForm" class="btn btn-suc" id="btnLoad" title="حفظ البطاقة ورفعها إلى Firebase ومزامنتها">💾 حفظ ورفع ومزامنة</button>
+        <button type="button" class="btn btn-sec hidden" id="cancelBtn" onclick="resetForm()">❌ إلغاء التعديل</button>
       </div>
       <div class="header-action-group">
         <span class="header-action-label">التقارير</span>
@@ -562,8 +564,8 @@
           <details class="collapse-section" open>
             <summary class="collapse-summary"><span>📝 معلومات شخصية</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
-        <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
-          <input type="file" id="photoInput" accept="image/*" capture="user" onclick="event.stopPropagation()" onchange="handlePhoto(event)">
+        <div class="photo-area" id="photoArea" role="button" tabindex="0" aria-label="فتح كاميرا صورة المرشح" onclick="openCamera()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCamera();}">
+          <input type="file" id="photoInput" accept="image/*" capture="environment" onclick="event.stopPropagation()" onchange="handlePhoto(event)">
           <button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto()">✕</button>
           <img class="photo-preview" id="photoPreview">
           <div class="photo-placeholder" id="photoPlc">📷</div>
@@ -718,6 +720,17 @@
 </div>
 
 <!-- Modals -->
+<div class="camera-modal" id="cameraModal" role="dialog" aria-modal="true" aria-labelledby="cameraTitle">
+  <div class="camera-box">
+    <div class="camera-title" id="cameraTitle">📷 التقاط صورة المرشح</div>
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    <canvas id="cameraCanvas" class="hidden"></canvas>
+    <div class="camera-actions">
+      <button type="button" class="btn btn-suc" onclick="captureCameraPhoto()">📸 التقاط الصورة</button>
+      <button type="button" class="btn btn-sec" onclick="closeCamera()">إلغاء</button>
+    </div>
+  </div>
+</div>
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-box">
     <div class="modal-title" id="modalTitle"></div>
@@ -744,6 +757,9 @@
   var DEFAULT_FB_URL = 'https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/';
   var candidates = [];
   var currentPhoto = '';
+  var photoProcessing = null;
+  var photoRequestToken = 0;
+  var cameraStream = null;
   var currentCinDocument = '';
   var currentExtraDocument = '';
   var fbUrl = '';
@@ -965,7 +981,7 @@
 
   var syncInFlight = null;
   async function syncNow() {
-    var btn = document.getElementById('btnSync');
+    var btn = document.getElementById('btnLoad');
     if (btn) btn.disabled = true;
     try {
       await syncToFirebase({manual: true});
@@ -1133,22 +1149,70 @@
     });
   }
 
+  function applyPhotoResult(dataUrl) {
+    currentPhoto = dataUrl || '';
+    var img = document.getElementById('photoPreview');
+    if (!currentPhoto) { removePhoto(); return; }
+    img.src = currentPhoto;
+    img.classList.add('show');
+    document.getElementById('photoPlc').style.display = 'none';
+    document.getElementById('photoTxt').textContent = '✅ تم تجهيز الصورة وحفظها';
+    document.getElementById('photoArea').classList.add('has-img');
+  }
+  function closeCamera() {
+    if (cameraStream) { cameraStream.getTracks().forEach(function(track){ track.stop(); }); cameraStream = null; }
+    var video = document.getElementById('cameraVideo');
+    if (video) video.srcObject = null;
+    var modal = document.getElementById('cameraModal');
+    if (modal) modal.classList.remove('active');
+  }
+  async function openCamera() {
+    var modal = document.getElementById('cameraModal');
+    var video = document.getElementById('cameraVideo');
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      document.getElementById('photoInput').click();
+      return;
+    }
+    closeCamera();
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
+      video.srcObject = cameraStream;
+      modal.classList.add('active');
+      await video.play();
+    } catch (err) {
+      console.warn('Camera unavailable:', err);
+      toast('ℹ️ تعذر فتح الكاميرا؛ اختر صورة من الجهاز', 'inf');
+      document.getElementById('photoInput').click();
+    }
+  }
+  function captureCameraPhoto() {
+    var video = document.getElementById('cameraVideo');
+    if (!video || !video.videoWidth) { toast('⚠️ انتظر ظهور صورة الكاميرا ثم حاول', 'wrn'); return; }
+    var canvas = document.getElementById('cameraCanvas');
+    var scale = Math.min(1, 700 / video.videoWidth, 900 / video.videoHeight);
+    canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+    canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+    var ctx = canvas.getContext('2d', {alpha:false});
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    applyPhotoResult(canvas.toDataURL('image/jpeg', 0.78));
+    closeCamera();
+    toast('✅ تم التقاط الصورة، اضغط حفظ ورفع ومزامنة', 'suc');
+  }
   async function handlePhoto(e) {
     var file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
-    try {
-      currentPhoto = await compressImageFile(file, 700, 900, 0.78);
-      var img = document.getElementById('photoPreview');
-      img.src = currentPhoto;
-      img.classList.add('show');
-      document.getElementById('photoPlc').style.display = 'none';
-      document.getElementById('photoTxt').textContent = '✅ تم تجهيز الصورة وحفظها';
-      document.getElementById('photoArea').classList.add('has-img');
-    } catch (err) {
-      console.error(err);
-      toast('❌ تعذر تجهيز الصورة، حاول مرة أخرى', 'err');
-    }
+    var token = ++photoRequestToken;
+    photoProcessing = compressImageFile(file, 700, 900, 0.78).then(function(dataUrl){
+      if (token === photoRequestToken) applyPhotoResult(dataUrl);
+      return dataUrl;
+    }).catch(function(err){
+      console.error('Photo processing:', err);
+      if (token === photoRequestToken) toast('❌ تعذر تجهيز الصورة، حاول مرة أخرى', 'err');
+      throw err;
+    }).finally(function(){ if (token === photoRequestToken) photoProcessing = null; });
+    try { await photoProcessing; } catch (err) {}
   }
 
   function normalizePhone(phone) {
@@ -1198,7 +1262,10 @@
   }
 
   function removePhoto() {
+    ++photoRequestToken;
+    photoProcessing = null;
     currentPhoto = '';
+    closeCamera();
     document.getElementById('photoInput').value = '';
     document.getElementById('photoPreview').classList.remove('show');
     document.getElementById('photoPlc').style.display = 'block';
@@ -1521,6 +1588,12 @@
   // ====== FORM SUBMIT ======
   document.getElementById('candForm').addEventListener('submit', async function(e){
     e.preventDefault();
+    if (photoProcessing) {
+      showSpin('🖼️ جارٍ تجهيز صورة المرشح قبل الحفظ...');
+      try { await photoProcessing; }
+      catch (photoError) { hideSpin(); toast('❌ تعذر تجهيز الصورة؛ لم يتم حفظ البطاقة', 'err'); return; }
+      finally { hideSpin(); }
+    }
     if (!validateCandidateForm()) return;
     var editId = document.getElementById('editId').value;
     var photoToSave = currentPhoto;
@@ -1630,7 +1703,8 @@
     document.getElementById('registerDate').value = formatDateDisplay(c.registerDate);
     document.getElementById('notes').value = c.notes||'';
     document.getElementById('formTitle').textContent = '✏️ تعديل بطاقة';
-    document.getElementById('submitBtn').textContent = '💾 تحديث';
+    var unifiedSaveButton = document.getElementById('btnLoad');
+    if (unifiedSaveButton) unifiedSaveButton.textContent = '💾 تحديث ورفع ومزامنة';
     selectFormTab('personal', false);
     document.getElementById('cancelBtn').classList.remove('hidden');
     window.scrollTo({top:0, behavior:'smooth'});
@@ -1691,7 +1765,8 @@
     updatePhoneActions();
     document.getElementById('registerDate').value=formatDateDisplay(new Date().toISOString().split('T')[0]);
     document.getElementById('formTitle').textContent='➕ إضافة بطاقة جديدة';
-    document.getElementById('submitBtn').textContent='💾 حفظ محلياً';
+    var unifiedSaveButton = document.getElementById('btnLoad');
+    if (unifiedSaveButton) unifiedSaveButton.textContent='💾 حفظ ورفع ومزامنة';
     document.getElementById('cancelBtn').classList.add('hidden');
     setVehicleValue('');
     selectFormTab('personal', false);
@@ -1876,7 +1951,7 @@
   updateOnlineStatus();
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('./service-worker.js?v=remove-finance46').catch(function(error) { console.warn('Service Worker:', error); });
+      navigator.serviceWorker.register('./service-worker.js?v=restored-camera-sync-1').catch(function(error) { console.warn('Service Worker:', error); });
     });
   }
 
