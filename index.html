@@ -813,6 +813,7 @@
   var DEFAULT_FB_URL = 'https://koutoubia-auto-ecole-default-rtdb.europe-west1.firebasedatabase.app/';
   var candidates = [];
   var currentPhoto = '';
+  var photoProcessing = null;
   var fbUrl = '';
   var firebaseConfig = {
     apiKey: 'AIzaSyD32obOSEGVfyazTRco3bK6MFE2DYI0CtI',
@@ -1324,7 +1325,8 @@
     if (!file) return;
     if (!file.type.startsWith('image/')) { toast('⚠️ اختر صورة فقط', 'wrn'); return; }
     try {
-      currentPhoto = await compressImageFile(file, 700, 900, 0.78);
+      photoProcessing = compressImageFile(file, 700, 900, 0.78);
+      currentPhoto = await photoProcessing;
       var img = document.getElementById('photoPreview');
       img.src = currentPhoto;
       img.classList.add('show');
@@ -1333,7 +1335,10 @@
       document.getElementById('photoArea').classList.add('has-img');
     } catch (err) {
       console.error(err);
+      currentPhoto = '';
       toast('❌ تعذر تجهيز الصورة، حاول مرة أخرى', 'err');
+    } finally {
+      photoProcessing = null;
     }
   }
 
@@ -1746,6 +1751,10 @@
   // ====== FORM SUBMIT ======
   document.getElementById('candForm').addEventListener('submit', async function(e){
     e.preventDefault();
+    if (photoProcessing) {
+      showSpin('🖼️ جارٍ تجهيز صورة المرشح قبل الحفظ...');
+      try { await photoProcessing; } finally { hideSpin(); }
+    }
     if (!validateCandidateForm()) return;
     var editId = document.getElementById('editId').value;
     var photoToSave = currentPhoto;

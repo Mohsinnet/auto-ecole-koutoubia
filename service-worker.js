@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v51-birthplace-input';
+const CACHE_NAME = 'auto-ecole-koutoubia-v52-photo-persistence';
 const APP_SHELL = [
   './',
   './index.html',
