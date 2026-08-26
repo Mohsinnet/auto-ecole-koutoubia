@@ -626,8 +626,8 @@
           <details class="collapse-section" open>
             <summary class="collapse-summary"><span>📝 معلومات شخصية</span><small>اضغط للطي</small></summary>
             <div class="collapse-content">
-        <div class="photo-area" id="photoArea" onclick="document.getElementById('photoInput').click()">
-          <input type="file" id="photoInput" accept="image/*" capture="user" onclick="event.stopPropagation()" onchange="handlePhoto(event)">
+        <div class="photo-area" id="photoArea" role="button" tabindex="0" aria-label="فتح كاميرا الهاتف لتصوير المرشح" onclick="openCamera()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openCamera();}">
+          <input type="file" id="photoInput" accept="image/*" capture="environment" onclick="event.stopPropagation()" onchange="handlePhoto(event)">
           <button type="button" class="photo-remove" onclick="event.stopPropagation();removePhoto()">✕</button>
           <img class="photo-preview" id="photoPreview">
           <div class="photo-placeholder" id="photoPlc">📷</div>
@@ -1321,6 +1321,12 @@
     });
   }
 
+  function openCamera() {
+    var input = document.getElementById('photoInput');
+    if (!input) return;
+    input.setAttribute('capture', 'environment');
+    input.click();
+  }
   function readFileAsDataURL(file) {
     return new Promise(function(resolve, reject) {
       var reader = new FileReader();
