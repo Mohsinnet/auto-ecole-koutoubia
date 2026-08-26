@@ -1321,11 +1321,69 @@
     });
   }
 
-  function openCamera() {
-    var input = document.getElementById('photoInput');
-    if (!input) return;
-    input.setAttribute('capture', 'environment');
-    input.click();
+  var cameraStream = null;
+  function stopCameraStream() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(function(track){ track.stop(); });
+      cameraStream = null;
+    }
+  }
+  function applyPhotoResult(dataUrl) {
+    currentPhoto = dataUrl || '';
+    var img = document.getElementById('photoPreview');
+    if (!currentPhoto) return;
+    img.src = currentPhoto;
+    img.classList.add('show');
+    document.getElementById('photoPlc').style.display = 'none';
+    document.getElementById('photoTxt').textContent = '✅ تم تجهيز الصورة وحفظها';
+    document.getElementById('photoArea').classList.add('has-img');
+  }
+  async function openCamera() {
+    var videoMarkup = '<video id="cameraVideo" autoplay playsinline muted style="display:block;width:100%;max-height:60vh;object-fit:contain;background:#000;border-radius:12px"></video><p style="margin-top:10px;color:#94a3b8;text-align:center">اسمح للمتصفح باستعمال الكاميرا ثم اضغط «التقاط الصورة»</p>';
+    showModal('📷 تصوير صورة المرشح', videoMarkup, [
+      {text:'التقاط الصورة', cls:'btn btn-prm', act:captureCameraPhoto},
+      {text:'إلغاء', cls:'btn btn-sec', act:closeCameraCapture}
+    ]);
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast('⚠️ الكاميرا المباشرة غير مدعومة؛ سيتم فتح اختيار الصور', 'wrn');
+      closeCameraCapture();
+      var fallbackInput = document.getElementById('photoInput');
+      fallbackInput.setAttribute('capture', 'environment');
+      fallbackInput.click();
+      return;
+    }
+    try {
+      cameraStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false});
+      var video = document.getElementById('cameraVideo');
+      if (video) video.srcObject = cameraStream;
+    } catch (err) {
+      console.error('Camera permission/error:', err);
+      toast('⚠️ لم يتم السماح بالكاميرا؛ سيتم فتح اختيار الصور', 'wrn');
+      closeCameraCapture();
+      var input = document.getElementById('photoInput');
+      input.setAttribute('capture', 'environment');
+      input.click();
+    }
+  }
+  function captureCameraPhoto() {
+    var video = document.getElementById('cameraVideo');
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      toast('⚠️ انتظر ظهور صورة الكاميرا ثم حاول مجددًا', 'wrn');
+      return;
+    }
+    var canvas = document.createElement('canvas');
+    var scale = Math.min(1, 700 / video.videoWidth, 900 / video.videoHeight);
+    canvas.width = Math.max(1, Math.round(video.videoWidth * scale));
+    canvas.height = Math.max(1, Math.round(video.videoHeight * scale));
+    var ctx = canvas.getContext('2d', {alpha:false});
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    applyPhotoResult(canvas.toDataURL('image/jpeg', 0.82));
+    closeCameraCapture();
+  }
+  function closeCameraCapture() {
+    stopCameraStream();
+    hideModal();
   }
   function readFileAsDataURL(file) {
     return new Promise(function(resolve, reject) {
@@ -1747,8 +1805,6 @@
       {id:'cinDate', tab:'documents', label:'تاريخ C.I.N'},
       {id:'saisieDate', tab:'extra', label:'Date de Saisie'},
       {id:'exam1D1Date', tab:'dossier', label:'تاريخ 1er Examen'},
-      // تاريخ 2ème Examen اختياري؛ تتمّ المصادقة عليه فقط إذا أدخله المستخدم.
-      {id:'exam2D1Date', tab:'dossier', label:'تاريخ 2ème Examen'},
       {id:'registerDate', tab:'payment', label:'تاريخ التسجيل'}
     ];
     var dates = {};
@@ -1815,7 +1871,7 @@
       exam1D1: document.getElementById('exam1D1').value,
       exam1D1Date: toISODate(document.getElementById('exam1D1Date').value),
       exam2D1: document.getElementById('exam2D1').value,
-      exam2D1Date: toISODate(document.getElementById('exam2D1Date').value),
+      exam2D1Date: normalizedDateValue('exam2D1Date') || '',
       voitureNumber: document.getElementById('voitureNumber').value.trim(),
       licenseType: document.getElementById('licenseType').value,
       totalPrice: paymentNumber('totalPrice'),
@@ -2024,7 +2080,7 @@
     });
     document.getElementById('modalOverlay').classList.add('active');
   }
-  function hideModal() { document.getElementById('modalOverlay').classList.remove('active'); }
+  function hideModal() { stopCameraStream(); document.getElementById('modalOverlay').classList.remove('active'); }
   document.getElementById('modalOverlay').addEventListener('click', function(e){ if(e.target===e.currentTarget) hideModal(); });
 
   // ====== TOAST ======

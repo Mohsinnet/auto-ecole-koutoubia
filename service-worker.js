@@ -1,4 +1,4 @@
-const CACHE_NAME = 'auto-ecole-koutoubia-v54-direct-camera';
+const CACHE_NAME = 'auto-ecole-koutoubia-v55-real-camera-optional-exam2';
 const APP_SHELL = [
   './',
   './index.html',
